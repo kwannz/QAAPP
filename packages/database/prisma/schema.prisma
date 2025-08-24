@@ -1,0 +1,322 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema", "views", "fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+// 用户角色枚举
+enum UserRole {
+  USER
+  AGENT
+  ADMIN
+}
+
+// KYC状态枚举
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+// 订单状态枚举
+enum OrderStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+// 持仓状态枚举
+enum PositionStatus {
+  ACTIVE
+  REDEEMING
+  CLOSED
+  DEFAULTED
+}
+
+// 佣金类型枚举
+enum CommissionType {
+  REFERRAL
+  AGENT
+}
+
+// 佣金状态枚举
+enum CommissionStatus {
+  PENDING
+  READY
+  PAID
+  FAILED
+}
+
+// 用户表
+model User {
+  id              String    @id @default(cuid())
+  email           String?   @unique
+  passwordHash    String?   @map("password_hash")
+  role            UserRole  @default(USER)
+  referralCode    String    @unique @map("referral_code")
+  referredById    String?   @map("referred_by_id")
+  agentId         String?   @map("agent_id")
+  kycStatus       KycStatus @default(PENDING) @map("kyc_status")
+  kycData         Json?     @map("kyc_data")
+  isActive        Boolean   @default(true) @map("is_active")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // 关系
+  referredBy      User?         @relation("UserReferral", fields: [referredById], references: [id])
+  referrals       User[]        @relation("UserReferral")
+  agent           User?         @relation("UserAgent", fields: [agentId], references: [id])
+  agentUsers      User[]        @relation("UserAgent")
+  wallets         Wallet[]
+  orders          Order[]
+  positions       Position[]
+  payouts         Payout[]
+  commissions     Commission[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+  @@index([email])
+  @@index([referralCode])
+  @@index([referredById])
+  @@index([agentId])
+  @@index([createdAt])
+}
+
+// 钱包表
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  chainId   Int      @map("chain_id")
+  address   String
+  isPrimary Boolean  @default(false) @map("is_primary")
+  label     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // 关系
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chainId, address])
+  @@map("wallets")
+  @@index([userId])
+  @@index([address])
+}
+
+// 产品表
+model Product {
+  id            String    @id @default(cuid())
+  symbol        String    @unique
+  name          String
+  description   String?
+  minAmount     Decimal   @map("min_amount") @db.Decimal(20, 6)
+  maxAmount     Decimal?  @map("max_amount") @db.Decimal(20, 6)
+  aprBps        Int       @map("apr_bps") // 年化收益率(基点)
+  lockDays      Int       @map("lock_days")
+  nftTokenId    Int?      @unique @map("nft_token_id")
+  nftMetadata   Json?     @map("nft_metadata")
+  totalSupply   Int?      @map("total_supply") // 总供应量限制
+  currentSupply Int       @default(0) @map("current_supply") // 当前已售数量
+  isActive      Boolean   @default(true) @map("is_active")
+  startsAt      DateTime  @map("starts_at")
+  endsAt        DateTime? @map("ends_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // 关系
+  orders        Order[]
+  positions     Position[]
+
+  @@map("products")
+  @@index([symbol])
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([endsAt])
+}
+
+// 订单表
+model Order {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  productId     String      @map("product_id")
+  usdtAmount    Decimal     @map("usdt_amount") @db.Decimal(20, 6)
+  platformFee   Decimal     @default(0) @map("platform_fee") @db.Decimal(20, 6)
+  txHash        String?     @map("tx_hash")
+  status        OrderStatus @default(PENDING)
+  referrerId    String?     @map("referrer_id")
+  agentId       String?     @map("agent_id")
+  failureReason String?     @map("failure_reason")
+  metadata      Json?       // 额外的订单元数据
+  createdAt     DateTime    @default(now()) @map("created_at")
+  confirmedAt   DateTime?   @map("confirmed_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // 关系
+  user          User         @relation(fields: [userId], references: [id])
+  product       Product      @relation(fields: [productId], references: [id])
+  referrer      User?        @relation("OrderReferrer", fields: [referrerId], references: [id])
+  agent         User?        @relation("OrderAgent", fields: [agentId], references: [id])
+  positions     Position[]
+  commissions   Commission[]
+
+  @@map("orders")
+  @@index([userId, status])
+  @@index([productId])
+  @@index([txHash])
+  @@index([createdAt])
+  @@index([status])
+}
+
+// 持仓表
+model Position {
+  id             String         @id @default(cuid())
+  userId         String         @map("user_id")
+  productId      String         @map("product_id")
+  orderId        String         @map("order_id")
+  principal      Decimal        @db.Decimal(20, 6)
+  startDate      DateTime       @map("start_date") @db.Date
+  endDate        DateTime       @map("end_date") @db.Date
+  nextPayoutAt   DateTime?      @map("next_payout_at")
+  nftTokenId     Int?           @map("nft_token_id")
+  nftTokenUri    String?        @map("nft_token_uri")
+  status         PositionStatus @default(ACTIVE)
+  metadata       Json?          // 持仓相关元数据
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  // 关系
+  user           User       @relation(fields: [userId], references: [id])
+  product        Product    @relation(fields: [productId], references: [id])
+  order          Order      @relation(fields: [orderId], references: [id])
+  payouts        Payout[]
+
+  @@map("positions")
+  @@index([userId, status])
+  @@index([productId])
+  @@index([orderId])
+  @@index([nextPayoutAt])
+  @@index([endDate])
+  @@index([status])
+}
+
+// 收益分发表
+model Payout {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  positionId      String    @map("position_id")
+  amount          Decimal   @db.Decimal(20, 6)
+  periodStart     DateTime  @map("period_start") @db.Date
+  periodEnd       DateTime  @map("period_end") @db.Date
+  isClaimable     Boolean   @default(false) @map("is_claimable")
+  claimedAt       DateTime? @map("claimed_at")
+  claimTxHash     String?   @map("claim_tx_hash")
+  merkleIndex     Int?      @map("merkle_index")
+  merkleProof     Json?     @map("merkle_proof")
+  batchId         String?   @map("batch_id")
+  distributionTx  String?   @map("distribution_tx")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // 关系
+  user            User      @relation(fields: [userId], references: [id])
+  position        Position  @relation(fields: [positionId], references: [id])
+
+  @@map("payouts")
+  @@index([userId, isClaimable])
+  @@index([positionId])
+  @@index([batchId])
+  @@index([periodStart])
+  @@index([isClaimable])
+}
+
+// 佣金表
+model Commission {
+  id                String           @id @default(cuid())
+  userId            String           @map("user_id")
+  orderId           String           @map("order_id")
+  basisAmount       Decimal          @map("basis_amount") @db.Decimal(20, 6) // 计算基数
+  rateBps           Int              @map("rate_bps") // 佣金比例(基点)
+  amount            Decimal          @db.Decimal(20, 6)
+  commissionType    CommissionType   @map("commission_type")
+  status            CommissionStatus @default(PENDING)
+  settledAt         DateTime?        @map("settled_at")
+  settlementTxHash  String?          @map("settlement_tx_hash")
+  batchId           String?          @map("batch_id")
+  metadata          Json?            // 佣金相关元数据
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  // 关系
+  user              User             @relation(fields: [userId], references: [id])
+  order             Order            @relation(fields: [orderId], references: [id])
+
+  @@map("commissions")
+  @@index([userId, commissionType])
+  @@index([orderId])
+  @@index([status])
+  @@index([batchId])
+  @@index([createdAt])
+}
+
+// 审计日志表
+model AuditLog {
+  id           String    @id @default(cuid())
+  actorId      String?   @map("actor_id")
+  actorType    String    @default("USER") @map("actor_type")
+  action       String
+  resourceType String?   @map("resource_type")
+  resourceId   String?   @map("resource_id")
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent")
+  metadata     Json?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // 关系
+  actor        User?     @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+}
+
+// 系统配置表
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  category  String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
+  @@index([category])
+}
+
+// 批次处理记录表
+model BatchJob {
+  id          String    @id @default(cuid())
+  type        String    // PAYOUT_DISTRIBUTION, COMMISSION_SETTLEMENT等
+  status      String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  parameters  Json?     // 批次参数
+  result      Json?     // 处理结果
+  errorMsg    String?   @map("error_msg")
+  processedAt DateTime? @map("processed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("batch_jobs")
+  @@index([type, status])
+  @@index([createdAt])
+}
