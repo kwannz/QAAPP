@@ -57,6 +57,25 @@ enum CommissionStatus {
   FAILED
 }
 
+// 提现状态枚举
+enum WithdrawalStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  REJECTED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+// 提现类型枚举
+enum WithdrawalType {
+  EARNINGS
+  PRINCIPAL
+  COMMISSION
+}
+
 // 用户表
 model User {
   id              String    @id @default(cuid())
@@ -86,6 +105,7 @@ model User {
   payouts         Payout[]
   commissions     Commission[]
   auditLogs       AuditLog[]
+  withdrawals     Withdrawal[]
 
   @@map("users")
   @@index([email])
@@ -306,10 +326,72 @@ model SystemConfig {
   @@index([category])
 }
 
+// 提现表
+model Withdrawal {
+  id                String           @id @default(cuid())
+  userId            String           @map("user_id")
+  amount            Decimal          @db.Decimal(20, 6)
+  withdrawalType    WithdrawalType   @map("withdrawal_type")
+  status            WithdrawalStatus @default(PENDING)
+  walletAddress     String           @map("wallet_address")
+  chainId           Int              @map("chain_id")
+  platformFee       Decimal          @default(0) @map("platform_fee") @db.Decimal(20, 6)
+  actualAmount      Decimal          @map("actual_amount") @db.Decimal(20, 6) // 扣除手续费后实际提现金额
+  txHash            String?          @map("tx_hash")
+  blockNumber       BigInt?          @map("block_number")
+  gasUsed           BigInt?          @map("gas_used")
+  gasFee            Decimal?         @map("gas_fee") @db.Decimal(20, 6)
+  
+  // 风险评估字段
+  riskScore         Int              @default(0) @map("risk_score") // 0-100风险评分
+  riskLevel         String           @default("LOW") @map("risk_level") // LOW, MEDIUM, HIGH, CRITICAL
+  riskFactors       Json?            @map("risk_factors") // 风险因素详情
+  autoApproved      Boolean          @default(false) @map("auto_approved")
+  
+  // 审核相关
+  reviewerId        String?          @map("reviewer_id")
+  reviewedAt        DateTime?        @map("reviewed_at")
+  reviewNotes       String?          @map("review_notes")
+  rejectionReason   String?          @map("rejection_reason")
+  
+  // 处理相关
+  processedAt       DateTime?        @map("processed_at")
+  processedBy       String?          @map("processed_by")
+  batchId           String?          @map("batch_id")
+  
+  // 时间戳
+  requestedAt       DateTime         @default(now()) @map("requested_at")
+  scheduledAt       DateTime?        @map("scheduled_at") // 计划处理时间
+  completedAt       DateTime?        @map("completed_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  
+  // KYC和合规
+  kycVerified       Boolean          @default(false) @map("kyc_verified")
+  amlCheckPassed    Boolean          @default(false) @map("aml_check_passed")
+  complianceNotes   String?          @map("compliance_notes")
+  
+  // 元数据
+  metadata          Json?            // 额外信息，如IP地址、设备信息等
+  internalNotes     String?          @map("internal_notes") // 内部备注
+
+  // 关系
+  user              User             @relation(fields: [userId], references: [id])
+
+  @@map("withdrawals")
+  @@index([userId, status])
+  @@index([status, riskLevel])
+  @@index([requestedAt])
+  @@index([reviewerId])
+  @@index([batchId])
+  @@index([walletAddress])
+  @@index([txHash])
+}
+
 // 批次处理记录表
 model BatchJob {
   id          String    @id @default(cuid())
-  type        String    // PAYOUT_DISTRIBUTION, COMMISSION_SETTLEMENT等
+  type        String    // PAYOUT_DISTRIBUTION, COMMISSION_SETTLEMENT, WITHDRAWAL_PROCESSING等
   status      String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
   parameters  Json?     // 批次参数
   result      Json?     // 处理结果
