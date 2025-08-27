@@ -8,7 +8,7 @@ import { useState, ReactNode, useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 import { wagmiConfig } from '../lib/wagmi-config';
-import { usePerformanceOptimization, trackWebVitals, performanceMonitor } from '../lib/web3-optimizer';
+import { Web3Provider } from '../lib/web3-provider';
 
 import '@rainbow-me/rainbowkit/styles.css';
 
@@ -51,26 +51,13 @@ export function Providers({ children, cookies }: ProvidersProps) {
   const [queryClient] = useState(() => createQueryClient());
   const [mounted, setMounted] = useState(false);
 
-  // 性能优化
-  const cleanup = usePerformanceOptimization();
-
   // 解决SSR水合问题
   useEffect(() => {
     setMounted(true);
-    
-    // 启动性能监控
-    performanceMonitor.startMeasure('app_initialization');
-    trackWebVitals();
-    
-    // 组件卸载时清理
-    return () => {
-      if (cleanup) cleanup();
-      performanceMonitor.endMeasure('app_initialization');
-    };
-  }, [cleanup]);
+  }, []);
 
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <Web3Provider>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           modalSize="compact"
@@ -123,6 +110,6 @@ export function Providers({ children, cookies }: ProvidersProps) {
           )}
         </RainbowKitProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </Web3Provider>
   );
 }

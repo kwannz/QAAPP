@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# QAapp 一键部署脚本
-# 使用方法: ./scripts/deploy.sh [production|staging|development]
+# QA Investment Platform - Production Deployment Script
+# 生产环境部署脚本
+# 使用方法: ./scripts/deploy.sh [deploy|test|logs|stop]
 
 set -e
 

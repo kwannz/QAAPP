@@ -12,6 +12,15 @@ import { MockModule } from './mock/mock.module';
 import { PayoutsModule } from './payouts/payouts.module';
 import { PositionsModule } from './positions/positions.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { WithdrawalsModule } from './withdrawals/withdrawals.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuditModule } from './audit/audit.module';
+import { AgentsModule } from './agents/agents.module';
+import { CommissionsModule } from './commissions/commissions.module';
+import { ConfigModule as SystemConfigModule } from './config/config.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ReportsModule } from './reports/reports.module';
+import { PerformanceModule } from './performance/performance.module';
 
 @Module({
   imports: [
@@ -27,8 +36,9 @@ import { MonitoringModule } from './monitoring/monitoring.module';
     // Mock模块 (用于测试核心业务逻辑)
     MockModule,
 
-    // 数据库模块 (暂时禁用，因为连接问题)
-    // DatabaseModule,
+    // 数据库和审计模块
+    PrismaModule,
+    AuditModule,
 
     // 认证和用户模块
     AuthModule,
@@ -40,8 +50,27 @@ import { MonitoringModule } from './monitoring/monitoring.module';
     // 收益分发自动化模块
     PayoutsModule,
 
+    // 提现管理模块
+    WithdrawalsModule,
+
     // 系统监控和告警模块
     MonitoringModule,
+
+    // 代理商和佣金管理模块
+    AgentsModule,
+    CommissionsModule,
+
+    // 系统配置管理模块
+    SystemConfigModule,
+
+    // 通知消息系统模块
+    NotificationsModule,
+
+    // 财务报表生成模块
+    ReportsModule,
+
+    // 性能监控模块
+    PerformanceModule,
 
     // 核心业务模块
     // ProductsModule,

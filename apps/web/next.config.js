@@ -15,16 +15,23 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // 支持Web3相关的Node.js模块
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     
-    // 优化bundle大小
+    // 优化bundle大小和修复indexedDB等浏览器API问题
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       net: false,
-      tls: false
+      tls: false,
+      crypto: false
+    };
+
+    // 修复模块导入问题
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@tanstack/react-query': require.resolve('@tanstack/react-query')
     };
     
     return config;
