@@ -21,6 +21,8 @@ import { ConfigModule as SystemConfigModule } from './config/config.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { PerformanceModule } from './performance/performance.module';
+import { RiskModule } from './risk/risk.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -71,6 +73,12 @@ import { PerformanceModule } from './performance/performance.module';
 
     // 性能监控模块
     PerformanceModule,
+
+    // 风险管理模块
+    RiskModule,
+
+    // 管理功能模块
+    AdminModule,
 
     // 核心业务模块
     // ProductsModule,

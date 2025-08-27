@@ -5,7 +5,13 @@ const nextConfig = {
   },
   serverExternalPackages: ['@prisma/client'],
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query'],
+    optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query', 'framer-motion'],
+    // 开启并发特性
+    concurrentFeatures: true,
+    // 服务端组件优化
+    serverComponentsExternalPackages: ['@prisma/client'],
+    // 启用部分预渲染（Beta）
+    ppr: false,
   },
   turbopack: {
     rules: {
@@ -15,7 +21,7 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // 支持Web3相关的Node.js模块
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     
@@ -33,6 +39,52 @@ const nextConfig = {
       ...config.resolve.alias,
       '@tanstack/react-query': require.resolve('@tanstack/react-query')
     };
+    
+    // 生产环境优化
+    if (!dev && !isServer) {
+      // 代码分割优化
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 10,
+          },
+          // 将大型UI库分离
+          ui: {
+            test: /[\\/]node_modules[\\/](@headlessui|@heroicons|lucide-react)[\\/]/,
+            name: 'ui',
+            chunks: 'all',
+            priority: 20,
+          },
+          // 将动画库分离
+          animations: {
+            test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
+            name: 'animations',
+            chunks: 'all',
+            priority: 20,
+          },
+          // 将Web3相关库分离
+          web3: {
+            test: /[\\/]node_modules[\\/](wagmi|viem|@wagmi|@rainbow-me)[\\/]/,
+            name: 'web3',
+            chunks: 'all',
+            priority: 20,
+          },
+        },
+      }
+    }
+    
+    // Bundle 分析
+    if (process.env.ANALYZE === 'true') {
+      const BundleAnalyzerPlugin = require('@next/bundle-analyzer')({
+        enabled: true,
+      })
+      config.plugins.push(new BundleAnalyzerPlugin())
+    }
     
     return config;
   },
