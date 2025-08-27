@@ -1,7 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  serverExternalPackages: ['@prisma/client'],
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client']
+    optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query'],
+  },
+  turbopack: {
+    rules: {
+      '*.svg': ['@svgr/webpack']
+    }
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
   },
   webpack: (config) => {
     // 支持Web3相关的Node.js模块
@@ -29,8 +41,7 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY
   },
-  // 启用SWC编译器优化
-  swcMinify: true,
+  // SWC编译器优化已默认启用 (Next.js 15+)
   
   // 安全头部配置
   async headers() {

@@ -9,8 +9,9 @@
     "test:coverage": "hardhat coverage",
     "deploy": "hardhat deploy",
     "deploy:local": "hardhat deploy --network localhost",
-    "deploy:testnet": "hardhat deploy --network polygon-mumbai",
-    "deploy:mainnet": "hardhat deploy --network polygon",
+    "deploy:sepolia": "hardhat deploy --network sepolia",
+    "deploy:mumbai": "hardhat deploy --network polygon-mumbai",
+    "deploy:polygon": "hardhat deploy --network polygon",
     "verify": "hardhat verify",
     "node": "hardhat node",
     "clean": "hardhat clean",
@@ -20,19 +21,20 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.4",
-    "@openzeppelin/hardhat-upgrades": "^3.0.5",
-    "hardhat": "^2.19.5",
-    "hardhat-deploy": "^0.11.45",
-    "hardhat-contract-sizer": "^2.10.0",
+    "@openzeppelin/hardhat-upgrades": "^3.2.3",
+    "@types/node": "^22.10.2",
+    "hardhat": "^2.22.15",
+    "hardhat-contract-sizer": "^2.10.1",
+    "hardhat-deploy": "^0.12.4",
     "hardhat-gas-reporter": "^1.0.10",
     "solidity-coverage": "^0.8.7",
-    "@types/node": "^20.11.17",
-    "typescript": "^5.3.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.1",
-    "@openzeppelin/contracts-upgradeable": "^5.0.1",
-    "ethers": "^6.10.0",
-    "dotenv": "^16.4.1"
+    "@openzeppelin/contracts": "^5.2.0",
+    "@openzeppelin/contracts-upgradeable": "^5.2.0",
+    "axios": "^1.11.0",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.4"
   }
 }

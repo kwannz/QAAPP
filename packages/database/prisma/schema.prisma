@@ -80,6 +80,8 @@ model User {
   agentUsers      User[]        @relation("UserAgent")
   wallets         Wallet[]
   orders          Order[]
+  referredOrders  Order[]       @relation("OrderReferrer")
+  agentOrders     Order[]       @relation("OrderAgent")
   positions       Position[]
   payouts         Payout[]
   commissions     Commission[]

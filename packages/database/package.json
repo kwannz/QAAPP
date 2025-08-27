@@ -9,22 +9,25 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "tsx seed/index.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:init": "bash scripts/init-db.sh",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@prisma/client": "^5.9.1",
-    "prisma": "^5.9.1"
+    "@prisma/client": "^6.1.0",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
-    "typescript": "^5.3.3",
-    "tsx": "^4.7.1"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.2",
+    "prisma": "^6.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "prisma": {
-    "seed": "tsx seed/index.ts"
+    "seed": "tsx prisma/seed.ts"
   }
 }

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-08-25T15:17:14.708Z",
+  "overallScore": 75,
+  "components": [
+    {
+      "category": "智能合约",
+      "score": 100,
+      "details": [
+        "✅ packages/contracts/contracts/Treasury.sol",
+        "✅ packages/contracts/contracts/QACard.sol",
+        "✅ packages/contracts/contracts/MockUSDT.sol",
+        "✅ 合约编译成功",
+        "✅ ETH支付功能已实现"
+      ]
+    },
+    {
+      "category": "API服务",
+      "score": 0,
+      "details": [
+        "❌ API服务无响应",
+        "❌ USDT支付端点失败",
+        "❌ ETH支付端点失败"
+      ]
+    },
+    {
+      "category": "前端应用",
+      "score": 75,
+      "details": [
+        "✅ apps/web/components/products/ProductPurchase.tsx",
+        "✅ apps/web/lib/hooks/use-contracts.ts",
+        "✅ apps/web/lib/contracts/abis.ts",
+        "✅ apps/web/lib/wagmi-config.ts",
+        "✅ ETH支付Hook已实现",
+        "✅ Treasury ABI已更新",
+        "❌ 前端应用无法访问"
+      ]
+    },
+    {
+      "category": "数据库",
+      "score": 100,
+      "details": [
+        "✅ packages/database/prisma/schema.prisma",
+        "✅ packages/database/src/config.ts",
+        "✅ packages/database/src/index.ts",
+        "✅ 数据库配置验证通过"
+      ]
+    },
+    {
+      "category": "部署准备",
+      "score": 100,
+      "details": [
+        "✅ Sepolia测试网连接正常",
+        "✅ packages/contracts/scripts/test-connection.ts",
+        "✅ packages/database/scripts/deploy-config.sh",
+        "⏳ 智能合约尚未部署到测试网"
+      ]
+    }
+  ]
+}
