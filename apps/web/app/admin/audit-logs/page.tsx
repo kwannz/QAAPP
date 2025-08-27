@@ -17,7 +17,15 @@ import {
   Clock,
   Database,
   Settings,
-  Lock
+  Lock,
+  CheckSquare,
+  FileBarChart,
+  Bell,
+  Trash2,
+  Play,
+  Pause,
+  Cog,
+  ClipboardCheck
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@qa-app/ui'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
@@ -193,6 +201,11 @@ export default function AuditLogsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedLogs, setSelectedLogs] = useState<string[]>([])
+  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(true)
+  const [showAlertRulesModal, setShowAlertRulesModal] = useState(false)
+  const [showAuditConfigModal, setShowAuditConfigModal] = useState(false)
+  const [showCleanupModal, setShowCleanupModal] = useState(false)
 
   useEffect(() => {
     // 模拟数据加载
@@ -322,6 +335,61 @@ export default function AuditLogsPage() {
     alert('导出功能开发中')
   }
 
+  // 新增的功能处理函数
+  const handleExportAuditReport = () => {
+    alert('正在生成审计报告...')
+  }
+
+  const handleBatchMarkAbnormal = () => {
+    if (selectedLogs.length === 0) {
+      alert('请先选择要标记的日志')
+      return
+    }
+    alert(`已将 ${selectedLogs.length} 条日志标记为异常`)
+    setSelectedLogs([])
+  }
+
+  const handleGenerateAuditSummary = () => {
+    alert('正在生成审计摘要...')
+  }
+
+  const handleSetAlertRules = () => {
+    setShowAlertRulesModal(true)
+  }
+
+  const handleAuditDataCleanup = () => {
+    setShowCleanupModal(true)
+  }
+
+  const handleToggleRealTime = () => {
+    setIsRealTimeEnabled(!isRealTimeEnabled)
+    alert(`实时监控已${!isRealTimeEnabled ? '开启' : '关闭'}`)
+  }
+
+  const handleAuditConfig = () => {
+    setShowAuditConfigModal(true)
+  }
+
+  const handleComplianceReport = () => {
+    alert('正在生成合规检查报告...')
+  }
+
+  const handleSelectLog = (logId: string) => {
+    setSelectedLogs(prev => 
+      prev.includes(logId) 
+        ? prev.filter(id => id !== logId)
+        : [...prev, logId]
+    )
+  }
+
+  const handleSelectAll = () => {
+    if (selectedLogs.length === filteredLogs.length) {
+      setSelectedLogs([])
+    } else {
+      setSelectedLogs(filteredLogs.map(log => log.id))
+    }
+  }
+
   if (isLoading) {
     return (
       <AdminGuard>
@@ -361,23 +429,89 @@ export default function AuditLogsPage() {
               </p>
             </div>
             
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleRefresh}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                刷新
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleExportLogs}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                导出日志
-              </Button>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* 第一行操作按钮 */}
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefresh}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  刷新
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleExportAuditReport}
+                >
+                  <FileBarChart className="w-4 h-4 mr-2" />
+                  导出审计报告
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleGenerateAuditSummary}
+                >
+                  <ClipboardCheck className="w-4 h-4 mr-2" />
+                  生成审计摘要
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleComplianceReport}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  合规检查报告
+                </Button>
+              </div>
+              
+              {/* 第二行操作按钮 */}
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleBatchMarkAbnormal}
+                  disabled={selectedLogs.length === 0}
+                >
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  批量标记异常
+                  {selectedLogs.length > 0 && ` (${selectedLogs.length})`}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSetAlertRules}
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  设置告警规则
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleAuditDataCleanup}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  审计数据清理
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleToggleRealTime}
+                  className={isRealTimeEnabled ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}
+                >
+                  {isRealTimeEnabled ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                  {isRealTimeEnabled ? '关闭实时监控' : '开启实时监控'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleAuditConfig}
+                >
+                  <Cog className="w-4 h-4 mr-2" />
+                  审计策略配置
+                </Button>
+              </div>
             </div>
           </motion.div>
 
@@ -529,17 +663,38 @@ export default function AuditLogsPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>操作日志 ({filteredLogs.length})</CardTitle>
+                {filteredLogs.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedLogs.length === filteredLogs.length}
+                      onChange={handleSelectAll}
+                      className="rounded border-gray-300"
+                    />
+                    <label className="text-sm text-gray-600">全选</label>
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {filteredLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
+                        selectedLogs.includes(log.id) 
+                          ? 'bg-blue-50 border border-blue-200' 
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
                     >
                       <div className="flex items-center space-x-4 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedLogs.includes(log.id)}
+                          onChange={() => handleSelectLog(log.id)}
+                          className="rounded border-gray-300"
+                        />
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getCategoryStyle(log.category)}`}>
                           {getCategoryIcon(log.category)}
                         </div>
@@ -728,6 +883,276 @@ export default function AuditLogsPage() {
                       onClick={() => setShowDetailModal(false)}
                     >
                       关闭
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 告警规则配置弹窗 */}
+          {showAlertRulesModal && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">告警规则配置</h2>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowAlertRulesModal(false)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        规则名称
+                      </label>
+                      <Input placeholder="输入规则名称" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        触发条件
+                      </label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option>登录失败次数超过阈值</option>
+                        <option>异常IP地址访问</option>
+                        <option>高风险操作频繁</option>
+                        <option>系统错误率过高</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        阈值设置
+                      </label>
+                      <Input type="number" placeholder="输入阈值" />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        通知方式
+                      </label>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                          邮件通知
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                          短信通知
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                          系统内通知
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAlertRulesModal(false)}
+                    >
+                      取消
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        alert('告警规则已保存')
+                        setShowAlertRulesModal(false)
+                      }}
+                    >
+                      保存规则
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 审计策略配置弹窗 */}
+          {showAuditConfigModal && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">审计策略配置</h2>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowAuditConfigModal(false)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">日志记录范围</h3>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                          用户认证操作
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                          管理员操作
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                          交易相关操作
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                          系统配置变更
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                          数据库操作
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">日志保留策略</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            保留时长（天）
+                          </label>
+                          <Input type="number" defaultValue="365" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            归档阈值（GB）
+                          </label>
+                          <Input type="number" defaultValue="10" />
+                        </div>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                          自动归档旧日志
+                        </label>
+                        <label className="flex items-center">
+                          <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                          压缩归档文件
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">敏感数据处理</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                        脱敏密码字段
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                        脱敏身份证号码
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" className="rounded border-gray-300 mr-2" defaultChecked />
+                        脱敏银行卡号
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                        完全不记录敏感数据
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAuditConfigModal(false)}
+                    >
+                      取消
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        alert('审计策略已保存')
+                        setShowAuditConfigModal(false)
+                      }}
+                    >
+                      保存配置
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 数据清理弹窗 */}
+          {showCleanupModal && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg w-full max-w-lg">
+                <div className="p-6 border-b">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">审计数据清理</h2>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowCleanupModal(false)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+                      <span className="text-yellow-800 font-medium">注意</span>
+                    </div>
+                    <p className="text-yellow-700 text-sm mt-1">
+                      数据清理操作不可恢复，请谨慎选择清理范围。
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      清理范围
+                    </label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                      <option>清理30天前的低级别日志</option>
+                      <option>清理90天前的中级别日志</option>
+                      <option>清理1年前的所有日志</option>
+                      <option>自定义时间范围</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="flex items-center">
+                      <input type="checkbox" className="rounded border-gray-300 mr-2" />
+                      清理前创建备份
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCleanupModal(false)}
+                    >
+                      取消
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        if (confirm('确认执行数据清理操作吗？此操作不可恢复。')) {
+                          alert('数据清理任务已提交，将在后台执行')
+                          setShowCleanupModal(false)
+                        }
+                      }}
+                    >
+                      确认清理
                     </Button>
                   </div>
                 </div>
