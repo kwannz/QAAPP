@@ -1,0 +1,413 @@
+{
+  "config": {
+    "configFile": "/Users/zhaoleon/Desktop/QAapp/playwright.config.ts",
+    "rootDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 5
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 8,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "advanced/button-algorithm-deep-optimized.spec.ts",
+      "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "按钮算法深度测试 - 优化版本",
+          "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+          "line": 1260,
+          "column": 6,
+          "specs": [
+            {
+              "title": "多维按钮特征提取验证",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6366,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 按钮特征提取成功: { \u001b[32m'尺寸'\u001b[39m: \u001b[32m'16x16'\u001b[39m, \u001b[32m'语义类别'\u001b[39m: \u001b[32m'generic'\u001b[39m, \u001b[32m'重要性'\u001b[39m: \u001b[33m5\u001b[39m, \u001b[32m'布局位置'\u001b[39m: \u001b[32m'main'\u001b[39m }\n"
+                        },
+                        {
+                          "text": "✅ 按钮特征提取成功: { \u001b[32m'尺寸'\u001b[39m: \u001b[32m'16x16'\u001b[39m, \u001b[32m'语义类别'\u001b[39m: \u001b[32m'generic'\u001b[39m, \u001b[32m'重要性'\u001b[39m: \u001b[33m5\u001b[39m, \u001b[32m'布局位置'\u001b[39m: \u001b[32m'main'\u001b[39m }\n"
+                        },
+                        {
+                          "text": "✅ 按钮特征提取成功: { \u001b[32m'尺寸'\u001b[39m: \u001b[32m'352x40'\u001b[39m, \u001b[32m'语义类别'\u001b[39m: \u001b[32m'generic'\u001b[39m, \u001b[32m'重要性'\u001b[39m: \u001b[33m8\u001b[39m, \u001b[32m'布局位置'\u001b[39m: \u001b[32m'main'\u001b[39m }\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T20:35:14.227Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f76a9ee569d9d5010ce-fdd3828e89919d44f9d0",
+              "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+              "line": 1267,
+              "column": 7
+            },
+            {
+              "title": "智能按钮行为预测算法",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6668,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🎯 按钮行为预测: {\n  \u001b[32m'点击概率'\u001b[39m: \u001b[32m'70.0%'\u001b[39m,\n  \u001b[32m'预期结果'\u001b[39m: \u001b[32m'执行通用交互操作'\u001b[39m,\n  \u001b[32m'风险等级'\u001b[39m: \u001b[32m'low'\u001b[39m,\n  \u001b[32m'预测置信度'\u001b[39m: \u001b[32m'70.0%'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "🎯 按钮行为预测: {\n  \u001b[32m'点击概率'\u001b[39m: \u001b[32m'70.0%'\u001b[39m,\n  \u001b[32m'预期结果'\u001b[39m: \u001b[32m'执行通用交互操作'\u001b[39m,\n  \u001b[32m'风险等级'\u001b[39m: \u001b[32m'low'\u001b[39m,\n  \u001b[32m'预测置信度'\u001b[39m: \u001b[32m'70.0%'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "🎯 按钮行为预测: {\n  \u001b[32m'点击概率'\u001b[39m: \u001b[32m'100.0%'\u001b[39m,\n  \u001b[32m'预期结果'\u001b[39m: \u001b[32m'执行主要操作，可能包含表单提交或状态变更'\u001b[39m,\n  \u001b[32m'风险等级'\u001b[39m: \u001b[32m'medium'\u001b[39m,\n  \u001b[32m'预测置信度'\u001b[39m: \u001b[32m'100.0%'\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T20:35:14.234Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f76a9ee569d9d5010ce-927d90253ff03acd86ab",
+              "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+              "line": 1305,
+              "column": 7
+            },
+            {
+              "title": "跨页面按钮一致性深度分析 - 优化版本",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 11428,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m0.7\u001b[39m\nReceived:    \u001b[31m0.6590709050531085\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m0.7\u001b[39m\nReceived:    \u001b[31m0.6590709050531085\u001b[39m\n    at /Users/zhaoleon/Desktop/QAapp/tests/advanced/button-algorithm-deep-optimized.spec.ts:1391:57",
+                        "location": {
+                          "file": "/Users/zhaoleon/Desktop/QAapp/tests/advanced/button-algorithm-deep-optimized.spec.ts",
+                          "column": 57,
+                          "line": 1391
+                        },
+                        "snippet": "  1389 |     \n  1390 |     // 期望一致性得分达到70%以上（优化后的目标）\n> 1391 |     expect(consistencyAnalysis.overallConsistencyScore).toBeGreaterThanOrEqual(0.7);\n       |                                                         ^\n  1392 |     \n  1393 |     console.log('🎯 跨页面一致性分析完成:', {\n  1394 |       整体得分: `${(consistencyAnalysis.overallConsistencyScore * 100).toFixed(1)}%`,"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/zhaoleon/Desktop/QAapp/tests/advanced/button-algorithm-deep-optimized.spec.ts",
+                            "column": 57,
+                            "line": 1391
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m0.7\u001b[39m\nReceived:    \u001b[31m0.6590709050531085\u001b[39m\n\n  1389 |     \n  1390 |     // 期望一致性得分达到70%以上（优化后的目标）\n> 1391 |     expect(consistencyAnalysis.overallConsistencyScore).toBeGreaterThanOrEqual(0.7);\n       |                                                         ^\n  1392 |     \n  1393 |     console.log('🎯 跨页面一致性分析完成:', {\n  1394 |       整体得分: `${(consistencyAnalysis.overallConsistencyScore * 100).toFixed(1)}%`,\n    at /Users/zhaoleon/Desktop/QAapp/tests/advanced/button-algorithm-deep-optimized.spec.ts:1391:57"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "📄 /: 收集了 5 个按钮特征\n"
+                        },
+                        {
+                          "text": "📄 /auth/login: 收集了 5 个按钮特征\n"
+                        },
+                        {
+                          "text": "📄 /auth/register: 收集了 5 个按钮特征\n"
+                        },
+                        {
+                          "text": "🔍 开始跨页面按钮一致性分析...\n"
+                        },
+                        {
+                          "text": "✅ 一致性分析完成: 整体得分 65.9%\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T20:35:14.223Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/advanced-button-algorithm--80ebc----优化版本-跨页面按钮一致性深度分析---优化版本-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/advanced-button-algorithm--80ebc----优化版本-跨页面按钮一致性深度分析---优化版本-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/advanced-button-algorithm--80ebc----优化版本-跨页面按钮一致性深度分析---优化版本-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/zhaoleon/Desktop/QAapp/tests/advanced/button-algorithm-deep-optimized.spec.ts",
+                        "column": 57,
+                        "line": 1391
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1f76a9ee569d9d5010ce-180040a7320ee6b46f0a",
+              "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+              "line": 1339,
+              "column": 7
+            },
+            {
+              "title": "按钮语义聚类和模式识别",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 11953,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🎯 语义聚类分析完成: {\n  \u001b[32m'总按钮数'\u001b[39m: \u001b[33m12\u001b[39m,\n  \u001b[32m'语义类型数'\u001b[39m: \u001b[33m2\u001b[39m,\n  \u001b[32m'语义分布'\u001b[39m: { generic: \u001b[33m10\u001b[39m, primary: \u001b[33m2\u001b[39m },\n  \u001b[32m'重要性范围'\u001b[39m: \u001b[32m'5-8'\u001b[39m,\n  \u001b[32m'平均重要性'\u001b[39m: \u001b[32m'6.1'\u001b[39m,\n  \u001b[32m'预测置信度'\u001b[39m: \u001b[32m'82.0%'\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T20:35:14.242Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f76a9ee569d9d5010ce-6310baa580c6ce0ce808",
+              "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+              "line": 1405,
+              "column": 7
+            },
+            {
+              "title": "按钮交互复杂度评估",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 10004,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🎯 交互复杂度评估完成: {\n  \u001b[32m'分析按钮数'\u001b[39m: \u001b[33m6\u001b[39m,\n  \u001b[32m'平均复杂度'\u001b[39m: \u001b[32m'0.333'\u001b[39m,\n  \u001b[32m'风险等级分布'\u001b[39m: [ \u001b[32m'low'\u001b[39m, \u001b[32m'medium'\u001b[39m ],\n  \u001b[32m'最高业务价值'\u001b[39m: \u001b[32m'0.60'\u001b[39m,\n  \u001b[32m'高价值按钮'\u001b[39m: \u001b[33m0\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T20:35:14.260Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f76a9ee569d9d5010ce-be820e5526e211610117",
+              "file": "advanced/button-algorithm-deep-optimized.spec.ts",
+              "line": 1468,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-25T20:35:13.715Z",
+    "duration": 12675.022,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

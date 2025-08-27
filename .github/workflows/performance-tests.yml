@@ -1,0 +1,101 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # 每周日凌晨运行性能测试
+    - cron: '0 2 * * 0'
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Build and start application
+      run: |
+        pnpm --filter @qa-app/web build
+        pnpm --filter @qa-app/api build
+        
+        # 启动服务
+        pnpm --filter @qa-app/api start:prod &
+        pnpm --filter @qa-app/web start &
+        
+        # 等待服务启动
+        sleep 30
+        npx wait-on http://localhost:3000 --timeout 60000
+
+    - name: Run Lighthouse CI
+      run: |
+        npm install -g @lhci/cli@0.12.x
+        lhci autorun
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+    - name: Upload Lighthouse reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: lighthouse-reports
+        path: .lighthouseci/
+        retention-days: 30
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Install Playwright
+      run: pnpm exec playwright install chromium
+
+    - name: Build and start application
+      run: |
+        pnpm --filter @qa-app/web build
+        pnpm --filter @qa-app/api build
+        
+        # 启动服务
+        pnpm --filter @qa-app/api start:prod &
+        pnpm --filter @qa-app/web start &
+        
+        # 等待服务启动
+        sleep 30
+        npx wait-on http://localhost:3000 --timeout 60000
+
+    - name: Run Performance Tests
+      run: pnpm exec playwright test tests/e2e/performance.spec.ts --project=chromium
+
+    - name: Upload Performance Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-test-results
+        path: test-results/
+        retention-days: 30

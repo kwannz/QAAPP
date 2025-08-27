@@ -25,8 +25,8 @@ const config: HardhatUserConfig = {
   networks: {
     // 本地网络
     localhost: {
-      url: 'http://127.0.0.1:8545',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+      url: 'http://127.0.0.1:8545'
+      // 使用默认的hardhat账户，不需要指定私钥
     },
     
     // 以太坊主网
@@ -43,6 +43,14 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       gasPrice: 'auto',
       chainId: 137
+    },
+    
+    // Ethereum Sepolia 测试网
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/YOUR-PROJECT-ID',
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: 'auto',
+      chainId: 11155111
     },
     
     // Polygon Mumbai 测试网
@@ -74,6 +82,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       ethereum: process.env.ETHERSCAN_API_KEY || '',
+      sepolia: process.env.ETHERSCAN_API_KEY || '',
       polygon: process.env.POLYGONSCAN_API_KEY || '',
       polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
       arbitrumOne: process.env.ARBISCAN_API_KEY || '',

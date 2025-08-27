@@ -1,0 +1,1281 @@
+{
+  "config": {
+    "configFile": "/Users/zhaoleon/Desktop/QAapp/playwright.config.ts",
+    "rootDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/zhaoleon/Desktop/QAapp/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 8,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "api/api.spec.ts",
+      "file": "api/api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "API接口测试",
+          "file": "api/api.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "健康检查接口",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.132Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "495da78dfc57d624a56a-356a0c2e4040191035e9",
+              "file": "api/api.spec.ts",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "title": "API版本信息",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "API根路径状态: \u001b[33m404\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "495da78dfc57d624a56a-8af8ad50c30607b66fbf",
+              "file": "api/api.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "用户相关API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "用户接口状态: \u001b[33m404\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.130Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "495da78dfc57d624a56a-f5ef2c1f6b144d32a6d9",
+              "file": "api/api.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "区块链相关API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "区块链状态接口: \u001b[33m404\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.129Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "495da78dfc57d624a56a-ba90997e78075feabe11",
+              "file": "api/api.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "CORS头部检查",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 16,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "CORS头部: http://localhost:3003\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.132Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "495da78dfc57d624a56a-56f7c8cbdf054e8096ea",
+              "file": "api/api.spec.ts",
+              "line": 58,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "blockchain/contracts.spec.ts",
+      "file": "blockchain/contracts.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "区块链集成测试",
+          "file": "blockchain/contracts.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "区块链节点连接测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 313,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "区块链节点连接失败: apiRequestContext.post: connect ECONNREFUSED ::1:8545\nCall log:\n\u001b[2m  - → POST http://localhost:8545/\u001b[22m\n\u001b[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\u001b[22m\n\u001b[2m    - accept: */*\u001b[22m\n\u001b[2m    - accept-encoding: gzip,deflate,br\u001b[22m\n\u001b[2m    - Content-Type: application/json\u001b[22m\n\u001b[2m    - content-length: 63\u001b[22m\n\n    at \u001b[90m/Users/zhaoleon/Desktop/QAapp/\u001b[39mtests/blockchain/contracts.spec.ts:8:38 {\n  name: \u001b[32m'Error'\u001b[39m,\n  \u001b[32mSymbol(step)\u001b[39m: {\n    stepId: \u001b[32m'pw:api@4'\u001b[39m,\n    location: {\n      file: \u001b[32m'/Users/zhaoleon/Desktop/QAapp/tests/blockchain/contracts.spec.ts'\u001b[39m,\n      line: \u001b[33m8\u001b[39m,\n      column: \u001b[33m38\u001b[39m\n    },\n    category: \u001b[32m'pw:api'\u001b[39m,\n    title: \u001b[32m'POST \"/\"'\u001b[39m,\n    apiName: \u001b[32m'apiRequestContext.post'\u001b[39m,\n    params: {\n      url: \u001b[32m'http://localhost:8545'\u001b[39m,\n      params: \u001b[90mundefined\u001b[39m,\n      encodedParams: \u001b[90mundefined\u001b[39m,\n      method: \u001b[32m'POST'\u001b[39m,\n      headers: \u001b[36m[Array]\u001b[39m,\n      postData: \u001b[90mundefined\u001b[39m,\n      jsonData: \u001b[32m'{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}'\u001b[39m,\n      formData: \u001b[90mundefined\u001b[39m,\n      multipartData: \u001b[90mundefined\u001b[39m,\n      timeout: \u001b[33m0\u001b[39m,\n      failOnStatusCode: \u001b[90mundefined\u001b[39m,\n      ignoreHTTPSErrors: \u001b[90mundefined\u001b[39m,\n      maxRedirects: \u001b[90mundefined\u001b[39m,\n      maxRetries: \u001b[90mundefined\u001b[39m,\n      __testHookLookup: \u001b[90mundefined\u001b[39m\n    },\n    boxedStack: \u001b[90mundefined\u001b[39m,\n    steps: [],\n    attachmentIndices: [],\n    info: TestStepInfoImpl {\n      annotations: [],\n      _testInfo: \u001b[36m[TestInfoImpl]\u001b[39m,\n      _stepId: \u001b[32m'pw:api@4'\u001b[39m,\n      skip: \u001b[36m[Function (anonymous)]\u001b[39m\n    },\n    complete: \u001b[36m[Function: complete]\u001b[39m,\n    endWallTime: \u001b[33m1756149166445\u001b[39m,\n    error: {\n      message: \u001b[32m'Error: apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m  - → POST http://localhost:8545/\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept: */*\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept-encoding: gzip,deflate,br\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - Content-Type: application/json\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-length: 63\\x1B[22m\\n'\u001b[39m,\n      stack: \u001b[32m'Error: apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m  - → POST http://localhost:8545/\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept: */*\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept-encoding: gzip,deflate,br\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - Content-Type: application/json\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-length: 63\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\n'\u001b[39m +\n        \u001b[32m'    at apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'    at /Users/zhaoleon/Desktop/QAapp/tests/blockchain/contracts.spec.ts:8:38'\u001b[39m,\n      cause: \u001b[90mundefined\u001b[39m\n    }\n  }\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.131Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35f9379f2c160e30ce95-95d85e25c7bc8e7ef797",
+              "file": "blockchain/contracts.spec.ts",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "title": "网络ID检查",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 313,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "网络ID检查失败: apiRequestContext.post: connect ECONNREFUSED ::1:8545\nCall log:\n\u001b[2m  - → POST http://localhost:8545/\u001b[22m\n\u001b[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\u001b[22m\n\u001b[2m    - accept: */*\u001b[22m\n\u001b[2m    - accept-encoding: gzip,deflate,br\u001b[22m\n\u001b[2m    - content-type: application/json\u001b[22m\n\u001b[2m    - content-length: 59\u001b[22m\n\n    at \u001b[90m/Users/zhaoleon/Desktop/QAapp/\u001b[39mtests/blockchain/contracts.spec.ts:34:38 {\n  name: \u001b[32m'Error'\u001b[39m,\n  \u001b[32mSymbol(step)\u001b[39m: {\n    stepId: \u001b[32m'pw:api@4'\u001b[39m,\n    location: {\n      file: \u001b[32m'/Users/zhaoleon/Desktop/QAapp/tests/blockchain/contracts.spec.ts'\u001b[39m,\n      line: \u001b[33m34\u001b[39m,\n      column: \u001b[33m38\u001b[39m\n    },\n    category: \u001b[32m'pw:api'\u001b[39m,\n    title: \u001b[32m'POST \"/\"'\u001b[39m,\n    apiName: \u001b[32m'apiRequestContext.post'\u001b[39m,\n    params: {\n      url: \u001b[32m'http://localhost:8545'\u001b[39m,\n      params: \u001b[90mundefined\u001b[39m,\n      encodedParams: \u001b[90mundefined\u001b[39m,\n      method: \u001b[32m'POST'\u001b[39m,\n      headers: \u001b[90mundefined\u001b[39m,\n      postData: \u001b[90mundefined\u001b[39m,\n      jsonData: \u001b[32m'{\"jsonrpc\":\"2.0\",\"method\":\"net_version\",\"params\":[],\"id\":1}'\u001b[39m,\n      formData: \u001b[90mundefined\u001b[39m,\n      multipartData: \u001b[90mundefined\u001b[39m,\n      timeout: \u001b[33m0\u001b[39m,\n      failOnStatusCode: \u001b[90mundefined\u001b[39m,\n      ignoreHTTPSErrors: \u001b[90mundefined\u001b[39m,\n      maxRedirects: \u001b[90mundefined\u001b[39m,\n      maxRetries: \u001b[90mundefined\u001b[39m,\n      __testHookLookup: \u001b[90mundefined\u001b[39m\n    },\n    boxedStack: \u001b[90mundefined\u001b[39m,\n    steps: [],\n    attachmentIndices: [],\n    info: TestStepInfoImpl {\n      annotations: [],\n      _testInfo: \u001b[36m[TestInfoImpl]\u001b[39m,\n      _stepId: \u001b[32m'pw:api@4'\u001b[39m,\n      skip: \u001b[36m[Function (anonymous)]\u001b[39m\n    },\n    complete: \u001b[36m[Function: complete]\u001b[39m,\n    endWallTime: \u001b[33m1756149166443\u001b[39m,\n    error: {\n      message: \u001b[32m'Error: apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m  - → POST http://localhost:8545/\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept: */*\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept-encoding: gzip,deflate,br\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-type: application/json\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-length: 59\\x1B[22m\\n'\u001b[39m,\n      stack: \u001b[32m'Error: apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m  - → POST http://localhost:8545/\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept: */*\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept-encoding: gzip,deflate,br\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-type: application/json\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-length: 59\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\n'\u001b[39m +\n        \u001b[32m'    at apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'    at /Users/zhaoleon/Desktop/QAapp/tests/blockchain/contracts.spec.ts:34:38'\u001b[39m,\n      cause: \u001b[90mundefined\u001b[39m\n    }\n  }\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.129Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35f9379f2c160e30ce95-e6ba72b5f1016022ad53",
+              "file": "blockchain/contracts.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "账户余额检查",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 312,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "账户余额检查失败: apiRequestContext.post: connect ECONNREFUSED ::1:8545\nCall log:\n\u001b[2m  - → POST http://localhost:8545/\u001b[22m\n\u001b[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\u001b[22m\n\u001b[2m    - accept: */*\u001b[22m\n\u001b[2m    - accept-encoding: gzip,deflate,br\u001b[22m\n\u001b[2m    - content-type: application/json\u001b[22m\n\u001b[2m    - content-length: 60\u001b[22m\n\n    at \u001b[90m/Users/zhaoleon/Desktop/QAapp/\u001b[39mtests/blockchain/contracts.spec.ts:55:46 {\n  name: \u001b[32m'Error'\u001b[39m,\n  \u001b[32mSymbol(step)\u001b[39m: {\n    stepId: \u001b[32m'pw:api@4'\u001b[39m,\n    location: {\n      file: \u001b[32m'/Users/zhaoleon/Desktop/QAapp/tests/blockchain/contracts.spec.ts'\u001b[39m,\n      line: \u001b[33m55\u001b[39m,\n      column: \u001b[33m46\u001b[39m\n    },\n    category: \u001b[32m'pw:api'\u001b[39m,\n    title: \u001b[32m'POST \"/\"'\u001b[39m,\n    apiName: \u001b[32m'apiRequestContext.post'\u001b[39m,\n    params: {\n      url: \u001b[32m'http://localhost:8545'\u001b[39m,\n      params: \u001b[90mundefined\u001b[39m,\n      encodedParams: \u001b[90mundefined\u001b[39m,\n      method: \u001b[32m'POST'\u001b[39m,\n      headers: \u001b[90mundefined\u001b[39m,\n      postData: \u001b[90mundefined\u001b[39m,\n      jsonData: \u001b[32m'{\"jsonrpc\":\"2.0\",\"method\":\"eth_accounts\",\"params\":[],\"id\":1}'\u001b[39m,\n      formData: \u001b[90mundefined\u001b[39m,\n      multipartData: \u001b[90mundefined\u001b[39m,\n      timeout: \u001b[33m0\u001b[39m,\n      failOnStatusCode: \u001b[90mundefined\u001b[39m,\n      ignoreHTTPSErrors: \u001b[90mundefined\u001b[39m,\n      maxRedirects: \u001b[90mundefined\u001b[39m,\n      maxRetries: \u001b[90mundefined\u001b[39m,\n      __testHookLookup: \u001b[90mundefined\u001b[39m\n    },\n    boxedStack: \u001b[90mundefined\u001b[39m,\n    steps: [],\n    attachmentIndices: [],\n    info: TestStepInfoImpl {\n      annotations: [],\n      _testInfo: \u001b[36m[TestInfoImpl]\u001b[39m,\n      _stepId: \u001b[32m'pw:api@4'\u001b[39m,\n      skip: \u001b[36m[Function (anonymous)]\u001b[39m\n    },\n    complete: \u001b[36m[Function: complete]\u001b[39m,\n    endWallTime: \u001b[33m1756149166447\u001b[39m,\n    error: {\n      message: \u001b[32m'Error: apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m  - → POST http://localhost:8545/\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept: */*\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept-encoding: gzip,deflate,br\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-type: application/json\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-length: 60\\x1B[22m\\n'\u001b[39m,\n      stack: \u001b[32m'Error: apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m  - → POST http://localhost:8545/\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept: */*\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - accept-encoding: gzip,deflate,br\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-type: application/json\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\x1B[2m    - content-length: 60\\x1B[22m\\n'\u001b[39m +\n        \u001b[32m'\\n'\u001b[39m +\n        \u001b[32m'    at apiRequestContext.post: connect ECONNREFUSED ::1:8545\\n'\u001b[39m +\n        \u001b[32m'    at /Users/zhaoleon/Desktop/QAapp/tests/blockchain/contracts.spec.ts:55:46'\u001b[39m,\n      cause: \u001b[90mundefined\u001b[39m\n    }\n  }\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35f9379f2c160e30ce95-3cf35f5967c2b4ada414",
+              "file": "blockchain/contracts.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "智能合约部署状态检查",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.151Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35f9379f2c160e30ce95-fdca96292dc60173921e",
+              "file": "blockchain/contracts.spec.ts",
+              "line": 94,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/auth.spec.ts",
+      "file": "e2e/auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "认证功能测试",
+          "file": "e2e/auth.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "用户注册流程",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 500,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "未找到注册表单，可能页面结构不同\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.153Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9563bb343517399bdb94-d07febbea20480fc9d0d",
+              "file": "e2e/auth.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "用户登录流程",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 499,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "未找到登录表单，可能页面结构不同\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.153Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9563bb343517399bdb94-56aff8a5525fa91a2c69",
+              "file": "e2e/auth.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "错误处理测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 505,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.153Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9563bb343517399bdb94-aff40ae4832d97191e9f",
+              "file": "e2e/auth.spec.ts",
+              "line": 66,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/business-flow.spec.ts",
+      "file": "e2e/business-flow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "业务流程测试",
+          "file": "e2e/business-flow.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "用户完整注册登录流程",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 5497,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/QA/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/QA/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/business-flow.spec.ts:7:24",
+                        "location": {
+                          "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/business-flow.spec.ts",
+                          "column": 24,
+                          "line": 7
+                        },
+                        "snippet": "   5 |     // 测试注册页面访问\n   6 |     await page.goto('/auth/register');\n>  7 |     await expect(page).toHaveTitle(/QA/);\n     |                        ^\n   8 |     \n   9 |     // 检查注册表单是否存在\n  10 |     const emailInput = page.locator('input[name=\"email\"]');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/business-flow.spec.ts",
+                            "column": 24,
+                            "line": 7
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/QA/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n\n   5 |     // 测试注册页面访问\n   6 |     await page.goto('/auth/register');\n>  7 |     await expect(page).toHaveTitle(/QA/);\n     |                        ^\n   8 |     \n   9 |     // 检查注册表单是否存在\n  10 |     const emailInput = page.locator('input[name=\"email\"]');\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/business-flow.spec.ts:7:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.154Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-business-flow-业务流程测试-用户完整注册登录流程-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-business-flow-业务流程测试-用户完整注册登录流程-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-business-flow-业务流程测试-用户完整注册登录流程-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/business-flow.spec.ts",
+                        "column": 24,
+                        "line": 7
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c56930f1f1807544a71b-43589bf5cb68b93bfb76",
+              "file": "e2e/business-flow.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "QA卡片浏览流程",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 494,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "找到 0 个卡片元素\n"
+                        },
+                        {
+                          "text": "找到 0 个购买按钮\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.155Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c56930f1f1807544a71b-98f39093a0915782fb90",
+              "file": "e2e/business-flow.spec.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "钱包连接流程",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 518,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "找到 0 个钱包连接按钮\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.447Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c56930f1f1807544a71b-582e113339aa5d7fb5a0",
+              "file": "e2e/business-flow.spec.ts",
+              "line": 90,
+              "column": 7
+            },
+            {
+              "title": "导航和页面跳转测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 521,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "找到 0 个导航链接\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.449Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c56930f1f1807544a71b-89d95c28c25a650fea8b",
+              "file": "e2e/business-flow.spec.ts",
+              "line": 128,
+              "column": 7
+            },
+            {
+              "title": "搜索功能测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 520,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "找到 0 个搜索输入框\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.451Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c56930f1f1807544a71b-3b78b158fea69a5d5144",
+              "file": "e2e/business-flow.spec.ts",
+              "line": 166,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/homepage.spec.ts",
+      "file": "e2e/homepage.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "首页测试",
+          "file": "e2e/homepage.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "应该正确加载首页",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5563,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/QA/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/QA/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/homepage.spec.ts:8:24",
+                        "location": {
+                          "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/homepage.spec.ts",
+                          "column": 24,
+                          "line": 8
+                        },
+                        "snippet": "   6 |     \n   7 |     // 检查页面标题\n>  8 |     await expect(page).toHaveTitle(/QA/);\n     |                        ^\n   9 |     \n  10 |     // 检查页面是否包含关键元素\n  11 |     await expect(page.locator('body')).toBeVisible();"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/homepage.spec.ts",
+                            "column": 24,
+                            "line": 8
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/QA/\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 × unexpected value \"\"\u001b[22m\n\n\n   6 |     \n   7 |     // 检查页面标题\n>  8 |     await expect(page).toHaveTitle(/QA/);\n     |                        ^\n   9 |     \n  10 |     // 检查页面是否包含关键元素\n  11 |     await expect(page.locator('body')).toBeVisible();\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/homepage.spec.ts:8:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.789Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-homepage-首页测试-应该正确加载首页-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-homepage-首页测试-应该正确加载首页-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-homepage-首页测试-应该正确加载首页-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/homepage.spec.ts",
+                        "column": 24,
+                        "line": 8
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "16f603ea19510c43cb6a-f1ebd1dadebd0ff0b093",
+              "file": "e2e/homepage.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "导航菜单功能",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1030,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.789Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "16f603ea19510c43cb6a-78f849ac71b090a33590",
+              "file": "e2e/homepage.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "响应式设计测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 1018,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.792Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "16f603ea19510c43cb6a-1e1a2fad17810794cfb5",
+              "file": "e2e/homepage.spec.ts",
+              "line": 40,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2e/performance.spec.ts",
+      "file": "e2e/performance.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "性能测试",
+          "file": "e2e/performance.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "页面加载性能测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 2025,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "页面加载时间: 948ms\n"
+                        },
+                        {
+                          "text": "性能指标: [\n  { name: \u001b[32m'loadComplete'\u001b[39m, value: \u001b[33m0\u001b[39m },\n  { name: \u001b[32m'domContentLoaded'\u001b[39m, value: \u001b[33m0\u001b[39m },\n  { name: \u001b[32m'firstByte'\u001b[39m, value: \u001b[33m33.80000000074506\u001b[39m }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:46.794Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "262cfaa7fcec86b40117-d329e0c5b9153bdd5040",
+              "file": "e2e/performance.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "资源加载测试",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 911,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m0\u001b[39m\nReceived: \u001b[31m1\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m0\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts:64:35",
+                        "location": {
+                          "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts",
+                          "column": 35,
+                          "line": 64
+                        },
+                        "snippet": "  62 |     // 检查没有失败的资源请求\n  63 |     const failedRequests = responses.filter(r => r.status >= 400);\n> 64 |     expect(failedRequests.length).toBe(0);\n     |                                   ^\n  65 |     \n  66 |     // 检查主要资源是否成功加载\n  67 |     const htmlResponse = responses.find(r => r.url === page.url());"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts",
+                            "column": 35,
+                            "line": 64
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m0\u001b[39m\nReceived: \u001b[31m1\u001b[39m\n\n  62 |     // 检查没有失败的资源请求\n  63 |     const failedRequests = responses.filter(r => r.status >= 400);\n> 64 |     expect(failedRequests.length).toBe(0);\n     |                                   ^\n  65 |     \n  66 |     // 检查主要资源是否成功加载\n  67 |     const htmlResponse = responses.find(r => r.url === page.url());\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts:64:35"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:47.058Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-performance-性能测试-资源加载测试-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-performance-性能测试-资源加载测试-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-performance-性能测试-资源加载测试-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts",
+                        "column": 35,
+                        "line": 64
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "262cfaa7fcec86b40117-6d353660d73da10faae4",
+              "file": "e2e/performance.spec.ts",
+              "line": 48,
+              "column": 7
+            },
+            {
+              "title": "内存使用测试",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 1073,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m52428800\u001b[39m\nReceived:   \u001b[31m56800000\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m52428800\u001b[39m\nReceived:   \u001b[31m56800000\u001b[39m\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts:99:43",
+                        "location": {
+                          "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts",
+                          "column": 43,
+                          "line": 99
+                        },
+                        "snippet": "   97 |         \n   98 |         // 检查内存使用是否在合理范围内 (50MB)\n>  99 |         expect(memoryInfo.usedJSHeapSize).toBeLessThan(50 * 1024 * 1024);\n      |                                           ^\n  100 |       }\n  101 |     }\n  102 |   });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts",
+                            "column": 43,
+                            "line": 99
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m52428800\u001b[39m\nReceived:   \u001b[31m56800000\u001b[39m\n\n   97 |         \n   98 |         // 检查内存使用是否在合理范围内 (50MB)\n>  99 |         expect(memoryInfo.usedJSHeapSize).toBeLessThan(50 * 1024 * 1024);\n      |                                           ^\n  100 |       }\n  101 |     }\n  102 |   });\n    at /Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts:99:43"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "第1次测试 - 内存使用: {\n  usedJSHeapSize: \u001b[33m56800000\u001b[39m,\n  totalJSHeapSize: \u001b[33m60300000\u001b[39m,\n  jsHeapSizeLimit: \u001b[33m3760000000\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:47.059Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-performance-性能测试-内存使用测试-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-performance-性能测试-内存使用测试-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/zhaoleon/Desktop/QAapp/test-results/e2e-performance-性能测试-内存使用测试-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/performance.spec.ts",
+                        "column": 43,
+                        "line": 99
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "262cfaa7fcec86b40117-1e496c0b827bc8b67591",
+              "file": "e2e/performance.spec.ts",
+              "line": 74,
+              "column": 7
+            },
+            {
+              "title": "响应式性能测试",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 2333,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "桌面端 (1920x1080) 加载时间: 829ms\n"
+                        },
+                        {
+                          "text": "平板端 (768x1024) 加载时间: 631ms\n"
+                        },
+                        {
+                          "text": "移动端 (375x667) 加载时间: 644ms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T19:12:47.062Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "262cfaa7fcec86b40117-1b79aa3844fbc65c77a3",
+              "file": "e2e/performance.spec.ts",
+              "line": 104,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-25T19:12:45.771Z",
+    "duration": 6601.195,
+    "expected": 20,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

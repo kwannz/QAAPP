@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:fast": "turbo run build --parallel",
+    "build:cache": "turbo run build --cache-dir=.turbo",
     "start": "turbo run start",
     "lint": "turbo run lint",
     "test": "turbo run test",
@@ -24,16 +26,18 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
-    "@turbo/gen": "^1.10.12",
-    "@types/node": "^20.5.2",
-    "eslint": "^8.48.0",
-    "prettier": "^3.0.0",
-    "turbo": "^1.10.12",
-    "typescript": "^5.2.2"
+    "@playwright/test": "^1.49.1",
+    "@turbo/gen": "^2.5.5",
+    "@types/node": "^22.10.2",
+    "eslint": "^8.57.1",
+    "playwright": "^1.49.1",
+    "prettier": "^3.4.2",
+    "turbo": "^2.5.5",
+    "typescript": "^5.7.2"
   },
-  "packageManager": "pnpm@8.15.6",
+  "packageManager": "pnpm@10.15.0",
   "engines": {
     "node": ">=18.17.0",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=10.0.0"
   }
 }

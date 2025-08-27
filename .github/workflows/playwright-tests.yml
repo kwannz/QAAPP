@@ -1,0 +1,154 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 每天凌晨2点运行测试
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Install Playwright Browsers
+      run: pnpm exec playwright install --with-deps ${{ matrix.project }}
+
+    - name: Build applications
+      run: |
+        pnpm --filter @qa-app/web build
+        pnpm --filter @qa-app/api build
+
+    - name: Start services
+      run: |
+        # 启动区块链本地节点
+        cd packages/contracts && pnpm hardhat node --port 8545 &
+        
+        # 启动后端API服务
+        pnpm --filter @qa-app/api start:prod &
+        
+        # 启动前端服务
+        pnpm --filter @qa-app/web start &
+        
+        # 等待服务启动
+        sleep 30
+      
+    - name: Wait for services to be ready
+      run: |
+        # 等待前端服务
+        npx wait-on http://localhost:3000 --timeout 60000
+        
+        # 等待后端服务
+        npx wait-on http://localhost:3001 --timeout 60000
+        
+        # 等待区块链节点
+        npx wait-on http://localhost:8545 --timeout 60000
+
+    - name: Run Playwright tests
+      run: pnpm exec playwright test --project=${{ matrix.project }}
+      env:
+        CI: true
+
+    - name: Upload Playwright Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.project }}
+        path: playwright-report/
+        retention-days: 30
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.project }}
+        path: test-results/
+        retention-days: 30
+
+  # 合并所有浏览器的测试报告
+  merge-reports:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: all-artifacts
+
+    - name: Merge HTML reports
+      run: |
+        pnpm exec playwright merge-reports --reporter html ./all-artifacts/playwright-report-*
+
+    - name: Upload merged report
+      uses: actions/upload-artifact@v4
+      with:
+        name: merged-playwright-report
+        path: playwright-report/
+        retention-days: 30
+
+  # 部署测试报告到GitHub Pages（可选）
+  deploy-report:
+    if: github.ref == 'refs/heads/main' && always()
+    needs: merge-reports
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+    - name: Download merged report
+      uses: actions/download-artifact@v4
+      with:
+        name: merged-playwright-report
+        path: playwright-report
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+
+    - name: Upload to GitHub Pages
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: playwright-report
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
