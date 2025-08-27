@@ -185,5 +185,350 @@ export const auditApi = {
     apiClient.get('/audit/me/activity-stats', { params: { days } }),
 }
 
+// 佣金API
+export const commissionApi = {
+  // 用户端
+  getUserHistory: (userId: string, params?: { page?: number; limit?: number }) =>
+    apiClient.get(`/commissions/user/${userId}/history`, { params }),
+  
+  getUserSummary: (userId: string) =>
+    apiClient.get(`/commissions/user/${userId}/summary`),
+  
+  // 管理员端
+  getAdminList: (params?: { 
+    status?: string; 
+    type?: string; 
+    period?: string; 
+    agentId?: string; 
+    page?: number; 
+    limit?: number 
+  }) =>
+    apiClient.get('/commissions/admin/list', { params }),
+  
+  getStats: (period?: string) =>
+    apiClient.get('/commissions/admin/stats', { params: { period } }),
+  
+  calculate: (data: {
+    period: string;
+    agentIds?: string[];
+    includeSubAgents?: boolean;
+    forceRecalculate?: boolean;
+  }) =>
+    apiClient.post('/commissions/admin/calculate', data),
+  
+  processPayments: (data: {
+    commissionIds?: string[];
+    period?: string;
+    batchSize?: number;
+  }) =>
+    apiClient.post('/commissions/admin/process-payments', data),
+  
+  getBreakdown: (period: string, groupBy?: string) =>
+    apiClient.get('/commissions/admin/breakdown', { params: { period, groupBy } }),
+  
+  getRules: () =>
+    apiClient.get('/commissions/admin/rules'),
+  
+  updateRules: (data: {
+    minCommissionThreshold: number;
+    maxCommissionRate: number;
+    payoutFrequency: string;
+    holdingPeriod: number;
+    bonusStructure?: any;
+  }) =>
+    apiClient.post('/commissions/admin/rules', data),
+  
+  generateReport: (data: {
+    period: string;
+    type: 'summary' | 'detailed' | 'agent-breakdown';
+    format: 'pdf' | 'excel' | 'csv';
+    includeSubAgents?: boolean;
+  }) =>
+    apiClient.post('/commissions/admin/generate-report', data),
+  
+  export: (params?: { period?: string; status?: string; format?: string }) =>
+    apiClient.get('/commissions/admin/export', { params }),
+}
+
+// 通知API
+export const notificationApi = {
+  // 用户端
+  getUserNotifications: (userId: string, params?: {
+    type?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get(`/notifications/user/${userId}`, { params }),
+  
+  markAsRead: (userId: string, notificationId: string) =>
+    apiClient.put(`/notifications/user/${userId}/read/${notificationId}`),
+  
+  markAllAsRead: (userId: string) =>
+    apiClient.put(`/notifications/user/${userId}/read-all`),
+  
+  getStats: (userId: string) =>
+    apiClient.get(`/notifications/user/${userId}/stats`),
+  
+  getPreferences: (userId: string) =>
+    apiClient.get(`/notifications/user/${userId}/preferences`),
+  
+  updatePreferences: (userId: string, preferences: {
+    email?: boolean;
+    push?: boolean;
+    sms?: boolean;
+    types?: {
+      orderUpdates?: boolean;
+      commissionPayments?: boolean;
+      systemAlerts?: boolean;
+      promotions?: boolean;
+    };
+  }) =>
+    apiClient.put(`/notifications/user/${userId}/preferences`, preferences),
+  
+  delete: (userId: string, notificationId: string) =>
+    apiClient.delete(`/notifications/user/${userId}/${notificationId}`),
+  
+  // 管理员端
+  getAdminNotifications: (params?: {
+    type?: string;
+    status?: string;
+    recipient?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/notifications/admin/list', { params }),
+  
+  send: (data: {
+    recipientId?: string;
+    recipientType: 'USER' | 'AGENT' | 'ALL';
+    type: string;
+    title: string;
+    message: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    channels: ('EMAIL' | 'PUSH' | 'SMS')[];
+    data?: any;
+    scheduledFor?: string;
+  }) =>
+    apiClient.post('/notifications/admin/send', data),
+  
+  sendBulk: (data: {
+    recipientIds: string[];
+    type: string;
+    title: string;
+    message: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    channels: ('EMAIL' | 'PUSH' | 'SMS')[];
+    data?: any;
+  }) =>
+    apiClient.post('/notifications/admin/send-bulk', data),
+  
+  getTemplates: () =>
+    apiClient.get('/notifications/admin/templates'),
+  
+  createTemplate: (data: {
+    name: string;
+    type: string;
+    title: string;
+    content: string;
+    variables?: string[];
+    channels: ('EMAIL' | 'PUSH' | 'SMS')[];
+  }) =>
+    apiClient.post('/notifications/admin/templates', data),
+  
+  updateTemplate: (templateId: string, data: {
+    name?: string;
+    title?: string;
+    content?: string;
+    variables?: string[];
+    channels?: ('EMAIL' | 'PUSH' | 'SMS')[];
+    isActive?: boolean;
+  }) =>
+    apiClient.put(`/notifications/admin/templates/${templateId}`, data),
+  
+  deleteTemplate: (templateId: string) =>
+    apiClient.delete(`/notifications/admin/templates/${templateId}`),
+  
+  getAdminStats: (params?: { period?: string; type?: string }) =>
+    apiClient.get('/notifications/admin/stats', { params }),
+  
+  scheduleCampaign: (data: {
+    name: string;
+    templateId: string;
+    targetAudience: 'ALL' | 'USERS' | 'AGENTS' | 'CUSTOM';
+    customRecipients?: string[];
+    scheduledFor: string;
+    channels: ('EMAIL' | 'PUSH' | 'SMS')[];
+    variables?: Record<string, any>;
+  }) =>
+    apiClient.post('/notifications/admin/campaigns', data),
+  
+  getCampaigns: (params?: { status?: string; page?: number; limit?: number }) =>
+    apiClient.get('/notifications/admin/campaigns', { params }),
+}
+
+// 报表API
+export const reportApi = {
+  // 生成报表
+  generateFinancialOverview: (data: {
+    period: string;
+    dateFrom: string;
+    dateTo: string;
+    format: 'pdf' | 'excel' | 'csv';
+    includeCharts?: boolean;
+    breakdown?: string[];
+  }) =>
+    apiClient.post('/reports/financial/overview', data),
+  
+  generateCommissionReport: (data: {
+    period: string;
+    dateFrom: string;
+    dateTo: string;
+    format: 'pdf' | 'excel' | 'csv';
+    agentIds?: string[];
+    groupBy?: 'agent' | 'level' | 'period';
+    includeSubAgents?: boolean;
+  }) =>
+    apiClient.post('/reports/commissions', data),
+  
+  generateRevenueReport: (data: {
+    period: string;
+    dateFrom: string;
+    dateTo: string;
+    format: 'pdf' | 'excel' | 'csv';
+    breakdown: 'daily' | 'weekly' | 'monthly';
+    includeProjections?: boolean;
+  }) =>
+    apiClient.post('/reports/revenue', data),
+  
+  generateInvestmentAnalysis: (data: {
+    period: string;
+    dateFrom: string;
+    dateTo: string;
+    format: 'pdf' | 'excel' | 'csv';
+    riskLevels?: string[];
+    includePerformance?: boolean;
+  }) =>
+    apiClient.post('/reports/investments/analysis', data),
+  
+  generateAgentPerformanceReport: (data: {
+    period: string;
+    dateFrom: string;
+    dateTo: string;
+    format: 'pdf' | 'excel' | 'csv';
+    agentIds?: string[];
+    metrics?: string[];
+    includeHierarchy?: boolean;
+  }) =>
+    apiClient.post('/reports/agents/performance', data),
+  
+  // 获取报表
+  getTemplates: (category?: string) =>
+    apiClient.get('/reports/templates', { params: { category } }),
+  
+  createTemplate: (data: {
+    name: string;
+    category: string;
+    description?: string;
+    dataSource: string;
+    fields: string[];
+    filters: any[];
+    charts?: any[];
+    schedule?: any;
+  }) =>
+    apiClient.post('/reports/templates', data),
+  
+  getHistory: (params?: {
+    type?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/reports/history', { params }),
+  
+  getReport: (reportId: string) =>
+    apiClient.get(`/reports/${reportId}`),
+  
+  downloadReport: (reportId: string) =>
+    apiClient.get(`/reports/${reportId}/download`, { responseType: 'blob' }),
+  
+  scheduleReport: (data: {
+    templateId: string;
+    name: string;
+    schedule: {
+      frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+      dayOfWeek?: number;
+      dayOfMonth?: number;
+      time: string;
+    };
+    recipients: string[];
+    format: 'pdf' | 'excel' | 'csv';
+    parameters?: any;
+  }) =>
+    apiClient.post('/reports/schedule', data),
+  
+  getStats: (period?: string) =>
+    apiClient.get('/reports/stats/overview', { params: { period } }),
+  
+  getDashboardKPIs: (period: string = '30d', comparison: string = 'previous_period') =>
+    apiClient.get('/reports/dashboard/kpis', { params: { period, comparison } }),
+  
+  exportData: (data: {
+    reportType: string;
+    dateFrom: string;
+    dateTo: string;
+    format: 'csv' | 'excel' | 'json';
+    filters?: any;
+    fields?: string[];
+  }) =>
+    apiClient.post('/reports/export', data),
+  
+  previewReport: (data: {
+    templateId?: string;
+    type: string;
+    parameters: any;
+    sampleSize?: number;
+  }) =>
+    apiClient.post('/reports/preview', data),
+}
+
+// 管理员API
+export const adminApi = {
+  // 用户管理
+  getUsers: (params?: {
+    search?: string;
+    role?: string;
+    status?: string;
+    kycStatus?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/users', { params }),
+  
+  getUserById: (id: string) =>
+    apiClient.get(`/users/${id}`),
+  
+  updateKycStatus: (id: string, data: { status: string; reason?: string }) =>
+    apiClient.put(`/users/${id}/kyc`, data),
+  
+  updateUserRole: (id: string, data: { role: string }) =>
+    apiClient.put(`/users/${id}/role`, data),
+  
+  toggleUserStatus: (id: string) =>
+    apiClient.post(`/users/${id}/toggle-status`),
+  
+  getUserStats: (params?: { period?: string }) =>
+    apiClient.get('/users/admin/stats', { params }),
+  
+  // 系统配置
+  getSystemConfig: () =>
+    apiClient.get('/config'),
+  
+  updateSystemConfig: (data: any) =>
+    apiClient.put('/config', data),
+}
+
 // 导出默认客户端
 export default apiClient
