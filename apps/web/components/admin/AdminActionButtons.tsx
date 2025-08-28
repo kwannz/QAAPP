@@ -19,7 +19,7 @@ import {
   FileText,
   Settings
 } from 'lucide-react'
-import { Button } from '@qa-app/ui'
+import { Button } from '@/components/ui'
 
 interface AdminActionButtonsProps {
   type: 'kyc' | 'user' | 'order' | 'withdrawal' | 'audit'

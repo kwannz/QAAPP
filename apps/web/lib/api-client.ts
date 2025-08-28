@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useAuthStore } from './auth-store'
 import toast from 'react-hot-toast'
+import logger from './logger'
 
 // API 基础配置
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
@@ -14,7 +15,7 @@ export const apiClient = axios.create({
   },
 })
 
-// 请求拦截器 - 添加认证token
+// 请求拦截器 - 添加认证token和日志
 apiClient.interceptors.request.use(
   (config) => {
     const { accessToken } = useAuthStore.getState()
@@ -23,16 +24,42 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`
     }
     
+    // 记录请求日志并生成请求ID
+    const requestId = logger.logApiRequest(
+      config.method?.toUpperCase() || 'GET',
+      config.url || '',
+      config.data,
+      config.headers
+    )
+    config.headers['X-Request-Id'] = requestId
+    
+    // 保存请求开始时间
+    (config as any).requestStartTime = Date.now()
+    (config as any).requestId = requestId
+    
     return config
   },
   (error) => {
+    logger.error('API', 'Request interceptor error', error)
     return Promise.reject(error)
   }
 )
 
-// 响应拦截器 - 处理错误和token刷新
+// 响应拦截器 - 处理错误、token刷新和日志
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    // 计算请求耗时
+    const config = response.config as any
+    const duration = config.requestStartTime ? Date.now() - config.requestStartTime : undefined
+    
+    // 记录响应日志
+    logger.logApiResponse(
+      config.requestId,
+      response.status,
+      response.data,
+      duration
+    )
+    
     return response
   },
   async (error: AxiosError) => {
@@ -178,11 +205,89 @@ export const payoutApi = {
 
 // 审计API
 export const auditApi = {
+  // 用户端
   getMyLogs: (params?: { page?: number; limit?: number }) =>
     apiClient.get('/audit/me', { params }),
   
   getActivityStats: (days?: number) =>
     apiClient.get('/audit/me/activity-stats', { params: { days } }),
+  
+  // 管理员端
+  getAdminLogs: (params?: { 
+    actorId?: string;
+    action?: string;
+    resourceType?: string;
+    category?: string;
+    severity?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/audit/admin/logs', { params }),
+  
+  getLogById: (id: string) =>
+    apiClient.get(`/audit/admin/logs/${id}`),
+  
+  getAuditStats: (params?: {
+    startDate?: string;
+    endDate?: string;
+  }) =>
+    apiClient.get('/audit/admin/stats', { params }),
+  
+  exportAuditLogs: (params?: {
+    format: 'csv' | 'pdf' | 'excel';
+    startDate?: string;
+    endDate?: string;
+    category?: string;
+    severity?: string;
+  }) =>
+    apiClient.get('/audit/admin/export', { 
+      params,
+      responseType: 'blob'
+    }),
+  
+  markAsAbnormal: (logIds: string[]) =>
+    apiClient.post('/audit/admin/mark-abnormal', { logIds }),
+  
+  generateSummary: (params?: {
+    period?: string;
+    startDate?: string;
+    endDate?: string;
+  }) =>
+    apiClient.post('/audit/admin/generate-summary', params),
+  
+  // 系统审计
+  getSystemEvents: (params?: {
+    eventType?: string;
+    severity?: string;
+    status?: string;
+    service?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/audit/system/events', { params }),
+  
+  getSystemMetrics: () =>
+    apiClient.get('/audit/system/metrics'),
+  
+  // 用户审计
+  getUserAuditLogs: (userId?: string, params?: {
+    action?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get(userId ? `/audit/users/${userId}` : '/audit/users', { params }),
+  
+  getUserBehaviorAnalysis: (userId: string) =>
+    apiClient.get(`/audit/users/${userId}/behavior-analysis`),
+  
+  getUserRiskScore: (userId: string) =>
+    apiClient.get(`/audit/users/${userId}/risk-score`),
 }
 
 // 佣金API

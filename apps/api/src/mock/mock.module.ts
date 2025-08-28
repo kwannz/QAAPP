@@ -4,14 +4,16 @@ import { MockProductsService } from '../products/mock-products.service';
 import { MockOrdersService } from '../orders/mock-orders.service';
 import { PayoutsService } from '../payouts/payouts.service';
 import { PositionsService } from '../positions/positions.service';
+import { ProductsService } from '../products/products.service';
+import { OrdersService } from '../orders/orders.service';
 import { ProductsController } from '../products/products.controller';
-import { OrdersController } from '../orders/orders.controller';
+// import { OrdersController } from '../orders/orders.controller';
 import { PositionsController } from '../positions/positions.controller';
 
 @Module({
   controllers: [
     ProductsController, 
-    OrdersController, 
+    // OrdersController, // 暂时禁用 - 接口不匹配
     PositionsController,
   ],
   providers: [
@@ -25,7 +27,15 @@ import { PositionsController } from '../positions/positions.controller';
       useExisting: MockProductsService,
     },
     {
+      provide: ProductsService,
+      useExisting: MockProductsService,
+    },
+    {
       provide: 'OrdersService', 
+      useExisting: MockOrdersService,
+    },
+    {
+      provide: OrdersService, 
       useExisting: MockOrdersService,
     },
   ],

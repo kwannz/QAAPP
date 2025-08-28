@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { PlusCircle, Wallet, TrendingUp, Gift, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 
-import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle } from '@qa-app/ui'
+import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Header } from '../../components/layout/Header'
 import { useAuthStore } from '../../lib/auth-store'
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute'

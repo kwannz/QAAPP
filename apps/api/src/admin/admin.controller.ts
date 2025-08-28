@@ -24,7 +24,7 @@ export class AdminController {
   // User Audit Endpoints
   @Get('user-audit')
   @ApiOperation({ summary: 'Get user audit records' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getUserAuditRecords(@Query('userId') userId?: string) {
     // Mock user audit data
     const mockUserAudits = [
@@ -55,7 +55,7 @@ export class AdminController {
   // System Audit Endpoints
   @Get('system-audit')
   @ApiOperation({ summary: 'Get system audit events' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getSystemAuditEvents(@Query('type') type?: string) {
     const mockSystemEvents = [
       {
@@ -85,7 +85,7 @@ export class AdminController {
 
   @Get('system-audit/metrics')
   @ApiOperation({ summary: 'Get system metrics' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getSystemMetrics() {
     return {
       performance: {
@@ -118,7 +118,7 @@ export class AdminController {
   // Permissions Management Endpoints
   @Get('permissions')
   @ApiOperation({ summary: 'Get permissions' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getPermissions() {
     const mockPermissions = [
       {
@@ -144,7 +144,7 @@ export class AdminController {
 
   @Get('roles')
   @ApiOperation({ summary: 'Get roles' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getRoles() {
     const mockRoles = [
       {
@@ -162,7 +162,7 @@ export class AdminController {
 
   @Get('user-roles')
   @ApiOperation({ summary: 'Get user role assignments' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getUserRoles() {
     const mockUserRoles = [
       {
@@ -184,7 +184,7 @@ export class AdminController {
   // Performance Evaluation Endpoints
   @Get('performance/metrics')
   @ApiOperation({ summary: 'Get performance metrics' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getPerformanceMetrics() {
     const mockMetrics = [
       {
@@ -210,7 +210,7 @@ export class AdminController {
 
   @Get('performance/tests')
   @ApiOperation({ summary: 'Get performance tests' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getPerformanceTests() {
     const mockTests = [
       {
@@ -235,7 +235,7 @@ export class AdminController {
   // Compliance Management Endpoints
   @Get('compliance/standards')
   @ApiOperation({ summary: 'Get compliance standards' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getComplianceStandards() {
     const mockStandards = [
       {
@@ -260,7 +260,7 @@ export class AdminController {
 
   @Get('compliance/checks')
   @ApiOperation({ summary: 'Get compliance checks' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getComplianceChecks() {
     const mockChecks = [
       {
@@ -286,7 +286,7 @@ export class AdminController {
   // Business Metrics Endpoints
   @Get('business/kpis')
   @ApiOperation({ summary: 'Get business KPIs' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getBusinessKPIs() {
     const mockKPIs = [
       {
@@ -309,7 +309,7 @@ export class AdminController {
 
   @Get('business/health')
   @ApiOperation({ summary: 'Get business health metrics' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getBusinessHealth() {
     return {
       overallScore: 78.5,
@@ -339,7 +339,7 @@ export class AdminController {
   // Alert Rules Management
   @Post('alert-rules')
   @ApiOperation({ summary: 'Create alert rule' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async createAlertRule(@Body() ruleData: any) {
     return {
       id: `rule-${Date.now()}`,
@@ -351,7 +351,7 @@ export class AdminController {
 
   @Get('alert-rules')
   @ApiOperation({ summary: 'Get alert rules' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getAlertRules() {
     const mockRules = [
       {
@@ -371,7 +371,7 @@ export class AdminController {
   // Data Cleanup
   @Post('data-cleanup')
   @ApiOperation({ summary: 'Execute data cleanup' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async executeDataCleanup(@Body() cleanupConfig: any) {
     return {
       taskId: `cleanup-${Date.now()}`,

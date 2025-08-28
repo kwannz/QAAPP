@@ -269,3 +269,6 @@ export interface AuditLog {
   metadata?: any;
   createdAt: Date;
 }
+
+// 导出缓存和监控相关类型
+export * from './cache.types';

@@ -6,7 +6,7 @@ import { useAccount, useSignMessage } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import toast from 'react-hot-toast'
 
-import { Button } from '@qa-app/ui'
+import { Button } from '@/components/ui'
 import { authApi } from '../../lib/api-client'
 import { useAuthStore } from '../../lib/auth-store'
 

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Shield, TrendingUp, Users, Sparkles } from 'lucide-react'
 
-import { Button } from '@qa-app/ui'
+import { Button } from '@/components/ui'
 
 export function HeroSection() {
   const [currentStat, setCurrentStat] = useState(0)

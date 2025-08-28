@@ -27,7 +27,7 @@ import {
   Settings,
   BarChart3
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@qa-app/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@/components/ui'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
 import { AdminGuard } from '../../../components/admin/AdminGuard'
 

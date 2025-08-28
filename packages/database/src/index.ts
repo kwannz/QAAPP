@@ -2,6 +2,10 @@
 export * from '@prisma/client';
 export { PrismaClient } from '@prisma/client';
 
+// 导出新的数据库管理器和缓存管理器
+export * from './connection';
+export * from './cache';
+
 // 导出数据库实例
 import { PrismaClient } from '@prisma/client';
 import { getDatabaseConfig, validateDatabaseConfig, getEnvironment } from './config';

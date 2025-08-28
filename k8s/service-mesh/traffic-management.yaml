@@ -1,0 +1,305 @@
+# Gateway配置 - 入口流量管理
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: qa-app-gateway
+  namespace: qa-app
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    # HTTP配置 (重定向到HTTPS)
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - api.qa-app.com
+        - web.qa-app.com
+      tls:
+        httpsRedirect: true
+    
+    # HTTPS配置
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: qa-app-tls-secret
+      hosts:
+        - api.qa-app.com
+        - web.qa-app.com
+    
+    # 内部服务端口 (gRPC)
+    - port:
+        number: 15443
+        name: tls-grpc
+        protocol: TLS
+      tls:
+        mode: ISTIO_MUTUAL
+      hosts:
+        - "*.qa-app.svc.cluster.local"
+
+---
+# VirtualService配置 - API服务路由
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: qa-app-api-vs
+  namespace: qa-app
+spec:
+  hosts:
+    - api.qa-app.com
+  gateways:
+    - qa-app-gateway
+  http:
+    # API版本路由
+    - match:
+        - headers:
+            api-version:
+              exact: "v2"
+          uri:
+            prefix: "/api/"
+      route:
+        - destination:
+            host: qa-app-api-v2
+            port:
+              number: 3001
+      fault:
+        delay:
+          percentage:
+            value: 0.1 # 0.1% 请求注入延迟测试
+          fixedDelay: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: gateway-error,connect-failure,refused-stream
+    
+    # 默认v1路由 + 金丝雀发布
+    - match:
+        - uri:
+            prefix: "/api/"
+      route:
+        - destination:
+            host: qa-app-api-v1
+            port:
+              number: 3001
+          weight: 90 # 90% 流量到v1
+        - destination:
+            host: qa-app-api-v2
+            port:
+              number: 3001
+          weight: 10 # 10% 流量到v2 (金丝雀)
+      fault:
+        abort:
+          percentage:
+            value: 0.01 # 0.01% 请求返回503错误测试
+          httpStatus: 503
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+---
+# VirtualService配置 - Web应用路由
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: qa-app-web-vs
+  namespace: qa-app
+spec:
+  hosts:
+    - web.qa-app.com
+  gateways:
+    - qa-app-gateway
+  http:
+    # 静态资源缓存策略
+    - match:
+        - uri:
+            regex: ".*\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$"
+      route:
+        - destination:
+            host: qa-app-web
+            port:
+              number: 3000
+      headers:
+        response:
+          add:
+            cache-control: "public, max-age=31536000" # 1年缓存
+            expires: "Thu, 31 Dec 2025 23:59:59 GMT"
+    
+    # 主应用路由
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: qa-app-web
+            port:
+              number: 3000
+      headers:
+        response:
+          add:
+            cache-control: "no-cache, no-store, must-revalidate"
+            x-frame-options: "SAMEORIGIN"
+            x-content-type-options: "nosniff"
+
+---
+# DestinationRule配置 - 负载均衡和熔断
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: qa-app-api-dr
+  namespace: qa-app
+spec:
+  host: qa-app-api-v1
+  trafficPolicy:
+    # 负载均衡策略
+    loadBalancer:
+      simple: LEAST_CONN # 最少连接
+    
+    # 连接池设置
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30s
+        keepAlive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 64  # 排队请求
+        http2MaxRequests: 100        # 并发请求
+        maxRequestsPerConnection: 2  # 每连接最大请求
+        maxRetries: 3
+        consecutiveGatewayErrors: 3
+        idleTimeout: 90s
+        h2UpgradePolicy: UPGRADE
+    
+    # 熔断器设置
+    outlierDetection:
+      consecutiveGatewayErrors: 5    # 连续网关错误
+      consecutive5xxErrors: 5        # 连续5xx错误
+      interval: 30s                  # 分析间隔
+      baseEjectionTime: 30s          # 基础隔离时间
+      maxEjectionPercent: 50         # 最大隔离百分比
+      minHealthPercent: 30           # 最小健康百分比
+      splitExternalLocalOriginErrors: false
+  
+  # 端口级别策略
+  portLevelSettings:
+    - port:
+        number: 3001
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 32
+
+---
+# DestinationRule配置 - API v2服务
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: qa-app-api-v2-dr
+  namespace: qa-app
+spec:
+  host: qa-app-api-v2
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 32
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 2
+        maxRetries: 2
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 30
+
+---
+# ServiceEntry配置 - 外部服务访问
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-database
+  namespace: qa-app
+spec:
+  hosts:
+    - postgres.external.com
+  ports:
+    - number: 5432
+      name: postgres
+      protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+# ServiceEntry配置 - Redis外部服务
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-redis
+  namespace: qa-app
+spec:
+  hosts:
+    - redis.external.com
+  ports:
+    - number: 6379
+      name: redis
+      protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+# VirtualService配置 - 外部服务路由策略
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: external-services-vs
+  namespace: qa-app
+spec:
+  hosts:
+    - postgres.external.com
+    - redis.external.com
+  tcp:
+    - match:
+        - port: 5432
+      route:
+        - destination:
+            host: postgres.external.com
+            port:
+              number: 5432
+      timeout: 30s
+    
+    - match:
+        - port: 6379
+      route:
+        - destination:
+            host: redis.external.com
+            port:
+              number: 6379
+      timeout: 10s
+
+---
+# WorkloadEntry配置 - 外部工作负载注册
+apiVersion: networking.istio.io/v1beta1
+kind: WorkloadEntry
+metadata:
+  name: external-api-instance
+  namespace: qa-app
+spec:
+  address: "10.0.1.100"
+  ports:
+    http: 8080
+  labels:
+    app: external-api
+    version: v1
+  serviceAccount: external-api-sa

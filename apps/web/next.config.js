@@ -6,10 +6,6 @@ const nextConfig = {
   serverExternalPackages: ['@prisma/client'],
   experimental: {
     optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query', 'framer-motion'],
-    // 开启并发特性
-    concurrentFeatures: true,
-    // 服务端组件优化
-    serverComponentsExternalPackages: ['@prisma/client'],
     // 启用部分预渲染（Beta）
     ppr: false,
   },
@@ -122,7 +118,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.qa-app.com wss://api.qa-app.com https://*.infura.io https://*.alchemy.com https://*.quicknode.com;"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://api.qa-app.com wss://api.qa-app.com https://*.infura.io https://*.alchemy.com https://*.quicknode.com https://*.walletconnect.org https://*.web3modal.org https://pulse.walletconnect.org;"
           }
         ]
       }

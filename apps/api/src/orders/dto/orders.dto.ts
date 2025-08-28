@@ -1,7 +1,26 @@
-import { IsString, IsNumber, IsOptional, IsEnum, Min, IsUUID, IsHexadecimal } from 'class-validator';
+import { 
+  IsString, 
+  IsNumber, 
+  IsOptional, 
+  IsBoolean, 
+  IsEnum, 
+  IsUUID, 
+  IsArray,
+  IsHexadecimal,
+  Min, 
+  Max, 
+  IsInt,
+  ValidateNested
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { OrderStatus } from '@prisma/client';
+
+export enum PaymentType {
+  USDT = 'USDT',
+  ETH = 'ETH',
+  FIAT = 'FIAT'
+}
 
 export class CreateOrderDto {
   @ApiProperty({ example: 'product-uuid' })
@@ -155,4 +174,103 @@ export class OrderResponseDto {
 
   @ApiProperty()
   positions?: any[];
+}
+
+export class OrderListResponseDto {
+  @ApiProperty({ type: [OrderResponseDto] })
+  orders: OrderResponseDto[];
+
+  @ApiProperty()
+  total: number;
+
+  @ApiProperty()
+  page: number;
+
+  @ApiProperty()
+  limit: number;
+
+  @ApiProperty()
+  totalPages: number;
+
+  @ApiProperty()
+  hasNextPage: boolean;
+
+  @ApiProperty()
+  hasPreviousPage: boolean;
+}
+
+export class BatchUpdateOrdersDto {
+  @ApiProperty({ example: ['order-id-1', 'order-id-2'], description: 'Array of order IDs to update' })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  orderIds: string[];
+
+  @ApiProperty({ enum: ['approve', 'reject'], example: 'approve', description: 'Action to perform' })
+  @IsEnum(['approve', 'reject'])
+  action: 'approve' | 'reject';
+
+  @ApiPropertyOptional({ example: 'Bulk approval for Q4 orders', description: 'Reason for batch action' })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @ApiPropertyOptional({ example: 'Additional notes for this batch operation' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
+export class OrderStatsResponseDto {
+  @ApiProperty({ description: 'Total number of orders' })
+  total: number;
+
+  @ApiProperty({ description: 'Number of pending orders' })
+  pending: number;
+
+  @ApiProperty({ description: 'Number of successful orders' })
+  success: number;
+
+  @ApiProperty({ description: 'Number of failed orders' })
+  failed: number;
+
+  @ApiProperty({ description: 'Number of canceled orders' })
+  canceled: number;
+
+  @ApiProperty({ description: 'Total investment volume in USDT' })
+  totalVolume: number;
+
+  @ApiProperty({ description: 'Average order value in USDT' })
+  averageOrderValue: number;
+
+  @ApiProperty({ description: 'Today orders count' })
+  todayOrders: number;
+
+  @ApiProperty({ description: 'This week orders count' })
+  weekOrders: number;
+
+  @ApiProperty({ description: 'This month orders count' })
+  monthOrders: number;
+
+  @ApiProperty({ description: 'Orders by payment type' })
+  paymentTypes: {
+    [key in PaymentType]: {
+      count: number;
+      volume: number;
+    };
+  };
+
+  @ApiProperty({ description: 'Top products by order count' })
+  topProducts: Array<{
+    productId: string;
+    productName: string;
+    orderCount: number;
+    totalVolume: number;
+  }>;
+
+  @ApiProperty({ description: 'Daily order trends (last 30 days)' })
+  dailyTrends: Array<{
+    date: string;
+    orderCount: number;
+    volume: number;
+  }>;
 }

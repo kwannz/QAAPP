@@ -1,28 +1,35 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
+import { HealthModule } from './health/health.module';
+import { MockModule } from './mock/mock.module';
+import { LoggerModule } from './common/logger/logger.module';
+import { MetricsModule } from './common/metrics/metrics.module';
+// import { SecurityModule } from './common/security/security.module';
+import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
-import { BlockchainModule } from './blockchain/blockchain.module';
-import { HealthModule } from './health/health.module';
-import { MockModule } from './mock/mock.module';
-import { PayoutsModule } from './payouts/payouts.module';
 import { PositionsModule } from './positions/positions.module';
-import { MonitoringModule } from './monitoring/monitoring.module';
+import { PayoutsModule } from './payouts/payouts.module';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuditModule } from './audit/audit.module';
-import { AgentsModule } from './agents/agents.module';
 import { CommissionsModule } from './commissions/commissions.module';
-import { ConfigModule as SystemConfigModule } from './config/config.module';
+import { RiskModule } from './risk/risk.module';
+// import { MonitoringModule } from './monitoring/monitoring.module'; // Removed
+import { AgentsModule } from './agents/agents.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { PerformanceModule } from './performance/performance.module';
-import { RiskModule } from './risk/risk.module';
 import { AdminModule } from './admin/admin.module';
+import { AuditModule } from './audit/audit.module';
+import { BlockchainModule } from './blockchain/blockchain.module';
+import { LogsModule } from './logs/logs.module';
+import { AlertsModule } from './alerts/alerts.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MonitoringInterceptor } from './common/interceptors/monitoring.interceptor';
+import { PrismaModule } from './prisma/prisma.module';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
@@ -32,61 +39,70 @@ import { AdminModule } from './admin/admin.module';
       envFilePath: ['.env', '.env.local'],
     }),
 
+    // 全局日志模块
+    LoggerModule,
+
+    // 全局度量指标模块
+    MetricsModule,
+
+    // 全局安全模块 - 暂时禁用修复编译错误
+    // SecurityModule,
+
+    // 数据库模块 (全局)
+    PrismaModule,
+
+    // 缓存模块 (全局缓存服务)
+    CacheModule,
+
     // 健康检查模块 (不依赖数据库)
     HealthModule,
 
     // Mock模块 (用于测试核心业务逻辑)
     MockModule,
 
-    // 数据库和审计模块
-    PrismaModule,
-    AuditModule,
-
-    // 认证和用户模块
+    // 认证和用户模块 (核心功能)
     AuthModule,
-    // UsersModule, // 依赖数据库模块，暂时禁用
 
-    // 持仓管理模块
-    PositionsModule,
-
-    // 收益分发自动化模块
-    PayoutsModule,
-
-    // 提现管理模块
-    WithdrawalsModule,
-
-    // 系统监控和告警模块
-    MonitoringModule,
-
-    // 代理商和佣金管理模块
-    AgentsModule,
-    CommissionsModule,
-
-    // 系统配置管理模块
-    SystemConfigModule,
-
-    // 通知消息系统模块
-    NotificationsModule,
-
-    // 财务报表生成模块
-    ReportsModule,
-
-    // 性能监控模块
-    PerformanceModule,
-
-    // 风险管理模块
-    RiskModule,
-
-    // 管理功能模块
-    AdminModule,
+    // 数据库服务模块
+    DatabaseModule,
 
     // 核心业务模块
-    // ProductsModule,
-    // OrdersModule,
-    BlockchainModule,
+    UsersModule,
+    ProductsModule,
+    OrdersModule,
+    PositionsModule,
+
+    // 金融模块 - 暂时禁用
+    // PayoutsModule,
+    // WithdrawalsModule,
+    // CommissionsModule,
+
+    // 风险管理与监控 - 暂时禁用
+    // RiskModule,
+    // MonitoringModule,
+    // AgentsModule,
+
+    // 通知与报告 - 暂时禁用
+    // NotificationsModule,
+    // ReportsModule,
+    // PerformanceModule,
+
+    // 管理与审计模块 - 暂时禁用
+    // AdminModule,
+    // AuditModule,
+
+    // 高级功能模块 - 暂时禁用
+    // BlockchainModule,
+    // LogsModule,
+    // AlertsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MonitoringInterceptor,
+    },
+  ],
 })
 export class AppModule {
   constructor(private configService: ConfigService) {

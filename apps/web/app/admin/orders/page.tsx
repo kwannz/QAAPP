@@ -31,7 +31,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger
-} from '@qa-app/ui'
+} from '@/components/ui'
 import { AdminActionButtons, BatchActionButtons } from '../../../components/admin/AdminActionButtons'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
 import { AdminGuard } from '../../../components/admin/AdminGuard'

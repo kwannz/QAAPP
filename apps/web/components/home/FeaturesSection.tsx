@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Shield, Zap, Users, TrendingUp, Lock, Award } from 'lucide-react'
-import { Card, CardContent } from '@qa-app/ui'
+import { Card, CardContent } from '@/components/ui'
 
 const features = [
   {

@@ -1,9 +1,23 @@
 
-> @qa-app/contracts@1.0.0 build /Users/zhaoleon/Desktop/QAapp/packages/contracts
+> @qa-app/contracts@1.0.0 build /Users/zhaoleon/Downloads/QAAPP/packages/contracts
 > hardhat compile
 
-Nothing to compile
-No need to generate any newer typings.
+Downloading compiler 0.8.24
+Warning: This declaration shadows an existing declaration.
+   --> contracts/YieldDistributor.sol:409:9:
+    |
+409 |         uint256 totalClaimed,
+    |         ^^^^^^^^^^^^^^^^^^^^
+Note: The shadowed declaration is here:
+  --> contracts/YieldDistributor.sol:79:5:
+   |
+79 |     uint256 public totalClaimed;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Generating typings for: 36 artifacts in dir: typechain-types for target: ethers-v6
+Successfully generated 108 typings!
+Compiled 36 Solidity files successfully (evm target: paris).
  ·------------------------|--------------------------------|--------------------------------·
  |  Solc version: 0.8.24  ·  Optimizer enabled: true       ·  Runs: 200                     │
  ·························|································|·································

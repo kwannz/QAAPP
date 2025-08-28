@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OrderStatus } from '@prisma/client';
 
 // 模拟数据类型
 export interface MockUser {
@@ -36,6 +37,7 @@ export interface MockProduct {
   minAmount: number;
   maxAmount?: number;
   aprBps: number;
+  apr: number; // 计算字段，基于aprBps
   lockDays: number;
   nftTokenId?: number;
   nftMetadata?: any;
@@ -55,7 +57,7 @@ export interface MockOrder {
   usdtAmount: number;
   platformFee: number;
   txHash?: string;
-  status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELED';
+  status: OrderStatus;
   referrerId?: string;
   agentId?: string;
   failureReason?: string;
@@ -92,6 +94,7 @@ export class MockDatabaseService {
         minAmount: 100,
         maxAmount: 10000,
         aprBps: 800, // 8%
+        apr: 8,
         lockDays: 7,
         nftTokenId: 1,
         totalSupply: 1000,
@@ -109,6 +112,7 @@ export class MockDatabaseService {
         minAmount: 1000,
         maxAmount: 100000,
         aprBps: 1200, // 12%
+        apr: 12,
         lockDays: 30,
         nftTokenId: 2,
         totalSupply: 500,
@@ -126,6 +130,7 @@ export class MockDatabaseService {
         minAmount: 10000,
         maxAmount: 1000000,
         aprBps: 1800, // 18%
+        apr: 18,
         lockDays: 90,
         nftTokenId: 3,
         totalSupply: 100,

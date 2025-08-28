@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Github, Twitter, MessageCircle, Mail, ExternalLink } from 'lucide-react'
 
-import { Button } from '@qa-app/ui'
+import { Button } from '@/components/ui'
 
 const navigation = {
   product: [

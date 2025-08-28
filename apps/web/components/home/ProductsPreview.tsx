@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
-import { NFTCard, Button } from '@qa-app/ui'
+import { EnhancedProductCard, Button } from '@/components/ui'
 
 const sampleProducts = [
   {
@@ -72,13 +72,20 @@ export function ProductsPreview() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <NFTCard
-                {...product}
-                onPurchase={() => {
+              <EnhancedProductCard
+                product={{
+                  name: product.name,
+                  apy: BigInt(product.apr * 100),
+                  duration: BigInt(product.lockDays * 24 * 60 * 60),
+                  minInvestment: BigInt(product.minAmount * 1000000),
+                  maxInvestment: BigInt(product.maxAmount * 1000000),
+                  isActive: product.isActive
+                }}
+                productId={0}
+                onPurchaseSuccess={() => {
                   // 这里会跳转到具体的产品页面
                   window.location.href = `/products/${product.type}`
                 }}
-                className="h-full"
               />
             </motion.div>
           ))}
