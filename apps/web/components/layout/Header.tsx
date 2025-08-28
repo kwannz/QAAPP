@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+// import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { Button, cn } from '@qa-app/ui'
+import { Button, cn } from '@/components/ui'
 import { useAuthStore } from '../../lib/auth-store'
 
 const navigation = [
@@ -91,13 +91,9 @@ export function Header() {
             </>
           ) : (
             <div className="flex items-center space-x-4">
-              <ConnectButton 
-                chainStatus="icon"
-                accountStatus={{
-                  smallScreen: 'avatar',
-                  largeScreen: 'full',
-                }}
-              />
+              <Button variant="outline" size="sm">
+                连接钱包 (暂时禁用)
+              </Button>
               
               {/* 用户菜单 */}
               <div className="relative">

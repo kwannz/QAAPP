@@ -25,7 +25,7 @@ import {
   Badge,
   Alert,
   AlertDescription
-} from '@qa-app/ui'
+} from '@/components/ui'
 
 import { Header } from '../../../components/layout/Header'
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'

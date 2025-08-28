@@ -20,7 +20,7 @@ import {
   Filter,
   Download
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@qa-app/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { AdminLayout } from '../../components/admin/AdminLayout'
 import { AdminGuard } from '../../components/admin/AdminGuard'
 

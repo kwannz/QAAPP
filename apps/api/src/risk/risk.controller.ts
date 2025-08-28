@@ -22,14 +22,14 @@ export class RiskController {
 
   @Post('assessment')
   @ApiOperation({ summary: 'Perform risk assessment for withdrawal' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async performRiskAssessment(@Body() input: WithdrawalRiskInput) {
     return this.riskEngineService.performComprehensiveRiskAssessment(input);
   }
 
   @Get('items')
   @ApiOperation({ summary: 'Get risk items' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getRiskItems(@Query('category') category?: string) {
     // Mock risk items data for the frontend
     const mockRiskItems = [
@@ -88,7 +88,7 @@ export class RiskController {
 
   @Get('trends')
   @ApiOperation({ summary: 'Get risk trends' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getRiskTrends(@Query('period') period: string = '30d') {
     // Mock risk trends data
     const mockTrends = {
@@ -123,7 +123,7 @@ export class RiskController {
 
   @Get('scenarios')
   @ApiOperation({ summary: 'Get risk scenarios' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getRiskScenarios() {
     // Mock risk scenarios data
     const mockScenarios = [
@@ -171,7 +171,7 @@ export class RiskController {
 
   @Post('scenarios/:id/simulate')
   @ApiOperation({ summary: 'Simulate risk scenario' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async simulateRiskScenario(@Param('id') scenarioId: string) {
     // Mock scenario simulation
     return {

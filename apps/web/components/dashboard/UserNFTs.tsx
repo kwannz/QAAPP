@@ -24,7 +24,7 @@ import {
   Badge,
   Alert,
   AlertDescription
-} from '@qa-app/ui'
+} from '@/components/ui'
 
 import { useQACard } from '../../lib/hooks/use-contracts'
 import { apiClient } from '../../lib/api-client'

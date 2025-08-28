@@ -3,13 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["multiSchema", "views", "fullTextSearch"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // 用户角色枚举
@@ -140,8 +138,8 @@ model Product {
   symbol        String    @unique
   name          String
   description   String?
-  minAmount     Decimal   @map("min_amount") @db.Decimal(20, 6)
-  maxAmount     Decimal?  @map("max_amount") @db.Decimal(20, 6)
+  minAmount     Decimal   @map("min_amount")
+  maxAmount     Decimal?  @map("max_amount")
   aprBps        Int       @map("apr_bps") // 年化收益率(基点)
   lockDays      Int       @map("lock_days")
   nftTokenId    Int?      @unique @map("nft_token_id")
@@ -170,8 +168,8 @@ model Order {
   id            String      @id @default(cuid())
   userId        String      @map("user_id")
   productId     String      @map("product_id")
-  usdtAmount    Decimal     @map("usdt_amount") @db.Decimal(20, 6)
-  platformFee   Decimal     @default(0) @map("platform_fee") @db.Decimal(20, 6)
+  usdtAmount    Decimal     @map("usdt_amount")
+  platformFee   Decimal     @default(0) @map("platform_fee")
   txHash        String?     @map("tx_hash")
   status        OrderStatus @default(PENDING)
   referrerId    String?     @map("referrer_id")
@@ -204,9 +202,9 @@ model Position {
   userId         String         @map("user_id")
   productId      String         @map("product_id")
   orderId        String         @map("order_id")
-  principal      Decimal        @db.Decimal(20, 6)
-  startDate      DateTime       @map("start_date") @db.Date
-  endDate        DateTime       @map("end_date") @db.Date
+  principal      Decimal       
+  startDate      DateTime       @map("start_date")
+  endDate        DateTime       @map("end_date")
   nextPayoutAt   DateTime?      @map("next_payout_at")
   nftTokenId     Int?           @map("nft_token_id")
   nftTokenUri    String?        @map("nft_token_uri")
@@ -235,9 +233,9 @@ model Payout {
   id              String    @id @default(cuid())
   userId          String    @map("user_id")
   positionId      String    @map("position_id")
-  amount          Decimal   @db.Decimal(20, 6)
-  periodStart     DateTime  @map("period_start") @db.Date
-  periodEnd       DateTime  @map("period_end") @db.Date
+  amount          Decimal  
+  periodStart     DateTime  @map("period_start")
+  periodEnd       DateTime  @map("period_end")
   isClaimable     Boolean   @default(false) @map("is_claimable")
   claimedAt       DateTime? @map("claimed_at")
   claimTxHash     String?   @map("claim_tx_hash")
@@ -265,9 +263,9 @@ model Commission {
   id                String           @id @default(cuid())
   userId            String           @map("user_id")
   orderId           String           @map("order_id")
-  basisAmount       Decimal          @map("basis_amount") @db.Decimal(20, 6) // 计算基数
+  basisAmount       Decimal          @map("basis_amount") // 计算基数
   rateBps           Int              @map("rate_bps") // 佣金比例(基点)
-  amount            Decimal          @db.Decimal(20, 6)
+  amount            Decimal         
   commissionType    CommissionType   @map("commission_type")
   status            CommissionStatus @default(PENDING)
   settledAt         DateTime?        @map("settled_at")
@@ -330,17 +328,17 @@ model SystemConfig {
 model Withdrawal {
   id                String           @id @default(cuid())
   userId            String           @map("user_id")
-  amount            Decimal          @db.Decimal(20, 6)
+  amount            Decimal         
   withdrawalType    WithdrawalType   @map("withdrawal_type")
   status            WithdrawalStatus @default(PENDING)
   walletAddress     String           @map("wallet_address")
   chainId           Int              @map("chain_id")
-  platformFee       Decimal          @default(0) @map("platform_fee") @db.Decimal(20, 6)
-  actualAmount      Decimal          @map("actual_amount") @db.Decimal(20, 6) // 扣除手续费后实际提现金额
+  platformFee       Decimal          @default(0) @map("platform_fee")
+  actualAmount      Decimal          @map("actual_amount") // 扣除手续费后实际提现金额
   txHash            String?          @map("tx_hash")
-  blockNumber       BigInt?          @map("block_number")
-  gasUsed           BigInt?          @map("gas_used")
-  gasFee            Decimal?         @map("gas_fee") @db.Decimal(20, 6)
+  blockNumber       Int?             @map("block_number")
+  gasUsed           Int?             @map("gas_used")
+  gasFee            Decimal?         @map("gas_fee")
   
   // 风险评估字段
   riskScore         Int              @default(0) @map("risk_score") // 0-100风险评分

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, TrendingUp, Shield, Clock } from 'lucide-react'
 
-import { Input, Button, NFTCard } from '@qa-app/ui'
+import { FormFormInput, Button, EnhancedProductCard } from '@/components/ui'
 import { Header } from '../../components/layout/Header'
 import { Footer } from '../../components/layout/Footer'
 import { ProductPurchase } from '../../components/products/ProductPurchase'
@@ -189,7 +189,7 @@ export default function ProductsPage() {
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
               {/* 搜索框 */}
               <div className="w-full lg:w-80">
-                <Input
+                <FormInput
                   type="text"
                   placeholder="搜索产品..."
                   value={searchTerm}
@@ -249,21 +249,20 @@ export default function ProductsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                   >
-                    <NFTCard
-                      type={product.productType}
-                      name={product.name}
-                      apr={product.apr}
-                      currentSupply={product.currentSupply}
-                      totalSupply={product.totalSupply}
-                      isActive={product.isActive}
-                      lockDays={product.duration}
-                      minAmount={product.minInvestment}
-                      maxAmount={product.maxInvestment}
-                      onPurchase={() => {
+                    <EnhancedProductCard
+                      product={{
+                        name: product.name,
+                        apy: BigInt(product.apr * 100),
+                        duration: BigInt(product.duration * 24 * 60 * 60),
+                        minInvestment: BigInt(product.minInvestment * 1000000),
+                        maxInvestment: BigInt(product.maxInvestment * 1000000),
+                        isActive: product.isActive
+                      }}
+                      productId={product.type}
+                      onPurchaseSuccess={() => {
                         // 跳转到具体产品页面
                         window.location.href = `/products/${product.productType}`
                       }}
-                      className="h-full"
                     />
                   </motion.div>
                 ))}

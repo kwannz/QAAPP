@@ -10,11 +10,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@qa-app/ui'
+import { Button, FormInput, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { authApi } from '../../../lib/api-client'
 import { useAuthStore } from '../../../lib/auth-store'
-import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
-import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton'
+// import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
+// import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton'
 
 const loginSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
@@ -108,17 +108,17 @@ export default function LoginPage() {
             <CardContent className="space-y-6">
               {/* 邮箱登录表单 */}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <Input
+                <FormInput
                   {...register('email')}
                   type="email"
                   label="邮箱地址"
                   placeholder="请输入邮箱地址"
                   error={errors.email?.message}
                   leftIcon={<Mail className="h-4 w-4" />}
-                  disabled={isLoading}
+                  loading={isLoading}
                 />
 
-                <Input
+                <FormInput
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   label="密码"
@@ -134,7 +134,7 @@ export default function LoginPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   }
-                  disabled={isLoading}
+                  loading={isLoading}
                 />
 
                 <div className="flex items-center justify-between text-sm">
@@ -150,7 +150,7 @@ export default function LoginPage() {
                   type="submit"
                   className="w-full"
                   size="lg"
-                  loading={isLoading}
+                  disabled={isLoading}
                 >
                   登录
                 </Button>
@@ -166,16 +166,16 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Google 登录 */}
-              <GoogleLoginButton 
+              {/* Google 登录 - 暂时禁用 */}
+              {/* <GoogleLoginButton 
                 onSuccess={() => {
                   const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/dashboard'
                   router.push(redirectUrl)
                 }}
-              />
+              /> */}
 
-              {/* Web3 登录 */}
-              <Web3LoginSection />
+              {/* Web3 登录 - 暂时禁用 */}
+              {/* <Web3LoginSection /> */}
 
               {/* 注册链接 */}
               <div className="text-center text-sm">

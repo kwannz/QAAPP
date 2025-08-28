@@ -40,7 +40,14 @@ export function EnhancedProductCard({
   showReferralOptions = false,
   referrerAddress
 }: EnhancedProductCardProps) {
-  const { isConnected, address, ethBalance, isNetworkSupported } = useWalletStatus()
+  // 临时禁用Web3功能
+  const { isConnected, address, ethBalance, isNetworkSupported } = {
+    isConnected: false,
+    address: undefined,
+    ethBalance: '0',
+    isNetworkSupported: false
+  } // useWalletStatus()
+  // 临时禁用Web3合约功能
   const {
     purchaseWithUSDT,
     purchaseWithReferral,
@@ -52,7 +59,18 @@ export function EnhancedProductCard({
     formatDuration,
     priceInfo,
     isContractReady
-  } = useTreasuryContract()
+  } = {
+    purchaseWithUSDT: () => {},
+    purchaseWithReferral: () => {},
+    purchaseWithETH: () => {},
+    isWritePending: false,
+    isConfirming: false,
+    formatUSDT: (value: any) => value,
+    formatAPY: (value: any) => value,
+    formatDuration: (value: any) => value,
+    priceInfo: null,
+    isContractReady: false
+  } // useTreasuryContract()
 
   const [investmentAmount, setInvestmentAmount] = useState('')
   const [useETH, setUseETH] = useState(false)

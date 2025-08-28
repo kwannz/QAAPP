@@ -22,28 +22,28 @@ export class AuditController {
 
   @Post('logs')
   @ApiOperation({ summary: 'Create audit log' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async createAuditLog(@Body() createAuditLogDto: CreateAuditLogDto) {
     return this.auditService.createAuditLog(createAuditLogDto);
   }
 
   @Get('logs')
   @ApiOperation({ summary: 'Get audit logs' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getAuditLogs(@Query() query: AuditLogQueryDto) {
     return this.auditService.getAuditLogs(query);
   }
 
   @Get('logs/:id')
   @ApiOperation({ summary: 'Get audit log by ID' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getAuditLogById(@Param('id') id: string) {
     return this.auditService.getAuditLogById(id);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get audit statistics' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async getAuditStats(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -55,7 +55,7 @@ export class AuditController {
 
   @Post('export')
   @ApiOperation({ summary: 'Export audit report' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async exportAuditReport(@Body() query: AuditLogQueryDto) {
     // TODO: Implement audit report export
     return { message: 'Export functionality will be implemented' };
@@ -63,7 +63,7 @@ export class AuditController {
 
   @Post('batch-mark-abnormal')
   @ApiOperation({ summary: 'Batch mark logs as abnormal' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async batchMarkAbnormal(@Body() body: { logIds: string[] }) {
     // TODO: Implement batch marking as abnormal
     return { message: `Marked ${body.logIds.length} logs as abnormal` };
@@ -71,7 +71,7 @@ export class AuditController {
 
   @Post('generate-summary')
   @ApiOperation({ summary: 'Generate audit summary' })
-  @Roles('admin')
+  @Roles('ADMIN')
   async generateSummary(@Body() query: AuditLogQueryDto) {
     // TODO: Implement audit summary generation
     return { message: 'Summary generation functionality will be implemented' };

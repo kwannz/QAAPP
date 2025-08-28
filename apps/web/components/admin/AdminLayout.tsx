@@ -19,7 +19,7 @@ import {
   Search,
   Wallet
 } from 'lucide-react'
-import { Button, Card, Input } from '@qa-app/ui'
+import { Button, Card, Input } from '@/components/ui'
 import { useAuthStore } from '../../lib/auth-store'
 
 interface AdminLayoutProps {

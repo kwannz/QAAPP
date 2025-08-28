@@ -33,7 +33,7 @@ import {
   Calendar,
   MoreHorizontal
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@qa-app/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
 import { Header } from '../../../components/layout/Header'
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'
 import { useAuthStore } from '../../../lib/auth-store'

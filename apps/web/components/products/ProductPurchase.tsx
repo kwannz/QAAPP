@@ -16,7 +16,7 @@ import {
   Input,
   Alert,
   AlertDescription 
-} from '@qa-app/ui'
+} from '@/components/ui'
 
 import { useTreasury, useUSDT } from '../../lib/hooks/use-contracts'
 import { apiClient } from '../../lib/api-client'

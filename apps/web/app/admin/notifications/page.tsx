@@ -31,7 +31,7 @@ import {
   Pause,
   RefreshCw
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@qa-app/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
 import { AdminGuard } from '../../../components/admin/AdminGuard'
 

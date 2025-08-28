@@ -200,3 +200,26 @@ export class ProductAvailabilityResponseDto {
   @ApiProperty()
   reason?: string;
 }
+
+export class ProductListResponseDto {
+  @ApiProperty({ type: [ProductResponseDto] })
+  products: ProductResponseDto[];
+
+  @ApiProperty()
+  total: number;
+
+  @ApiProperty()
+  page: number;
+
+  @ApiProperty()
+  limit: number;
+
+  @ApiProperty()
+  totalPages: number;
+
+  @ApiProperty()
+  hasNextPage: boolean;
+
+  @ApiProperty()
+  hasPreviousPage: boolean;
+}

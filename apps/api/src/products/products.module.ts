@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { MockProductsService } from './mock-products.service';
 import { DatabaseModule } from '../database/database.module';
 
 @Module({
@@ -11,7 +12,7 @@ import { DatabaseModule } from '../database/database.module';
     DatabaseModule,
   ],
   controllers: [ProductsController],
-  providers: [ProductsService],
-  exports: [ProductsService],
+  providers: [ProductsService, MockProductsService],
+  exports: [ProductsService, MockProductsService],
 })
 export class ProductsModule {}

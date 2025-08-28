@@ -1,18 +1,30 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { CreateProductDto, UpdateProductDto, ProductQueryDto } from './dto/products.dto';
+import { MockProductsService } from './mock-products.service';
+import { CreateProductDto, UpdateProductDto, ProductQueryDto, ProductListResponseDto, ProductResponseDto } from './dto/products.dto';
 import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
-  constructor(private database: DatabaseService) {}
+  constructor(
+    private database: DatabaseService,
+    private mockProductsService: MockProductsService
+  ) {}
 
   /**
    * 获取所有活跃产品
    */
-  async findAll(queryDto: ProductQueryDto = {}) {
+  async findAll(queryDto: ProductQueryDto = {}): Promise<ProductListResponseDto> {
+    // Delegate to mock service for now
+    return this.mockProductsService.findAll(queryDto);
+  }
+
+  /**
+   * 原始的数据库查询方法 - 备用
+   */
+  async findAllFromDatabase(queryDto: ProductQueryDto = {}) {
     const { 
       page = 1, 
       limit = 20, 
@@ -137,7 +149,15 @@ export class ProductsService {
   /**
    * 根据ID获取产品详情
    */
-  async findOne(id: string) {
+  async findOne(id: string): Promise<ProductResponseDto> {
+    // Delegate to mock service for now
+    return this.mockProductsService.findOne(id);
+  }
+
+  /**
+   * 原始的数据库查询方法 - 备用
+   */
+  async findOneFromDatabase(id: string) {
     const product = await this.database.product.findUnique({
       where: { id },
       include: {
@@ -237,7 +257,15 @@ export class ProductsService {
   /**
    * 创建新产品（管理员功能）
    */
-  async create(createProductDto: CreateProductDto, adminId: string) {
+  async create(createProductDto: CreateProductDto, adminId: string): Promise<ProductResponseDto> {
+    // Delegate to mock service for now
+    return this.mockProductsService.create(createProductDto, adminId);
+  }
+
+  /**
+   * 原始的数据库创建方法 - 备用
+   */
+  async createInDatabase(createProductDto: CreateProductDto, adminId: string) {
     // 检查产品符号是否已存在
     const existingProduct = await this.database.product.findUnique({
       where: { symbol: createProductDto.symbol.toUpperCase() },
@@ -298,7 +326,15 @@ export class ProductsService {
   /**
    * 更新产品信息（管理员功能）
    */
-  async update(id: string, updateProductDto: UpdateProductDto, adminId: string) {
+  async update(id: string, updateProductDto: UpdateProductDto, adminId: string): Promise<ProductResponseDto> {
+    // Delegate to mock service for now
+    return this.mockProductsService.update(id, updateProductDto, adminId);
+  }
+
+  /**
+   * 原始的数据库更新方法 - 备用
+   */
+  async updateInDatabase(id: string, updateProductDto: UpdateProductDto, adminId: string) {
     const existingProduct = await this.database.product.findUnique({
       where: { id },
     });
@@ -396,7 +432,15 @@ export class ProductsService {
   /**
    * 删除产品（软删除，设置为不活跃）
    */
-  async remove(id: string, adminId: string) {
+  async remove(id: string, adminId: string): Promise<{ message: string; productId: string }> {
+    // Delegate to mock service for now
+    return this.mockProductsService.remove(id, adminId);
+  }
+
+  /**
+   * 原始的数据库删除方法 - 备用
+   */
+  async removeFromDatabase(id: string, adminId: string) {
     const product = await this.database.product.findUnique({
       where: { id },
     });
@@ -439,9 +483,30 @@ export class ProductsService {
   }
 
   /**
+   * 获取产品统计信息
+   */
+  async getStatistics(id: string) {
+    // Delegate to mock service for now
+    return this.mockProductsService.getStatistics(id);
+  }
+
+  /**
    * 检查产品是否可购买
    */
   async checkAvailability(productId: string, amount: number): Promise<{
+    available: boolean;
+    reason?: string;
+    maxAmount?: number;
+    remainingCapacity?: number;
+  }> {
+    // Delegate to mock service for now
+    return this.mockProductsService.checkAvailability(productId, amount);
+  }
+
+  /**
+   * 原始的数据库可用性检查方法 - 备用
+   */
+  async checkAvailabilityFromDatabase(productId: string, amount: number): Promise<{
     available: boolean;
     reason?: string;
   }> {

@@ -27,6 +27,12 @@
     "node_modules",
     "dist",
     "test",
-    "**/*spec.ts"
+    "**/*spec.ts",
+    "src/cache/**/*",
+    "src/event-sourcing/**/*",
+    "src/monitoring/**/*",
+    "src/saga/**/*",
+    "src/user/**/*",
+    "src/versioning/**/*"
   ]
 }

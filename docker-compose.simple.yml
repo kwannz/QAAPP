@@ -1,0 +1,136 @@
+# 简化生产部署配置 - QA App
+# 专注于核心功能，避免过度复杂化
+
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: qa-postgres-simple
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: qaapp_prod
+      POSTGRES_USER: qaapp_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - qa-simple
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qaapp_user -d qaapp_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: qa-redis-simple
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-secure_redis_pass}
+    volumes:
+      - redis_data:/data
+    networks:
+      - qa-simple
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API后端服务
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: production
+    container_name: qa-api-simple
+    restart: unless-stopped
+    env_file:
+      - .env.api.production
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://qaapp_user:${POSTGRES_PASSWORD:-change_me_in_production}@postgres:5432/qaapp_prod?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-secure_redis_pass}
+    ports:
+      - "3001:3001"
+    networks:
+      - qa-simple
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - api_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Web前端服务
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: production
+    container_name: qa-web-simple
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${API_URL:-http://localhost:3001/api}
+      - NEXT_PUBLIC_WS_URL=${WS_URL:-ws://localhost:3001}
+    ports:
+      - "3000:3000"
+    networks:
+      - qa-simple
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # 简单的Nginx代理（可选）
+  nginx:
+    image: nginx:alpine
+    container_name: qa-nginx-simple
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx-simple.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - qa-simple
+    depends_on:
+      - web
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  api_logs:
+    driver: local
+
+networks:
+  qa-simple:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from '@nes
 import { MockDatabaseService, MockOrder } from '../database/mock-database.service';
 import { MockProductsService } from '../products/mock-products.service';
 import { PositionsService } from '../positions/positions.service';
+import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class MockOrdersService {
@@ -19,6 +20,8 @@ export class MockOrdersService {
     page: number;
     limit: number;
     totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   }> {
     // 简化的查询实现
     const allOrders = Array.from((this.mockDatabase as any).orders.values()) as MockOrder[];
@@ -33,6 +36,8 @@ export class MockOrdersService {
       page,
       limit,
       totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
     };
   }
 
@@ -82,7 +87,7 @@ export class MockOrdersService {
       productId,
       usdtAmount: equivalentUSDT, // 存储等值USDT金额
       platformFee,
-      status: 'PENDING',
+      status: OrderStatus.PENDING,
       metadata: {
         productSymbol: 'MOCK_PRODUCT',
         referrerCode,
@@ -101,9 +106,9 @@ export class MockOrdersService {
     const order = await this.findOne(id, userId);
     
     // 只允许取消待处理的订单
-    if (updateOrderDto.status === 'CANCELED' && order.status === 'PENDING') {
+    if (updateOrderDto.status === OrderStatus.CANCELED && order.status === OrderStatus.PENDING) {
       const updatedOrder = await this.mockDatabase.updateOrder(id, {
-        status: 'CANCELED',
+        status: OrderStatus.CANCELED,
         metadata: {
           ...order.metadata,
           cancelledAt: new Date().toISOString(),
@@ -126,7 +131,7 @@ export class MockOrdersService {
     const { txHash } = confirmDto;
     
     const order = await this.findOne(orderId, userId);
-    if (order.status !== 'PENDING') {
+    if (order.status !== OrderStatus.PENDING) {
       throw new BadRequestException('Order is not in pending status');
     }
 
@@ -135,7 +140,7 @@ export class MockOrdersService {
 
     if (simulatedSuccess) {
       const updatedOrder = await this.mockDatabase.updateOrder(orderId, {
-        status: 'SUCCESS',
+        status: OrderStatus.SUCCESS,
         txHash,
         confirmedAt: new Date(),
         metadata: {
@@ -165,7 +170,7 @@ export class MockOrdersService {
       return updatedOrder!;
     } else {
       const updatedOrder = await this.mockDatabase.updateOrder(orderId, {
-        status: 'FAILED',
+        status: OrderStatus.FAILED,
         failureReason: 'Transaction verification failed',
         metadata: {
           ...order.metadata,
@@ -190,6 +195,106 @@ export class MockOrdersService {
       page,
       limit,
       totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
     };
+  }
+
+  // Admin methods - Mock implementations
+  async getAdminOrderList(filters: any) {
+    return this.findAll(filters);
+  }
+
+  async getOrderStats() {
+    const allOrders = Array.from((this.mockDatabase as any).orders.values()) as MockOrder[];
+    const totalVolume = allOrders
+      .filter(o => o.status === OrderStatus.SUCCESS)
+      .reduce((sum, order) => sum + order.usdtAmount, 0);
+    
+    const successOrders = allOrders.filter(o => o.status === OrderStatus.SUCCESS);
+    const averageOrderValue = successOrders.length > 0 ? totalVolume / successOrders.length : 0;
+    
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    return {
+      total: allOrders.length,
+      pending: allOrders.filter(o => o.status === OrderStatus.PENDING).length,
+      success: allOrders.filter(o => o.status === OrderStatus.SUCCESS).length,
+      failed: allOrders.filter(o => o.status === OrderStatus.FAILED).length,
+      canceled: allOrders.filter(o => o.status === OrderStatus.CANCELED).length,
+      totalVolume,
+      averageOrderValue,
+      todayOrders: allOrders.filter(o => o.createdAt >= todayStart).length,
+      weekOrders: allOrders.filter(o => o.createdAt >= weekStart).length,
+      monthOrders: allOrders.filter(o => o.createdAt >= monthStart).length,
+      paymentTypes: {
+        USDT: { count: 0, volume: 0 },
+        ETH: { count: 0, volume: 0 },
+        FIAT: { count: 0, volume: 0 },
+      },
+      topProducts: [],
+      dailyTrends: [],
+    };
+  }
+
+  async approveOrder(id: string, approvalData: any) {
+    const order = await this.findOne(id);
+    return this.mockDatabase.updateOrder(id, { status: OrderStatus.SUCCESS, metadata: { ...order.metadata, approvalData, approved: true } });
+  }
+
+  async rejectOrder(id: string, rejectionData: any) {
+    const order = await this.findOne(id);
+    return this.mockDatabase.updateOrder(id, { status: OrderStatus.FAILED, metadata: { ...order.metadata, rejectionData, rejected: true } });
+  }
+
+  async batchUpdateOrders(batchData: any) {
+    const { orderIds, action } = batchData;
+    const results = [];
+    for (const id of orderIds) {
+      if (action === 'approve') {
+        results.push(await this.approveOrder(id, batchData));
+      } else if (action === 'reject') {
+        results.push(await this.rejectOrder(id, batchData));
+      }
+    }
+    return { updated: results.length, results };
+  }
+
+  async getOrderRiskAnalysis(id: string) {
+    const order = await this.findOne(id);
+    return {
+      orderId: id,
+      riskLevel: 'LOW',
+      riskScore: 0.2,
+      factors: ['No suspicious patterns detected'],
+      recommendation: 'APPROVE'
+    };
+  }
+
+  async reEvaluateOrderRisk(id: string) {
+    return this.getOrderRiskAnalysis(id);
+  }
+
+  async exportOrders(filters: any) {
+    const orders = await this.findAll(filters);
+    return {
+      format: filters.format || 'csv',
+      data: orders.orders,
+      fileName: `orders_export_${Date.now()}.${filters.format || 'csv'}`
+    };
+  }
+
+  async getOrderAuditTrail(id: string) {
+    return [
+      {
+        timestamp: new Date().toISOString(),
+        action: 'CREATED',
+        user: 'system',
+        details: 'Order created'
+      }
+    ];
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   Users,
@@ -24,9 +24,12 @@ import {
   UserX,
   Ban
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@qa-app/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@/components/ui'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
 import { AdminGuard } from '../../../components/admin/AdminGuard'
+import { auditApi } from '../../../lib/api-client'
+import { downloadCSV, formatUserAuditForExport } from '../../../lib/export-utils'
+import toast from 'react-hot-toast'
 
 interface UserAudit {
   id: string

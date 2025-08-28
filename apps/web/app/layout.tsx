@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import './globals.css';
 
 import { Providers } from './providers';
-import { cn } from '@qa-app/ui';
+import { cn } from '@/components/ui';
 
 const inter = Inter({ subsets: ['latin'] });
 

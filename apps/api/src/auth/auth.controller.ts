@@ -14,7 +14,9 @@ import {
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService
+  ) {}
 
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ 

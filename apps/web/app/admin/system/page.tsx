@@ -38,7 +38,7 @@ import {
   CardHeader,
   CardTitle,
   Badge
-} from '@qa-app/ui'
+} from '@/components/ui'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
 import { AdminGuard } from '../../../components/admin/AdminGuard'
 

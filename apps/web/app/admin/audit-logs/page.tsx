@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   FileText,
@@ -25,11 +25,17 @@ import {
   Play,
   Pause,
   Cog,
-  ClipboardCheck
+  ClipboardCheck,
+  Wifi,
+  WifiOff
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@qa-app/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '@/components/ui'
 import { AdminLayout } from '../../../components/admin/AdminLayout'
 import { AdminGuard } from '../../../components/admin/AdminGuard'
+import { auditApi } from '../../../lib/api-client'
+import { downloadCSV, formatAuditLogsForExport, downloadBlob } from '../../../lib/export-utils'
+import { useAuditWebSocket } from '../../../hooks/useWebSocket'
+import toast from 'react-hot-toast'
 
 interface AuditLog {
   id: string
@@ -192,8 +198,8 @@ const categoryLabels: Record<string, string> = {
 }
 
 export default function AuditLogsPage() {
-  const [logs, setLogs] = useState<AuditLog[]>(mockAuditLogs)
-  const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>(mockAuditLogs)
+  const [logs, setLogs] = useState<AuditLog[]>([])
+  const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterSeverity, setFilterSeverity] = useState<string>('all')
@@ -206,14 +212,86 @@ export default function AuditLogsPage() {
   const [showAlertRulesModal, setShowAlertRulesModal] = useState(false)
   const [showAuditConfigModal, setShowAuditConfigModal] = useState(false)
   const [showCleanupModal, setShowCleanupModal] = useState(false)
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0 })
+  const [stats, setStats] = useState<any>(null)
+  const [useRealAPI, setUseRealAPI] = useState(false) // 切换真实API和模拟数据
+  
+  // WebSocket集成
+  const { 
+    isConnected: wsConnected, 
+    realtimeLogs, 
+    clearLogs: clearRealtimeLogs 
+  } = useAuditWebSocket((newLog) => {
+    if (isRealTimeEnabled) {
+      // 实时添加新日志到列表顶部
+      setLogs(prevLogs => [newLog, ...prevLogs].slice(0, 100)) // 保持最多100条
+      toast.success('收到新的审计日志', { duration: 2000 })
+    }
+  })
+
+  // 获取审计日志数据
+  const fetchAuditLogs = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      if (useRealAPI) {
+        // 使用真实API
+        const params: any = {
+          page: pagination.page,
+          limit: pagination.limit,
+        }
+        
+        // 添加筛选参数
+        if (filterCategory !== 'all') params.category = filterCategory
+        if (filterSeverity !== 'all') params.severity = filterSeverity
+        
+        // 处理日期范围
+        if (filterDateRange !== 'all') {
+          const now = new Date()
+          let startDate = new Date()
+          
+          switch (filterDateRange) {
+            case 'today':
+              startDate.setHours(0, 0, 0, 0)
+              break
+            case 'week':
+              startDate.setDate(now.getDate() - 7)
+              break
+            case 'month':
+              startDate.setMonth(now.getMonth() - 1)
+              break
+          }
+          
+          params.startDate = startDate.toISOString()
+          params.endDate = now.toISOString()
+        }
+        
+        const response = await auditApi.getAdminLogs(params)
+        const data = response.data
+        
+        setLogs(data.logs || [])
+        setPagination(data.pagination || { page: 1, limit: 50, total: 0 })
+        
+        // 获取统计数据
+        const statsResponse = await auditApi.getAuditStats(params)
+        setStats(statsResponse.data)
+      } else {
+        // 使用模拟数据
+        setLogs(mockAuditLogs)
+        setPagination({ page: 1, limit: 50, total: mockAuditLogs.length })
+      }
+    } catch (error) {
+      console.error('获取审计日志失败:', error)
+      // 如果API失败，回退到模拟数据
+      setLogs(mockAuditLogs)
+      toast.error('获取审计日志失败，使用模拟数据')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [pagination.page, filterCategory, filterSeverity, filterDateRange, useRealAPI])
 
   useEffect(() => {
-    // 模拟数据加载
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [])
+    fetchAuditLogs()
+  }, [fetchAuditLogs])
 
   useEffect(() => {
     // 应用筛选条件
@@ -322,35 +400,136 @@ export default function AuditLogsPage() {
     setShowDetailModal(true)
   }
 
-  const handleRefresh = () => {
-    setIsLoading(true)
-    // 模拟刷新数据
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+  const handleRefresh = async () => {
+    await fetchAuditLogs()
+    toast.success('已刷新数据')
   }
 
-  const handleExportLogs = () => {
-    // TODO: 实现导出功能
-    alert('导出功能开发中')
+  const handleExportLogs = async () => {
+    try {
+      if (useRealAPI) {
+        // 使用真实API导出
+        const params: any = {
+          format: 'csv',
+          category: filterCategory !== 'all' ? filterCategory : undefined,
+          severity: filterSeverity !== 'all' ? filterSeverity : undefined,
+        }
+        
+        if (filterDateRange !== 'all') {
+          const now = new Date()
+          let startDate = new Date()
+          
+          switch (filterDateRange) {
+            case 'today':
+              startDate.setHours(0, 0, 0, 0)
+              break
+            case 'week':
+              startDate.setDate(now.getDate() - 7)
+              break
+            case 'month':
+              startDate.setMonth(now.getMonth() - 1)
+              break
+          }
+          
+          params.startDate = startDate.toISOString()
+          params.endDate = now.toISOString()
+        }
+        
+        const response = await auditApi.exportAuditLogs(params)
+        downloadBlob(response.data, `audit_logs_${new Date().toISOString().split('T')[0]}.csv`)
+        toast.success('审计日志导出成功')
+      } else {
+        // 使用本地导出
+        const exportData = formatAuditLogsForExport(filteredLogs)
+        downloadCSV(exportData, 'audit_logs')
+        toast.success('审计日志导出成功')
+      }
+    } catch (error) {
+      console.error('导出失败:', error)
+      // 如果API失败，使用本地导出
+      const exportData = formatAuditLogsForExport(filteredLogs)
+      downloadCSV(exportData, 'audit_logs')
+      toast.success('审计日志导出成功（本地）')
+    }
   }
 
   // 新增的功能处理函数
-  const handleExportAuditReport = () => {
-    alert('正在生成审计报告...')
+  const handleExportAuditReport = async () => {
+    try {
+      if (useRealAPI) {
+        const response = await auditApi.exportAuditLogs({ 
+          format: 'pdf',
+          category: filterCategory !== 'all' ? filterCategory : undefined,
+          severity: filterSeverity !== 'all' ? filterSeverity : undefined,
+        })
+        downloadBlob(response.data, `audit_report_${new Date().toISOString().split('T')[0]}.pdf`)
+        toast.success('审计报告生成成功')
+      } else {
+        // 本地生成CSV报告
+        const exportData = formatAuditLogsForExport(filteredLogs)
+        downloadCSV(exportData, 'audit_report')
+        toast.success('审计报告生成成功（CSV格式）')
+      }
+    } catch (error) {
+      console.error('生成报告失败:', error)
+      const exportData = formatAuditLogsForExport(filteredLogs)
+      downloadCSV(exportData, 'audit_report')
+      toast.success('审计报告生成成功（CSV格式）')
+    }
   }
 
-  const handleBatchMarkAbnormal = () => {
+  const handleBatchMarkAbnormal = async () => {
     if (selectedLogs.length === 0) {
-      alert('请先选择要标记的日志')
+      toast.error('请先选择要标记的日志')
       return
     }
-    alert(`已将 ${selectedLogs.length} 条日志标记为异常`)
-    setSelectedLogs([])
+    
+    try {
+      if (useRealAPI) {
+        await auditApi.markAsAbnormal(selectedLogs)
+        toast.success(`已将 ${selectedLogs.length} 条日志标记为异常`)
+        await fetchAuditLogs()
+      } else {
+        toast.success(`已将 ${selectedLogs.length} 条日志标记为异常（模拟）`)
+      }
+      setSelectedLogs([])
+    } catch (error) {
+      console.error('标记失败:', error)
+      toast.error('标记异常失败')
+    }
   }
 
-  const handleGenerateAuditSummary = () => {
-    alert('正在生成审计摘要...')
+  const handleGenerateAuditSummary = async () => {
+    try {
+      if (useRealAPI) {
+        const params: any = {}
+        
+        if (filterDateRange !== 'all') {
+          const now = new Date()
+          let startDate = new Date()
+          
+          switch (filterDateRange) {
+            case 'today':
+              params.period = 'daily'
+              break
+            case 'week':
+              params.period = 'weekly'
+              break
+            case 'month':
+              params.period = 'monthly'
+              break
+          }
+        }
+        
+        await auditApi.generateSummary(params)
+        toast.success('审计摘要生成成功')
+      } else {
+        toast.success('审计摘要生成成功（模拟）')
+      }
+    } catch (error) {
+      console.error('生成摘要失败:', error)
+      toast.error('生成审计摘要失败')
+    }
   }
 
   const handleSetAlertRules = () => {
@@ -370,8 +549,18 @@ export default function AuditLogsPage() {
     setShowAuditConfigModal(true)
   }
 
-  const handleComplianceReport = () => {
-    alert('正在生成合规检查报告...')
+  const handleComplianceReport = async () => {
+    try {
+      // 使用CSV导出作为合规报告
+      const exportData = formatAuditLogsForExport(filteredLogs.filter(log => 
+        log.severity === 'high' || log.severity === 'critical'
+      ))
+      downloadCSV(exportData, 'compliance_report')
+      toast.success('合规检查报告生成成功')
+    } catch (error) {
+      console.error('生成报告失败:', error)
+      toast.error('生成合规检查报告失败')
+    }
   }
 
   const handleSelectLog = (logId: string) => {
@@ -430,6 +619,43 @@ export default function AuditLogsPage() {
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
+              {/* API切换开关 */}
+              <div className="flex items-center px-3 py-1 bg-gray-100 rounded-lg">
+                <span className="text-sm text-gray-600 mr-2">数据源:</span>
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useRealAPI}
+                    onChange={(e) => setUseRealAPI(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className="relative">
+                    <div className={`block w-10 h-6 rounded-full ${useRealAPI ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${useRealAPI ? 'translate-x-4' : ''}`}></div>
+                  </div>
+                  <span className="ml-2 text-sm font-medium">
+                    {useRealAPI ? '真实API' : '模拟数据'}
+                  </span>
+                </label>
+              </div>
+              
+              {/* WebSocket连接状态 */}
+              {useRealAPI && (
+                <div className={`flex items-center px-3 py-1 rounded-lg ${wsConnected ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {wsConnected ? (
+                    <>
+                      <Wifi className="w-4 h-4 text-green-600 mr-2" />
+                      <span className="text-sm text-green-700">实时连接</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-4 h-4 text-red-600 mr-2" />
+                      <span className="text-sm text-red-700">连接断开</span>
+                    </>
+                  )}
+                </div>
+              )}
+              
               {/* 第一行操作按钮 */}
               <div className="flex items-center space-x-2">
                 <Button 

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Info, Shield, Wallet, TrendingUp, Clock, Users } from 'lucide-react'
 import Link from 'next/link'
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Alert, AlertDescription } from '@qa-app/ui'
+import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Alert, AlertDescription } from '@/components/ui'
 import { Header } from '../../../components/layout/Header'
 import { Footer } from '../../../components/layout/Footer'
 import { ProductPurchase } from '../../../components/products/ProductPurchase'
