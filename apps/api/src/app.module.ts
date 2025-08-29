@@ -30,6 +30,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MonitoringInterceptor } from './common/interceptors/monitoring.interceptor';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from './cache/cache.module';
+import { WebSocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -48,8 +49,8 @@ import { CacheModule } from './cache/cache.module';
     // 全局安全模块 - 暂时禁用修复编译错误
     // SecurityModule,
 
-    // 数据库模块 (全局)
-    PrismaModule,
+    // 数据库模块 (全局) - 临时禁用使用Mock服务
+    // PrismaModule,
 
     // 缓存模块 (全局缓存服务)
     CacheModule,
@@ -72,8 +73,11 @@ import { CacheModule } from './cache/cache.module';
     OrdersModule,
     PositionsModule,
 
-    // 金融模块 - 暂时禁用
-    // PayoutsModule,
+    // WebSocket 实时通信模块
+    WebSocketModule,
+
+    // 金融模块
+    PayoutsModule,
     // WithdrawalsModule,
     // CommissionsModule,
 
@@ -91,8 +95,8 @@ import { CacheModule } from './cache/cache.module';
     // AdminModule,
     // AuditModule,
 
-    // 高级功能模块 - 暂时禁用
-    // BlockchainModule,
+    // 高级功能模块
+    BlockchainModule,
     // LogsModule,
     // AlertsModule,
   ],

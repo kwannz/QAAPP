@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount } from 'wagmi'
+import { useSafeWalletStatus } from '../../lib/hooks/useSafeWalletConnection'
 import { formatUnits } from 'viem'
 import { motion } from 'framer-motion'
 import { 
@@ -377,7 +377,7 @@ function PositionCard({ position, onClaim }: PositionCardProps) {
 }
 
 export function UserNFTs() {
-  const { address, isConnected } = useAccount()
+  const { address, isConnected } = useSafeWalletStatus()
   const qaCard = useQACard()
   const [userPositions, setUserPositions] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)

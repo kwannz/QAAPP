@@ -36,25 +36,29 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe
   }, [])
 
-  // 当用户登录时连接 WebSocket
+  // 当用户登录时连接 WebSocket (暂时禁用，等待后端WebSocket支持)
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // 延迟连接，确保认证状态稳定
-      const timer = setTimeout(() => {
-        if (wsClient.getStatus() === WebSocketStatus.DISCONNECTED) {
-          console.log('Connecting to WebSocket...')
-          wsClient.connect()
-        }
-      }, 1000)
-      
-      return () => clearTimeout(timer)
-    } else {
-      // 用户登出时断开连接
-      if (wsClient.getStatus() !== WebSocketStatus.DISCONNECTED) {
-        console.log('Disconnecting from WebSocket...')
-        wsClient.disconnect()
-      }
-    }
+    // TODO: 当后端添加WebSocket支持时启用此功能
+    // WebSocket功能暂时禁用，避免无意义的连接尝试
+    console.log('WebSocket功能暂时禁用，等待后端WebSocket网关实现')
+    
+    // if (isAuthenticated && user) {
+    //   // 延迟连接，确保认证状态稳定
+    //   const timer = setTimeout(() => {
+    //     if (wsClient.getStatus() === WebSocketStatus.DISCONNECTED) {
+    //       console.log('Connecting to WebSocket...')
+    //       wsClient.connect()
+    //     }
+    //   }, 1000)
+    //   
+    //   return () => clearTimeout(timer)
+    // } else {
+    //   // 用户登出时断开连接
+    //   if (wsClient.getStatus() !== WebSocketStatus.DISCONNECTED) {
+    //     console.log('Disconnecting from WebSocket...')
+    //     wsClient.disconnect()
+    //   }
+    // }
   }, [isAuthenticated, user])
 
   // 发送消息的包装函数

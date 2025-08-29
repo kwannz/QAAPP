@@ -20,10 +20,10 @@ module.exports = {
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  moduleNameMapping: pathsToModuleNameMapper(compilerOptions.paths || {}, {
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths || {}, {
     prefix: '<rootDir>/',
   }),
-  setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/../test/setup.ts'],
   coverageReporters: ['text', 'lcov', 'html'],
   coverageThreshold: {
     global: {

@@ -1,10 +1,7 @@
 // Web3配置文件
 import { http, createConfig } from 'wagmi'
 import { mainnet, sepolia, polygon, polygonMumbai, hardhat } from 'wagmi/chains'
-import { injected, walletConnect, metaMask } from 'wagmi/connectors'
-
-// 项目信息
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id'
+import { injected, metaMask } from 'wagmi/connectors'
 
 // 支持的链配置
 export const chains = [
@@ -23,19 +20,10 @@ export const chains = [
   polygonMumbai,
 ] as const
 
-// 钱包连接器配置
+// 钱包连接器配置 - 简化版本，移除有问题的WalletConnect
 export const connectors = [
   injected(),
   metaMask(),
-  walletConnect({
-    projectId,
-    metadata: {
-      name: 'QA投资平台',
-      description: 'QA Investment Platform - 去中心化投资理财平台',
-      url: 'https://qa-app.com',
-      icons: ['https://qa-app.com/logo.png'],
-    },
-  }),
 ]
 
 // Wagmi配置

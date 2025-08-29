@@ -6,7 +6,14 @@ import { MockDatabaseService } from './mock-database.service';
 @Global()
 @Module({
   imports: [ConfigModule],
-  providers: [DatabaseService, MockDatabaseService],
-  exports: [DatabaseService, MockDatabaseService],
+  providers: [
+    MockDatabaseService,
+    // 提供别名，让DatabaseService使用MockDatabaseService实例
+    {
+      provide: DatabaseService,
+      useExisting: MockDatabaseService,
+    },
+  ],
+  exports: [MockDatabaseService, DatabaseService],
 })
 export class DatabaseModule {}

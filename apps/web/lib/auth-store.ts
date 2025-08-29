@@ -67,88 +67,104 @@ const DEV_DEFAULT_USER: User = {
 // 检查是否为开发模式
 const isDevelopmentMode = process.env.NODE_ENV === 'development'
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      // 初始状态 - 开发模式下自动认证
-      user: isDevelopmentMode ? DEV_DEFAULT_USER : null,
-      accessToken: isDevelopmentMode ? 'dev-token-12345' : null,
-      refreshToken: isDevelopmentMode ? 'dev-refresh-token-12345' : null,
-      isAuthenticated: isDevelopmentMode,
-      isLoading: false,
+// 创建存储配置，支持SSR
+const createAuthStore = () => {
+  // 检查是否在浏览器环境中
+  const isBrowser = typeof window !== 'undefined'
+  
+  const baseStore = (set: any, get: any) => ({
+    // 初始状态 - 开发模式下自动认证
+    user: isDevelopmentMode ? DEV_DEFAULT_USER : null,
+    accessToken: isDevelopmentMode ? 'dev-token-12345' : null,
+    refreshToken: isDevelopmentMode ? 'dev-refresh-token-12345' : null,
+    isAuthenticated: isDevelopmentMode,
+    isLoading: false,
 
-      // 设置用户信息
-      setUser: (user: User) => {
-        set({ 
-          user, 
-          isAuthenticated: true 
-        })
-      },
+    // 设置用户信息
+    setUser: (user: User) => {
+      set({ 
+        user, 
+        isAuthenticated: true 
+      })
+    },
 
-      // 设置令牌
-      setTokens: (accessToken: string, refreshToken: string) => {
-        set({ 
-          accessToken, 
-          refreshToken,
-          isAuthenticated: true 
-        })
-      },
+    // 设置令牌
+    setTokens: (accessToken: string, refreshToken: string) => {
+      set({ 
+        accessToken, 
+        refreshToken,
+        isAuthenticated: true 
+      })
+    },
 
-      // 清除认证信息
-      clearAuth: () => {
+    // 清除认证信息
+    clearAuth: () => {
+      set({
+        user: null,
+        accessToken: null,
+        refreshToken: null,
+        isAuthenticated: false,
+        isLoading: false,
+      })
+    },
+
+    // 设置加载状态
+    setLoading: (loading: boolean) => {
+      set({ isLoading: loading })
+    },
+
+    // 更新钱包信息
+    updateWallets: (wallets: User['wallets']) => {
+      const currentUser = get().user
+      if (currentUser) {
         set({
-          user: null,
-          accessToken: null,
-          refreshToken: null,
-          isAuthenticated: false,
-          isLoading: false,
+          user: {
+            ...currentUser,
+            wallets,
+          }
         })
-      },
+      }
+    },
 
-      // 设置加载状态
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading })
-      },
+    // 设置主钱包
+    setPrimaryWallet: (walletId: string) => {
+      const currentUser = get().user
+      if (currentUser?.wallets) {
+        const updatedWallets = currentUser.wallets.map(wallet => ({
+          ...wallet,
+          isPrimary: wallet.id === walletId,
+        }))
+        
+        set({
+          user: {
+            ...currentUser,
+            wallets: updatedWallets,
+          }
+        })
+      }
+    },
+  })
 
-      // 更新钱包信息
-      updateWallets: (wallets: User['wallets']) => {
-        const currentUser = get().user
-        if (currentUser) {
-          set({
-            user: {
-              ...currentUser,
-              wallets,
-            }
-          })
+  // 仅在浏览器环境中使用persist中间件
+  if (isBrowser) {
+    return create<AuthState>()(
+      persist(
+        baseStore,
+        {
+          name: 'qa-auth-storage',
+          partialize: (state) => ({
+            user: state.user,
+            accessToken: state.accessToken,
+            refreshToken: state.refreshToken,
+            isAuthenticated: state.isAuthenticated,
+          }),
         }
-      },
+      )
+    )
+  } else {
+    // 服务器端渲染时不使用persist
+    return create<AuthState>()(baseStore)
+  }
+}
 
-      // 设置主钱包
-      setPrimaryWallet: (walletId: string) => {
-        const currentUser = get().user
-        if (currentUser?.wallets) {
-          const updatedWallets = currentUser.wallets.map(wallet => ({
-            ...wallet,
-            isPrimary: wallet.id === walletId,
-          }))
-          
-          set({
-            user: {
-              ...currentUser,
-              wallets: updatedWallets,
-            }
-          })
-        }
-      },
-    }),
-    {
-      name: 'qa-auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    }
-  )
-)
+export const useAuthStore = createAuthStore()

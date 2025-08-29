@@ -23,9 +23,8 @@ export enum PaymentType {
 }
 
 export class CreateOrderDto {
-  @ApiProperty({ example: 'product-uuid' })
+  @ApiProperty({ example: 'prod-silver-001' })
   @IsString()
-  @IsUUID()
   productId: string;
 
   @ApiProperty({ example: 1000, description: 'Investment amount in USDT' })

@@ -106,3 +106,15 @@ temp/
 # Playwright
 test-results/
 playwright-report/
+.playwright-mcp/
+
+# Turbo
+.turbo/
+
+# Test and development artifacts
+test-*.html
+*.bak
+claudedocs/
+
+# Development scripts
+stop-system.sh

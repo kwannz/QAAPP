@@ -106,47 +106,51 @@ async function main() {
     }),
   ]);
 
-  // 4. 创建普通用户
-  const regularUsers = await Promise.all([
-    prisma.user.create({
-      data: {
-        id: 'user-001',
-        email: 'user1@example.com',
-        passwordHash: await hash('User123!', 12),
-        role: UserRole.USER,
-        referralCode: 'USER001',
-        referredById: agentUsers[0].id,
-        agentId: agentUsers[0].id,
-        kycStatus: KycStatus.APPROVED,
-        isActive: true,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        id: 'user-002',
-        email: 'user2@example.com',
-        passwordHash: await hash('User123!', 12),
-        role: UserRole.USER,
-        referralCode: 'USER002',
-        referredById: 'user-001',
-        agentId: agentUsers[0].id,
-        kycStatus: KycStatus.PENDING,
-        isActive: true,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        id: 'user-003',
-        email: 'user3@example.com',
-        passwordHash: await hash('User123!', 12),
-        role: UserRole.USER,
-        referralCode: 'USER003',
-        agentId: agentUsers[1].id,
-        kycStatus: KycStatus.APPROVED,
-        isActive: true,
-      },
-    }),
-  ]);
+  // 4. 创建普通用户 - 分步创建避免外键约束问题
+  const user1 = await prisma.user.create({
+    data: {
+      id: 'user-001',
+      email: 'user1@example.com',
+      passwordHash: await hash('User123!', 12),
+      role: UserRole.USER,
+      referralCode: 'USER001',
+      referredById: agentUsers[0].id,
+      agentId: agentUsers[0].id,
+      kycStatus: KycStatus.APPROVED,
+      isActive: true,
+    },
+  });
+
+  // 创建引用user1的其他用户
+  const user2 = await prisma.user.create({
+    data: {
+      id: 'user-002',
+      email: 'user2@example.com',
+      passwordHash: await hash('User123!', 12),
+      role: UserRole.USER,
+      referralCode: 'USER002',
+      referredById: user1.id, // 引用已创建的用户
+      agentId: agentUsers[0].id,
+      kycStatus: KycStatus.PENDING,
+      isActive: true,
+    },
+  });
+
+  const user3 = await prisma.user.create({
+    data: {
+      id: 'user-003',
+      email: 'user3@example.com',
+      passwordHash: await hash('User123!', 12),
+      role: UserRole.USER,
+      referralCode: 'USER003',
+      agentId: agentUsers[1].id,
+      kycStatus: KycStatus.APPROVED,
+      isActive: true,
+    },
+  });
+
+  // 组合所有普通用户
+  const regularUsers = [user1, user2, user3];
 
   console.log('✅ 用户创建完成');
 
