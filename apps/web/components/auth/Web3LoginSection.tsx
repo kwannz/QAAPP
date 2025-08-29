@@ -16,6 +16,7 @@ interface Web3LoginSectionProps {
 }
 
 export function Web3LoginSection({ isRegister = false, referralCode }: Web3LoginSectionProps) {
+  // Web3 功能已恢复
   const [isLoading, setIsLoading] = useState(false)
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()

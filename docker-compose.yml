@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:14-alpine
+    container_name: qa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qa_user
+      POSTGRES_PASSWORD: qa_password
+      POSTGRES_DB: qa_database
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-database-production.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - qa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qa_user -d qa_database"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: qa-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - qa-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: redis-server --appendonly yes --requirepass ""
+
+  # API 后端服务
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: production
+    container_name: qa-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://qa_user:qa_password@postgres:5432/qa_database?schema=public
+      - REDIS_URL=redis://redis:6379
+      - API_PORT=3001
+      - LOG_LEVEL=info
+      - ENABLE_METRICS=true
+      - CORS_ORIGIN=http://localhost:3002,https://localhost:3002
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - qa-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - ./logs:/app/logs
+
+  # Web 前端服务
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: production
+    container_name: qa-web
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - PORT=3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - qa-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx 反向代理 (可选)
+  nginx:
+    image: nginx:alpine
+    container_name: qa-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - api
+      - web
+    networks:
+      - qa-network
+    profiles:
+      - nginx
+
+  # 监控工具 Prometheus (可选)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qa-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - qa-network
+    profiles:
+      - monitoring
+
+  # 监控工具 Grafana (可选)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: qa-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - qa-network
+    profiles:
+      - monitoring
+
+networks:
+  qa-network:
+    driver: bridge
+    name: qa-network
+
+volumes:
+  postgres_data:
+    name: qa-postgres-data
+  redis_data:
+    name: qa-redis-data
+  prometheus_data:
+    name: qa-prometheus-data
+  grafana_data:
+    name: qa-grafana-data

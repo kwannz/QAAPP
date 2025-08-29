@@ -5,6 +5,7 @@ import './globals.css';
 
 import { Providers } from './providers';
 import { cn } from '@/components/ui';
+import { DevBar } from '@/components/dev/DevBar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -119,16 +120,22 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           
           {/* 开发环境调试工具 */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="fixed bottom-4 left-4 z-50">
-              <div className="rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-75">
-                <div className="sm:hidden">XS</div>
-                <div className="hidden sm:block md:hidden">SM</div>
-                <div className="hidden md:block lg:hidden">MD</div>
-                <div className="hidden lg:block xl:hidden">LG</div>
-                <div className="hidden xl:block 2xl:hidden">XL</div>
-                <div className="hidden 2xl:block">2XL</div>
+            <>
+              {/* 响应式断点指示器 */}
+              <div className="fixed bottom-4 left-4 z-40">
+                <div className="rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-75">
+                  <div className="sm:hidden">XS</div>
+                  <div className="hidden sm:block md:hidden">SM</div>
+                  <div className="hidden md:block lg:hidden">MD</div>
+                  <div className="hidden lg:block xl:hidden">LG</div>
+                  <div className="hidden xl:block 2xl:hidden">XL</div>
+                  <div className="hidden 2xl:block">2XL</div>
+                </div>
               </div>
-            </div>
+              
+              {/* 全局开发工具栏 */}
+              <DevBar />
+            </>
           )}
         </Providers>
 

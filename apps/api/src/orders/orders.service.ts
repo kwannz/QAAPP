@@ -140,8 +140,13 @@ export class OrdersService {
    * 获取用户订单列表
    */
   async findUserOrders(userId: string, queryDto: OrderQueryDto = {}): Promise<OrderListResponseDto> {
-    // Delegate to mock service for now
-    return this.mockOrdersService.findUserOrders(userId, queryDto);
+    try {
+      this.logger.log(`Finding orders for user ${userId}`);
+      return await this.mockOrdersService.findUserOrders(userId, queryDto);
+    } catch (error) {
+      this.logger.error(`Failed to find orders for user ${userId}:`, error);
+      throw error;
+    }
   }
 
   /**
@@ -159,8 +164,44 @@ export class OrdersService {
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
-    // Delegate to mock service for now
-    return this.mockOrdersService.create(createOrderDto, userId);
+
+    try {
+      this.logger.log(`Creating order for user ${userId}, product: ${createOrderDto.productId}, amount: ${createOrderDto.usdtAmount}`);
+      
+      const order = await this.mockOrdersService.create(createOrderDto, userId);
+      
+      // 自动创建持仓记录（如果订单创建成功）
+      if (order.status === 'SUCCESS') {
+        try {
+          await this.positionsService.createPosition(
+            {
+              id: order.id,
+              userId: order.userId,
+              productId: order.productId,
+              usdtAmount: order.usdtAmount,
+              txHash: order.txHash,
+              metadata: order.metadata
+            },
+            {
+              id: order.productId,
+              symbol: order.metadata?.productSymbol || 'UNKNOWN',
+              name: order.metadata?.productName || 'Unknown Product',
+              aprBps: 800, // 默认8%年化
+              lockDays: 7,  // 默认7天锁定期
+              nftTokenId: 1
+            }
+          );
+          this.logger.log(`Position created for order ${order.id}`);
+        } catch (error) {
+          this.logger.warn(`Failed to create position for order ${order.id}:`, error);
+        }
+      }
+      
+      return order;
+    } catch (error) {
+      this.logger.error(`Failed to create order for user ${userId}:`, error);
+      throw error;
+    }
   }
 
   /**
@@ -534,7 +575,42 @@ export class OrdersService {
    * 确认订单支付
    */
   async confirmOrder(orderId: string, confirmDto: ConfirmOrderDto, userId: string): Promise<OrderResponseDto> {
-    // Delegate to mock service for now
-    return this.mockOrdersService.confirmOrder(orderId, confirmDto, userId);
+    try {
+      this.logger.log(`Confirming order ${orderId} for user ${userId} with tx: ${confirmDto.txHash}`);
+      
+      const order = await this.mockOrdersService.confirmOrder(orderId, confirmDto, userId);
+      
+      // 如果订单确认成功，自动创建持仓记录
+      if (order.status === 'SUCCESS') {
+        try {
+          await this.positionsService.createPosition(
+            {
+              id: order.id,
+              userId: order.userId,
+              productId: order.productId,
+              usdtAmount: order.usdtAmount,
+              txHash: order.txHash,
+              metadata: order.metadata
+            },
+            {
+              id: order.productId,
+              symbol: order.metadata?.productSymbol || 'UNKNOWN',
+              name: order.metadata?.productName || 'Unknown Product',
+              aprBps: 800, // 默认8%年化
+              lockDays: 7,  // 默认7天锁定期
+              nftTokenId: 1
+            }
+          );
+          this.logger.log(`Position created for confirmed order ${order.id}`);
+        } catch (error) {
+          this.logger.warn(`Failed to create position for confirmed order ${order.id}:`, error);
+        }
+      }
+      
+      return order;
+    } catch (error) {
+      this.logger.error(`Failed to confirm order ${orderId}:`, error);
+      throw error;
+    }
   }
 }

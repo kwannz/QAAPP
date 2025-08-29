@@ -1,17 +1,31 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { mainnet, polygon, arbitrum, sepolia } from 'wagmi/chains'
+import { mainnet, polygon, arbitrum, sepolia, hardhat } from 'wagmi/chains'
 import { http } from 'viem'
 
 // 获取环境变量，使用默认的项目ID避免SSR错误
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '2f5aa3f7c1c0a3e8f9f8c5e3d2a1b3c4'
 
+// 本地开发链配置
+const hardhatLocal = {
+  ...hardhat,
+  name: 'Hardhat Local',
+  id: 31337,
+  rpcUrls: {
+    default: { http: ['http://localhost:8545'] },
+    public: { http: ['http://localhost:8545'] },
+  },
+} as const
+
 // 根据环境决定支持的链
+const isDevelopment = process.env.NODE_ENV === 'development'
 const isTestnetEnabled = process.env.NEXT_PUBLIC_ENABLE_TESTNET === 'true'
 
 // 自定义链配置
-const chains = isTestnetEnabled 
-  ? [sepolia, mainnet, polygon, arbitrum] as const
-  : [mainnet, polygon, arbitrum] as const
+const chains = isDevelopment 
+  ? [hardhatLocal, sepolia, mainnet, polygon, arbitrum] as const
+  : isTestnetEnabled 
+    ? [sepolia, mainnet, polygon, arbitrum] as const
+    : [mainnet, polygon, arbitrum] as const
 
 // Wagmi 配置 - 修复SSR问题
 export const wagmiConfig = getDefaultConfig({
@@ -21,6 +35,7 @@ export const wagmiConfig = getDefaultConfig({
   ssr: true,
   // 使用HTTP传输提高稳定性
   transports: {
+    [hardhatLocal.id]: http('http://localhost:8545'),
     [mainnet.id]: http(process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0]),
     [polygon.id]: http(process.env.NEXT_PUBLIC_POLYGON_RPC_URL || polygon.rpcUrls.default.http[0]),
     [arbitrum.id]: http(process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || arbitrum.rpcUrls.default.http[0]),
@@ -30,6 +45,15 @@ export const wagmiConfig = getDefaultConfig({
 
 // 链配置映射
 export const chainConfig = {
+  [hardhatLocal.id]: {
+    name: 'Hardhat Local',
+    icon: '🔧',
+    explorerUrl: 'http://localhost:8545',
+    nativeCurrency: 'ETH',
+    usdtContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    treasuryContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+    qaCardContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  },
   [mainnet.id]: {
     name: '以太坊主网',
     icon: '⧫',

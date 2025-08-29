@@ -24,7 +24,11 @@ async function bootstrap() {
 
   // CORS配置
   app.enableCors({
-    origin: configService.get('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3002',
+      'http://localhost:3003'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [

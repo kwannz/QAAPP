@@ -77,8 +77,8 @@ export class PayoutsController {
     @Param('userId') userId: string
   ): Promise<ClaimablePayoutsResponseDto> {
     try {
-      // 获取用户的活跃持仓
-      const userPositions = await this.positionsService.getUserPositions(userId, { status: 'ACTIVE' });
+      // 获取用户的所有持仓（包括活跃和可赎回状态）
+      const userPositions = await this.positionsService.getUserPositions(userId);
       
       if (!userPositions.positions || userPositions.positions.length === 0) {
         return {
@@ -92,6 +92,11 @@ export class PayoutsController {
       let totalAmount = 0;
 
       for (const position of userPositions.positions) {
+        // 只处理活跃或可赎回状态的持仓
+        if (position.status !== 'ACTIVE' && position.status !== 'REDEEMING') {
+          continue;
+        }
+        
         // 生成未领取的收益记录
         const payouts = await this.payoutsService.generateClaimablePayouts(position.id, userId);
         

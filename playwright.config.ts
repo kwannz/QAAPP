@@ -30,7 +30,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     /* 基础URL */
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3002',
   },
 
   /* 配置不同浏览器的测试项目 */
@@ -61,12 +61,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm --filter @qa-app/web dev',
-      port: 3000,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: 'pnpm --filter @qa-app/api dev',
-      port: 3001,
+      port: 3002,
       reuseExistingServer: !process.env.CI,
     }
   ],

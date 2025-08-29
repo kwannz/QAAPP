@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { SafeConnectButton } from './SafeConnectButton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Wallet, ExternalLink, AlertTriangle, CheckCircle, XCircle, Zap, Copy } from 'lucide-react'
-import { useWalletConnection, useNetworkStatus } from '@/lib/hooks/useWalletConnection'
+import { useSafeWalletConnection, useSafeNetworkStatus } from '@/lib/hooks/useSafeWalletConnection'
 import { web3ConnectionManager } from '@/lib/web3/connection-manager'
 import toast from 'react-hot-toast'
 
@@ -26,8 +26,8 @@ export function WalletConnectionManager({
   compact = false,
   className = ''
 }: WalletConnectionManagerProps) {
-  const [walletState, walletActions] = useWalletConnection()
-  const networkStatus = useNetworkStatus()
+  const [walletState, walletActions] = useSafeWalletConnection()
+  const networkStatus = useSafeNetworkStatus()
   
   const [contractDeployment, setContractDeployment] = useState<Record<string, boolean>>({})
   const [checkingContracts, setCheckingContracts] = useState(false)
@@ -60,11 +60,7 @@ export function WalletConnectionManager({
   if (compact) {
     return (
       <div className={className}>
-        <ConnectButton
-          chainStatus="icon"
-          accountStatus="address"
-          showBalance={false}
-        />
+        <SafeConnectButton />
       </div>
     )
   }
@@ -88,7 +84,7 @@ export function WalletConnectionManager({
                   请连接钱包以使用平台功能
                 </AlertDescription>
               </Alert>
-              <ConnectButton />
+              <SafeConnectButton />
             </div>
           </CardContent>
         </Card>
@@ -138,7 +134,7 @@ export function WalletConnectionManager({
 
           {/* 操作按钮 */}
           <div className="flex gap-2">
-            <ConnectButton />
+            <SafeConnectButton />
           </div>
 
           {/* 错误提示 */}

@@ -1,4 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 export class TestHelpers {
   constructor(private page: Page) {}
@@ -312,3 +314,231 @@ export class WalletHelpers {
     return false;
   }
 }
+
+// Backend Testing Utilities
+
+/**
+ * Creates a mock user for testing
+ */
+export const createMockUser = (overrides = {}) => ({
+  id: 'user-123',
+  email: 'test@example.com',
+  walletAddress: '0x1234567890123456789012345678901234567890',
+  role: 'USER',
+  isVerified: true,
+  kycStatus: 'APPROVED',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+/**
+ * Creates a mock product for testing
+ */
+export const createMockProduct = (overrides = {}) => ({
+  id: 'product-123',
+  name: 'Test Investment Product',
+  description: 'Test description',
+  type: 'FIXED_INCOME',
+  expectedReturn: 8.5,
+  minInvestment: 1000,
+  maxInvestment: 100000,
+  duration: 365,
+  isActive: true,
+  totalSupply: 1000000,
+  availableSupply: 800000,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+/**
+ * Creates a mock order for testing
+ */
+export const createMockOrder = (overrides = {}) => ({
+  id: 'order-123',
+  userId: 'user-123',
+  productId: 'product-123',
+  amount: 5000,
+  quantity: 5,
+  status: 'PENDING',
+  transactionHash: null,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+/**
+ * Creates a mock audit log entry for testing
+ */
+export const createMockAuditLog = (overrides = {}) => ({
+  id: 'audit-123',
+  userId: 'user-123',
+  action: 'USER_LOGIN',
+  entity: 'USER',
+  entityId: 'user-123',
+  details: { ip: '127.0.0.1' },
+  timestamp: new Date('2024-01-01'),
+  ...overrides,
+});
+
+/**
+ * Creates a mock JWT token for testing
+ */
+export const createMockJwtToken = (payload = {}) => {
+  const defaultPayload = {
+    sub: 'user-123',
+    email: 'test@example.com',
+    role: 'USER',
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+    ...payload,
+  };
+  
+  // Simple base64 encoded mock token (not cryptographically secure, just for testing)
+  const header = Buffer.from(JSON.stringify({ typ: 'JWT', alg: 'HS256' })).toString('base64');
+  const payloadStr = Buffer.from(JSON.stringify(defaultPayload)).toString('base64');
+  const signature = 'mock-signature';
+  
+  return `${header}.${payloadStr}.${signature}`;
+};
+
+/**
+ * Waits for a specified amount of time (useful for async testing)
+ */
+export const sleep = (ms: number): Promise<void> => 
+  new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Creates a test NestJS application for integration testing
+ */
+export const createTestApp = async (moduleMetadata: any): Promise<INestApplication> => {
+  const moduleFixture: TestingModule = await Test.createTestingModule(moduleMetadata).compile();
+  
+  const app = moduleFixture.createNestApplication();
+  await app.init();
+  
+  return app;
+};
+
+/**
+ * Mock Redis client for testing
+ */
+export const createMockRedis = () => ({
+  connect: jest.fn().mockResolvedValue(undefined),
+  disconnect: jest.fn().mockResolvedValue(undefined),
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue('OK'),
+  del: jest.fn().mockResolvedValue(1),
+  exists: jest.fn().mockResolvedValue(0),
+  expire: jest.fn().mockResolvedValue(1),
+  flushall: jest.fn().mockResolvedValue('OK'),
+  setex: jest.fn().mockResolvedValue('OK'),
+  ttl: jest.fn().mockResolvedValue(-1),
+});
+
+/**
+ * Mock logger for testing
+ */
+export const createMockLogger = () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+  setContext: jest.fn(),
+});
+
+/**
+ * Mock Web3 provider for testing blockchain interactions
+ */
+export const createMockWeb3Provider = () => ({
+  getNetwork: jest.fn().mockResolvedValue({ chainId: 1337 }),
+  getBalance: jest.fn().mockResolvedValue('1000000000000000000'),
+  getTransactionReceipt: jest.fn().mockResolvedValue({
+    status: 1,
+    transactionHash: '0xabcdef123456789',
+  }),
+  sendTransaction: jest.fn().mockResolvedValue({
+    hash: '0xabcdef123456789',
+    wait: jest.fn().mockResolvedValue({
+      status: 1,
+      transactionHash: '0xabcdef123456789',
+    }),
+  }),
+});
+
+/**
+ * Mock smart contract for testing
+ */
+export const createMockContract = () => ({
+  address: '0x1234567890123456789012345678901234567890',
+  methods: {
+    mint: jest.fn().mockReturnValue({
+      send: jest.fn().mockResolvedValue({ transactionHash: '0xabcdef' }),
+      call: jest.fn().mockResolvedValue('100'),
+    }),
+    balanceOf: jest.fn().mockReturnValue({
+      call: jest.fn().mockResolvedValue('1000'),
+    }),
+    transfer: jest.fn().mockReturnValue({
+      send: jest.fn().mockResolvedValue({ transactionHash: '0xabcdef' }),
+    }),
+  },
+  events: {
+    Transfer: jest.fn(),
+    Mint: jest.fn(),
+  },
+});
+
+/**
+ * Creates a test database connection mock
+ */
+export const createMockDatabase = () => ({
+  user: {
+    create: jest.fn().mockResolvedValue(createMockUser()),
+    findUnique: jest.fn().mockResolvedValue(createMockUser()),
+    findMany: jest.fn().mockResolvedValue([createMockUser()]),
+    update: jest.fn().mockResolvedValue(createMockUser()),
+    delete: jest.fn().mockResolvedValue(createMockUser()),
+    count: jest.fn().mockResolvedValue(1),
+  },
+  product: {
+    create: jest.fn().mockResolvedValue(createMockProduct()),
+    findUnique: jest.fn().mockResolvedValue(createMockProduct()),
+    findMany: jest.fn().mockResolvedValue([createMockProduct()]),
+    update: jest.fn().mockResolvedValue(createMockProduct()),
+    delete: jest.fn().mockResolvedValue(createMockProduct()),
+    count: jest.fn().mockResolvedValue(1),
+  },
+  order: {
+    create: jest.fn().mockResolvedValue(createMockOrder()),
+    findUnique: jest.fn().mockResolvedValue(createMockOrder()),
+    findMany: jest.fn().mockResolvedValue([createMockOrder()]),
+    update: jest.fn().mockResolvedValue(createMockOrder()),
+    delete: jest.fn().mockResolvedValue(createMockOrder()),
+    count: jest.fn().mockResolvedValue(1),
+  },
+  auditLog: {
+    create: jest.fn().mockResolvedValue(createMockAuditLog()),
+    findMany: jest.fn().mockResolvedValue([createMockAuditLog()]),
+    count: jest.fn().mockResolvedValue(1),
+  },
+  $transaction: jest.fn().mockImplementation(callback => callback(this)),
+  $connect: jest.fn().mockResolvedValue(undefined),
+  $disconnect: jest.fn().mockResolvedValue(undefined),
+});
+
+/**
+ * Assert that a mock function was called with specific arguments
+ */
+export const expectCalledWith = (mockFn: jest.Mock, ...args: any[]) => {
+  expect(mockFn).toHaveBeenCalledWith(...args);
+};
+
+/**
+ * Assert that a mock function was called a specific number of times
+ */
+export const expectCalledTimes = (mockFn: jest.Mock, times: number) => {
+  expect(mockFn).toHaveBeenCalledTimes(times);
+};

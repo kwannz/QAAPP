@@ -41,8 +41,6 @@ import {
   Download,
   RefreshCw,
   Search,
-  ChevronDown,
-  ExternalLink,
 } from 'lucide-react'
 
 // 类型定义

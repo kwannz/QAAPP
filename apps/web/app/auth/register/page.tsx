@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 
-import { Button, FormFormInput, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Button, FormInput, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { authApi } from '../../../lib/api-client'
 import { useAuthStore } from '../../../lib/auth-store'
 import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
