@@ -7,7 +7,7 @@ import { DatabaseService } from '../database/database.service';
 import { UsersService } from '../users/users.service';
 import { WalletSignatureService } from './services/wallet-signature.service';
 import { LoginDto, RegisterDto, WalletChallengeDto, WalletVerifyDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
-import { UserRole, KycStatus } from '@prisma/client';
+import { UserRole, KycStatus } from '@qa-app/database';
 
 @Injectable()
 export class AuthService {
