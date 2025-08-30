@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { WithdrawalStatus, WithdrawalType, Prisma } from '@prisma/client';
+import { WithdrawalStatus, WithdrawalType, Prisma } from '@qa-app/database';
 import { AuditService } from '../audit/audit.service';
 import { RiskEngineService, WithdrawalRiskInput } from '../risk/risk-engine.service';
 

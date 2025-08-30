@@ -18,7 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WithdrawalsService, CreateWithdrawalDto, UpdateWithdrawalDto, WithdrawalQueryDto } from './withdrawals.service';
-import { WithdrawalStatus, WithdrawalType } from '@prisma/client';
+import { WithdrawalStatus, WithdrawalType } from '@qa-app/database';
 
 // DTO定义
 class CreateWithdrawalRequestDto {

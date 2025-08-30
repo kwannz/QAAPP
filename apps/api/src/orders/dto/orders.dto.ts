@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@qa-app/database';
 
 export enum PaymentType {
   USDT = 'USDT',

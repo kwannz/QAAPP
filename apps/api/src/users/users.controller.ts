@@ -29,7 +29,7 @@ import {
   UserResponseDto,
   UserStatsResponseDto
 } from './dto/users.dto';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@qa-app/database';
 
 @ApiTags('Users')
 @Controller('users')
