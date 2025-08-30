@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useConnect, useDisconnect, useBalance, useEnsName } from 'wagmi'
+import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../../lib/hooks/use-safe-wagmi'
 import { formatUnits } from 'viem'
 import { motion } from 'framer-motion'
 import { 
@@ -35,18 +35,18 @@ import { getContractAddresses } from '../../../lib/contracts/addresses'
 export default function WalletsPage() {
   const [isCopied, setIsCopied] = useState(false)
   
-  const { address, isConnected, chainId, chain } = useAccount()
-  const { connect, connectors, isPending: isConnecting } = useConnect()
-  const { disconnect } = useDisconnect()
+  const { address, isConnected, chainId, chain } = useSafeAccount()
+  const { connect, connectors, isPending: isConnecting } = useSafeConnect()
+  const { disconnect } = useSafeDisconnect()
   const usdt = useUSDT()
   
   // 获取ETH余额
-  const { data: ethBalance, refetch: refetchEthBalance } = useBalance({
+  const { data: ethBalance, refetch: refetchEthBalance } = useSafeBalance({
     address: address,
   })
   
   // 获取ENS名称
-  const { data: ensName } = useEnsName({
+  const { data: ensName } = useSafeEnsName({
     address: address,
   })
   

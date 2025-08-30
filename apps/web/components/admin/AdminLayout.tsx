@@ -35,7 +35,7 @@ const adminNavigation = [
   },
   {
     name: 'KYC审核',
-    href: '/admin/kyc-review',
+    href: '/admin/kycreview',
     icon: UserCheck,
     description: '用户身份验证审核'
   },

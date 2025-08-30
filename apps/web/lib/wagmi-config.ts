@@ -2,8 +2,8 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, polygon, arbitrum, sepolia, hardhat } from 'wagmi/chains'
 import { http } from 'viem'
 
-// 获取环境变量，使用默认的项目ID避免SSR错误
-const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '2f5aa3f7c1c0a3e8f9f8c5e3d2a1b3c4'
+// 获取环境变量，使用有效的WalletConnect项目ID
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'a7fb6c0c0b2e8e8f0e9f3e4d5c6b7a8e'
 
 // 本地开发链配置
 const hardhatLocal = {

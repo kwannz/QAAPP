@@ -111,8 +111,8 @@ export default function WithdrawalsManagementPage() {
   const [loading, setLoading] = useState(true)
   const [selectedWithdrawals, setSelectedWithdrawals] = useState<string[]>([])
   const [filters, setFilters] = useState({
-    status: '',
-    riskLevel: '',
+    status: 'all',
+    riskLevel: 'all',
     search: '',
     page: 1,
     limit: 20,
@@ -319,8 +319,8 @@ export default function WithdrawalsManagementPage() {
   }
 
   const filteredWithdrawals = withdrawals.filter(withdrawal => {
-    if (filters.status && withdrawal.status !== filters.status) return false
-    if (filters.riskLevel && withdrawal.riskLevel !== filters.riskLevel) return false
+    if (filters.status && filters.status !== 'all' && withdrawal.status !== filters.status) return false
+    if (filters.riskLevel && filters.riskLevel !== 'all' && withdrawal.riskLevel !== filters.riskLevel) return false
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase()
       return (
@@ -453,7 +453,7 @@ export default function WithdrawalsManagementPage() {
                       <SelectValue placeholder="全部状态" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全部状态</SelectItem>
+                      <SelectItem value="all">全部状态</SelectItem>
                       <SelectItem value="PENDING">待处理</SelectItem>
                       <SelectItem value="REVIEWING">审核中</SelectItem>
                       <SelectItem value="APPROVED">已批准</SelectItem>
@@ -472,7 +472,7 @@ export default function WithdrawalsManagementPage() {
                       <SelectValue placeholder="全部风险" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全部风险</SelectItem>
+                      <SelectItem value="all">全部风险</SelectItem>
                       <SelectItem value="LOW">低风险</SelectItem>
                       <SelectItem value="MEDIUM">中风险</SelectItem>
                       <SelectItem value="HIGH">高风险</SelectItem>

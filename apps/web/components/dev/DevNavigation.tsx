@@ -65,7 +65,7 @@ export function DevNavigation() {
     { name: '权限管理', href: '/admin/permissions', icon: Shield, description: '权限管理页面', permission: 'ADMIN', category: '管理后台' },
     { name: '审计日志', href: '/admin/audit-logs', icon: FileText, description: '系统审计日志', permission: 'ADMIN', category: '管理后台' },
     { name: '系统日志', href: '/admin/logs', icon: Clipboard, description: '系统运行日志', permission: 'ADMIN', category: '管理后台' },
-    { name: 'KYC审核', href: '/admin/kyc-review', icon: CheckCircle, description: 'KYC身份审核', permission: 'ADMIN', category: '管理后台' },
+    { name: 'KYC审核', href: '/admin/kycreview', icon: CheckCircle, description: 'KYC身份审核', permission: 'ADMIN', category: '管理后台' },
     { name: '用户审计', href: '/admin/user-audit', icon: Eye, description: '用户行为审计', permission: 'ADMIN', category: '管理后台' },
     { name: '系统审计', href: '/admin/system-audit', icon: Target, description: '系统安全审计', permission: 'ADMIN', category: '管理后台' },
     { name: '风险评估', href: '/admin/risk-assessment', icon: AlertTriangle, description: '风险评估管理', permission: 'ADMIN', category: '管理后台' },
