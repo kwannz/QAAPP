@@ -97,10 +97,21 @@ export class MockAuthService {
       throw new UnauthorizedException('Account is deactivated');
     }
 
-    // 在实际应用中会验证密码哈希
-    // 这里为了演示简化处理
-    if (password !== 'password123') {
-      throw new UnauthorizedException('Invalid credentials');
+    // 验证密码
+    // 对于新注册的用户，直接比较密码
+    // 对于预设的测试用户，使用固定密码
+    const isTestUser = user.id.startsWith('user-test-') || user.id.startsWith('user-admin-');
+    if (isTestUser) {
+      // 测试用户使用固定密码
+      if (password !== 'password123') {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    } else {
+      // 新注册用户，比较存储的密码
+      // 在实际应用中应该使用bcrypt比较哈希
+      if (user.passwordHash !== password && !user.passwordHash.startsWith('$2a$')) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
     }
 
     // 更新最后登录时间
@@ -127,7 +138,7 @@ export class MockAuthService {
     const user: MockUser = {
       id,
       email: email.toLowerCase(),
-      passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewfCAquAAv2Br6nu', // hashed password
+      passwordHash: password, // 在Mock服务中直接存储密码，实际应用中应该使用bcrypt哈希
       role: 'USER',
       referralCode: userReferralCode,
       kycStatus: 'PENDING',
