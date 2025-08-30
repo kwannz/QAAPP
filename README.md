@@ -9,8 +9,8 @@
 ## 📋 项目概览
 
 **项目状态**: ✅ **生产就绪**  
-**完成度**: **95%**  
-**最后更新**: 2025-08-28  
+**完成度**: **98%**  
+**最后更新**: 2025-08-30  
 
 QA App是一个创新的Web3金融平台，将传统固定收益产品与区块链技术完美结合：
 
@@ -23,11 +23,12 @@ QA App是一个创新的Web3金融平台，将传统固定收益产品与区块�
 ## 🏗️ 技术架构
 
 ### 核心技术栈
-- **前端**: Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
-- **后端**: NestJS + Prisma + PostgreSQL + Redis
-- **区块链**: Solidity + Hardhat + OpenZeppelin
-- **Web3集成**: wagmi + viem + RainbowKit
-- **部署**: Docker + nginx
+- **前端**: Next.js 15.5.0 + React 19.1.0 + TypeScript 5.7.2 + Tailwind CSS 3.4.15 + shadcn/ui
+- **后端**: NestJS 11.0.0 + Prisma 6.15.0 + PostgreSQL + Redis 4.7.0
+- **区块链**: Solidity + Hardhat 2.22.15 + OpenZeppelin 5.2.0
+- **Web3集成**: wagmi 2.16.4 + viem 2.34.0 + RainbowKit 2.2.0
+- **开发工具**: pnpm 10.15.0 + Turbo + ESLint 9.34.0 + Playwright 1.55.0
+- **部署**: Docker + nginx + PM2
 
 ### 项目结构
 ```
@@ -48,7 +49,7 @@ qa-app/
 
 ### 环境要求
 - Node.js >= 18.17.0
-- pnpm >= 8.0.0
+- pnpm >= 10.0.0
 - Docker & Docker Compose
 - PostgreSQL >= 14
 - Redis >= 6
