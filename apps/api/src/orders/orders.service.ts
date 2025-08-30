@@ -14,8 +14,7 @@ import {
   OrderStatsResponseDto,
   BatchUpdateOrdersDto
 } from './dto/orders.dto';
-import { OrderStatus } from '@qa-app/database';
-import { Decimal } from '@prisma/client/runtime/library';
+import { OrderStatus, Decimal } from '@qa-app/database';
 
 @Injectable()
 export class OrdersService {

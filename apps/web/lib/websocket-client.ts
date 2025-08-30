@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuthStore } from './auth-store'
+import { useAuthStore } from './auth-context'
 import toast from 'react-hot-toast'
 
 // WebSocket 连接状态

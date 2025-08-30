@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuditService, CreateAuditLogDto, AuditLogQueryDto } from './audit.service';
+import { AuditLog } from '@qa-app/database';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -23,21 +24,21 @@ export class AuditController {
   @Post('logs')
   @ApiOperation({ summary: 'Create audit log' })
   @Roles('ADMIN')
-  async createAuditLog(@Body() createAuditLogDto: CreateAuditLogDto) {
+  async createAuditLog(@Body() createAuditLogDto: CreateAuditLogDto): Promise<AuditLog> {
     return this.auditService.createAuditLog(createAuditLogDto);
   }
 
   @Get('logs')
   @ApiOperation({ summary: 'Get audit logs' })
   @Roles('ADMIN')
-  async getAuditLogs(@Query() query: AuditLogQueryDto) {
+  async getAuditLogs(@Query() query: AuditLogQueryDto): Promise<{ logs: AuditLog[], pagination: any }> {
     return this.auditService.getAuditLogs(query);
   }
 
   @Get('logs/:id')
   @ApiOperation({ summary: 'Get audit log by ID' })
   @Roles('ADMIN')
-  async getAuditLogById(@Param('id') id: string) {
+  async getAuditLogById(@Param('id') id: string): Promise<AuditLog | null> {
     return this.auditService.getAuditLogById(id);
   }
 

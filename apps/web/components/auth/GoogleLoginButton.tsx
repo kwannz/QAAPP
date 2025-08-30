@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useAuthStore } from '@/lib/auth-store'
+import { useAuthStore } from '@/lib/auth-context'
 import { toast } from 'sonner'
 
 interface GoogleLoginButtonProps {
@@ -19,7 +19,7 @@ export function GoogleLoginButton({
   onError
 }: GoogleLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuthStore()
+  const { setUser, setTokens } = useAuthStore()
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)
@@ -45,7 +45,8 @@ export function GoogleLoginButton({
       const data = await response.json()
       
       // 更新认证状态
-      login(data.user, data.accessToken, data.refreshToken)
+      setUser(data.user)
+      setTokens(data.accessToken, data.refreshToken)
       
       toast.success('Google登录成功！')
       onSuccess?.()

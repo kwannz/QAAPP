@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Header } from '../../components/layout/Header'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute'
 import { UserNFTs } from '../../components/dashboard/UserNFTs'
 

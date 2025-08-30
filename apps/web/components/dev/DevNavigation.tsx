@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { ApiStatus } from './ApiStatus'
 import { KeyboardShortcuts } from './KeyboardShortcuts'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 
 interface DevPage {
   name: string

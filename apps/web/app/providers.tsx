@@ -8,6 +8,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { WebSocketProvider, WebSocketStatusIndicator } from '../components/providers/WebSocketProvider';
 import { ClientOnly } from '../components/ClientOnly';
 import { SSRSafeWeb3Provider } from '../lib/ssr-safe-web3-provider';
+import { AuthProvider } from '../lib/auth-context';
 
 
 // React Query配置
@@ -55,9 +56,10 @@ export function Providers({ children, cookies }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SSRSafeWeb3Provider>
-        <WebSocketProvider>
-          {children}
+      <AuthProvider>
+        <SSRSafeWeb3Provider>
+          <WebSocketProvider>
+            {children}
           
           {/* Toast通知 */}
           <Toaster
@@ -93,8 +95,9 @@ export function Providers({ children, cookies }: ProvidersProps) {
               initialIsOpen={false}
             />
           )}
-        </WebSocketProvider>
-      </SSRSafeWeb3Provider>
+          </WebSocketProvider>
+        </SSRSafeWeb3Provider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
