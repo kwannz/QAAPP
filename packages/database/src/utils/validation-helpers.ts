@@ -1,17 +1,55 @@
-import { UserRole, KycStatus, OrderStatus, PositionStatus, CommissionType, CommissionStatus } from '@prisma/client';
+// 定义枚举值常量（SQLite不支持enum）
+const UserRole = {
+  USER: 'USER',
+  AGENT: 'AGENT',
+  ADMIN: 'ADMIN'
+};
+
+const KycStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  EXPIRED: 'EXPIRED'
+};
+
+const OrderStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  CANCELED: 'CANCELED'
+};
+
+const PositionStatus = {
+  ACTIVE: 'ACTIVE',
+  REDEEMING: 'REDEEMING',
+  CLOSED: 'CLOSED',
+  DEFAULTED: 'DEFAULTED'
+};
+
+const CommissionType = {
+  REFERRAL: 'REFERRAL',
+  AGENT: 'AGENT'
+};
+
+const CommissionStatus = {
+  PENDING: 'PENDING',
+  READY: 'READY',
+  PAID: 'PAID',
+  FAILED: 'FAILED'
+};
 
 // 用户验证
-export function validateUserRole(role: string): role is UserRole {
-  return Object.values(UserRole).includes(role as UserRole);
+export function validateUserRole(role: string): boolean {
+  return Object.values(UserRole).includes(role);
 }
 
-export function validateKycStatus(status: string): status is KycStatus {
-  return Object.values(KycStatus).includes(status as KycStatus);
+export function validateKycStatus(status: string): boolean {
+  return Object.values(KycStatus).includes(status);
 }
 
 // 订单验证
-export function validateOrderStatus(status: string): status is OrderStatus {
-  return Object.values(OrderStatus).includes(status as OrderStatus);
+export function validateOrderStatus(status: string): boolean {
+  return Object.values(OrderStatus).includes(status);
 }
 
 export function validateUsdtAmount(amount: number): boolean {
@@ -19,17 +57,17 @@ export function validateUsdtAmount(amount: number): boolean {
 }
 
 // 仓位验证
-export function validatePositionStatus(status: string): status is PositionStatus {
-  return Object.values(PositionStatus).includes(status as PositionStatus);
+export function validatePositionStatus(status: string): boolean {
+  return Object.values(PositionStatus).includes(status);
 }
 
 // 佣金验证
-export function validateCommissionType(type: string): type is CommissionType {
-  return Object.values(CommissionType).includes(type as CommissionType);
+export function validateCommissionType(type: string): boolean {
+  return Object.values(CommissionType).includes(type);
 }
 
-export function validateCommissionStatus(status: string): status is CommissionStatus {
-  return Object.values(CommissionStatus).includes(status as CommissionStatus);
+export function validateCommissionStatus(status: string): boolean {
+  return Object.values(CommissionStatus).includes(status);
 }
 
 export function validateCommissionRate(rateBps: number): boolean {
