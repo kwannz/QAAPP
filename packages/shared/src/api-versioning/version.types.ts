@@ -137,25 +137,26 @@ export interface ApiDeprecationNotice {
 }
 
 export interface VersioningPolicy {
+
   // 版本生命周期
   supportDuration: number;      // 支持持续时间（月）
   deprecationPeriod: number;    // 废弃期（月）
   sunsetNotificationPeriod: number; // 下线通知期（月）
-  
+
   // 兼容性策略
   backwardCompatibilityPeriod: number; // 向后兼容期（月）
   majorVersionChangePolicy: 'breaking' | 'non-breaking';
   minorVersionChangePolicy: 'feature-only' | 'backward-compatible';
-  
+
   // 自动化策略
   autoDeprecateAfterMonths?: number;
   autoSunsetAfterMonths?: number;
   autoMigrationEnabled?: boolean;
-  
+
   // 通知策略
   deprecationWarningThresholds: number[]; // 警告阈值（天）
   clientNotificationChannels: string[];   // 通知渠道
-  
+
   // 监控策略
   usageTrackingEnabled: boolean;
   performanceMonitoringEnabled: boolean;

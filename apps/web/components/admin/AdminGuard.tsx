@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 import { Card, CardContent } from '@/components/ui'
 import { Shield, ShieldAlert } from 'lucide-react'
 

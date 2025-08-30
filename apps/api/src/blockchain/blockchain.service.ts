@@ -20,29 +20,69 @@ interface ContractConfig {
 @Injectable()
 export class BlockchainService {
   private readonly logger = new Logger(BlockchainService.name);
-  private provider: ethers.JsonRpcProvider;
+  private provider: ethers.JsonRpcProvider | null = null;
   private contracts: Map<string, ethers.Contract> = new Map();
+  private isBlockchainEnabled = true;
+  private connectionAttempted = false;
 
   constructor(private readonly configService: ConfigService) {
     this.initializeProvider();
-    this.loadContracts();
+    if (this.provider && this.isBlockchainEnabled) {
+      this.loadContracts();
+    }
   }
 
   /**
    * 初始化以太坊提供者
    */
-  private initializeProvider() {
+  private async initializeProvider() {
     const rpcUrl = this.configService.get<string>('BLOCKCHAIN_RPC_URL') || 'http://localhost:8545';
-    this.provider = new ethers.JsonRpcProvider(rpcUrl);
+    const environment = this.configService.get<string>('NODE_ENV', 'development');
     
-    // 测试连接
-    this.provider.getBlockNumber()
-      .then(blockNumber => {
-        this.logger.log(`✅ Blockchain connected successfully. Latest block: ${blockNumber}`);
-      })
-      .catch(error => {
-        this.logger.error('❌ Failed to connect to blockchain:', error);
+    // Skip blockchain initialization in development if no URL is configured
+    if (environment === 'development' && rpcUrl === 'http://localhost:8545') {
+      this.logger.warn(`⚠️  Blockchain node URL not configured. Running in development mode without blockchain features.`);
+      this.isBlockchainEnabled = false;
+      this.provider = null;
+      this.connectionAttempted = true;
+      return;
+    }
+    
+    try {
+      // Create provider with static network to avoid network detection retries
+      this.provider = new ethers.JsonRpcProvider(rpcUrl, 'any', {
+        staticNetwork: true,
       });
+      
+      // Test connection with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const blockNumber = await this.provider.getBlockNumber();
+      clearTimeout(timeoutId);
+      
+      this.logger.log(`✅ Blockchain connected successfully. Latest block: ${blockNumber}`);
+      this.isBlockchainEnabled = true;
+      
+    } catch (error) {
+      this.connectionAttempted = true;
+      
+      if (environment === 'development') {
+        this.logger.warn(`⚠️  Blockchain node not available at ${rpcUrl}. Running in development mode without blockchain features.`);
+      } else {
+        this.logger.error('❌ Failed to connect to blockchain in production environment:', error);
+      }
+      
+      this.isBlockchainEnabled = false;
+      this.provider = null;
+    }
+  }
+
+  /**
+   * 检查区块链是否可用
+   */
+  public isBlockchainAvailable(): boolean {
+    return this.isBlockchainEnabled && this.provider !== null;
   }
 
   /**
@@ -139,8 +179,11 @@ export class BlockchainService {
    * 获取当前区块号
    */
   async getBlockNumber(): Promise<number> {
+    if (!this.isBlockchainAvailable()) {
+      throw new Error('Blockchain not available');
+    }
     try {
-      return await this.provider.getBlockNumber();
+      return await this.provider!.getBlockNumber();
     } catch (error) {
       this.logger.error('Failed to get block number:', error);
       throw error;
@@ -151,8 +194,11 @@ export class BlockchainService {
    * 获取交易收据
    */
   async getTransactionReceipt(txHash: string): Promise<TransactionReceipt | null> {
+    if (!this.isBlockchainAvailable()) {
+      throw new Error('Blockchain not available');
+    }
     try {
-      const receipt = await this.provider.getTransactionReceipt(txHash);
+      const receipt = await this.provider!.getTransactionReceipt(txHash);
       
       if (!receipt) {
         return null;
@@ -186,7 +232,7 @@ export class BlockchainService {
       }
 
       // 获取交易详情
-      const transaction = await this.provider.getTransaction(txHash);
+      const transaction = await this.provider!.getTransaction(txHash);
       if (!transaction) {
         this.logger.warn(`Transaction details not found for ${txHash}`);
         return false;
@@ -238,8 +284,11 @@ export class BlockchainService {
    * 估算Gas费用
    */
   async estimateGas(transaction: any): Promise<string> {
+    if (!this.isBlockchainAvailable()) {
+      throw new Error('Blockchain not available');
+    }
     try {
-      const gasEstimate = await this.provider.estimateGas(transaction);
+      const gasEstimate = await this.provider!.estimateGas(transaction);
       return gasEstimate.toString();
     } catch (error) {
       this.logger.error('Failed to estimate gas:', error);
@@ -284,8 +333,11 @@ export class BlockchainService {
    * 获取账户余额
    */
   async getBalance(address: string): Promise<string> {
+    if (!this.isBlockchainAvailable()) {
+      throw new Error('Blockchain not available');
+    }
     try {
-      const balance = await this.provider.getBalance(address);
+      const balance = await this.provider!.getBalance(address);
       return ethers.formatEther(balance);
     } catch (error) {
       this.logger.error(`Failed to get balance for ${address}:`, error);

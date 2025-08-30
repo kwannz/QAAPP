@@ -345,7 +345,7 @@ export class AlertsService {
       await this.triggerAlert(rule.id!, {
         operation: log.action,
         severity: 'high', // 使用默认值
-        user: log.actor?.email || 'unknown',
+        user: log.actorId || 'unknown',
         details: log.metadata
       });
     }

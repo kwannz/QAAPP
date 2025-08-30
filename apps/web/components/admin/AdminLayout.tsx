@@ -20,7 +20,7 @@ import {
   Wallet
 } from 'lucide-react'
 import { Button, Card, Input } from '@/components/ui'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 
 interface AdminLayoutProps {
   children: React.ReactNode

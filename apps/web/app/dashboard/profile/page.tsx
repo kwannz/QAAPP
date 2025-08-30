@@ -38,7 +38,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
 import { Header } from '../../../components/layout/Header'
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'
-import { useAuthStore } from '../../../lib/auth-store'
+import { useAuthStore } from '../../../lib/auth-context'
 
 // 用户资料类型定义
 interface UserProfile {
