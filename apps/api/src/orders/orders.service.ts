@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { ProductsService } from '../products/products.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { MockOrdersService } from './mock-orders.service';
+import { PositionsService } from '../positions/positions.service';
 import { 
   CreateOrderDto, 
   UpdateOrderDto, 
@@ -25,6 +26,8 @@ export class OrdersService {
     private productsService: ProductsService,
     private blockchainService: BlockchainService,
     private mockOrdersService: MockOrdersService,
+    @Inject(forwardRef(() => PositionsService))
+    private positionsService: PositionsService,
   ) {}
 
   /**

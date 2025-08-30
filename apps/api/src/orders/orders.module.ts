@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { OrdersController } from './orders.controller';
@@ -15,7 +15,7 @@ import { PositionsModule } from '../positions/positions.module';
     DatabaseModule,
     BlockchainModule, 
     ProductsModule,
-    PositionsModule,
+    forwardRef(() => PositionsModule),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, MockOrdersService],
