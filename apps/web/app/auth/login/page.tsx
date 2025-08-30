@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 
 import { Button, FormInput, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { authApi } from '../../../lib/api-client'
-import { useAuthStore } from '../../../lib/auth-store'
+import { useAuthStore } from '../../../lib/auth-context'
 // import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
 // import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton'
 

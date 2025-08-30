@@ -1,40 +1,45 @@
 'use client'
 
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits, formatUnits } from 'viem'
 import { getContractAddresses, ProductType } from '../contracts/addresses'
 import { QA_CARD_ABI, TREASURY_ABI, MOCK_USDT_ABI } from '../contracts/abis'
+import { 
+  useSafeAccount, 
+  useSafeReadContract, 
+  useSafeWriteContract, 
+  useSafeWaitForTransactionReceipt 
+} from './use-safe-wagmi'
 
 // 使用Treasury合约的Hook
 export function useTreasury() {
-  const { chainId, address, chain } = useAccount()
+  const { chainId, address, chain } = useSafeAccount()
   const contracts = getContractAddresses(chainId || 1)
-  const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending } = useSafeWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useSafeWaitForTransactionReceipt({ hash })
 
   // 获取产品信息
-  const { data: goldProductInfo } = useReadContract({
+  const { data: goldProductInfo } = useSafeReadContract({
     address: contracts.TREASURY as `0x${string}`,
     abi: TREASURY_ABI,
     functionName: 'getProductInfo',
     args: [ProductType.GOLD],
   })
 
-  const { data: silverProductInfo } = useReadContract({
+  const { data: silverProductInfo } = useSafeReadContract({
     address: contracts.TREASURY as `0x${string}`,
     abi: TREASURY_ABI,
     functionName: 'getProductInfo',
     args: [ProductType.SILVER],
   })
 
-  const { data: diamondProductInfo } = useReadContract({
+  const { data: diamondProductInfo } = useSafeReadContract({
     address: contracts.TREASURY as `0x${string}`,
     abi: TREASURY_ABI,
     functionName: 'getProductInfo',
     args: [ProductType.DIAMOND],
   })
 
-  const { data: platinumProductInfo } = useReadContract({
+  const { data: platinumProductInfo } = useSafeReadContract({
     address: contracts.TREASURY as `0x${string}`,
     abi: TREASURY_ABI,
     functionName: 'getProductInfo',
@@ -75,7 +80,7 @@ export function useTreasury() {
   }
 
   // 获取用户ETH存款
-  const { data: userEthDeposits } = useReadContract({
+  const { data: userEthDeposits } = useSafeReadContract({
     address: contracts.TREASURY as `0x${string}`,
     abi: TREASURY_ABI,
     functionName: 'userEthDeposits',
@@ -83,7 +88,7 @@ export function useTreasury() {
   })
 
   // 获取总ETH存款
-  const { data: totalEthDeposits } = useReadContract({
+  const { data: totalEthDeposits } = useSafeReadContract({
     address: contracts.TREASURY as `0x${string}`,
     abi: TREASURY_ABI,
     functionName: 'totalEthDeposits',
@@ -108,14 +113,14 @@ export function useTreasury() {
 
 // 使用QACard NFT合约的Hook
 export function useQACard() {
-  const { address, chainId, chain } = useAccount()
+  const { address, chainId, chain } = useSafeAccount()
   const contracts = getContractAddresses(chainId || 1)
-  const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending } = useSafeWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useSafeWaitForTransactionReceipt({ hash })
 
   // 获取用户持有指定类型NFT的数量
   const getBalanceOf = (tokenId: number) => {
-    return useReadContract({
+    return useSafeReadContract({
       address: contracts.QA_CARD as `0x${string}`,
       abi: QA_CARD_ABI,
       functionName: 'balanceOf',
@@ -133,13 +138,13 @@ export function useQACard() {
 
 // 使用USDT代币合约的Hook
 export function useUSDT() {
-  const { address, chainId, chain } = useAccount()
+  const { address, chainId, chain } = useSafeAccount()
   const contracts = getContractAddresses(chainId || 1)
-  const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending } = useSafeWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useSafeWaitForTransactionReceipt({ hash })
 
   // 获取USDT余额
-  const { data: balance, refetch: refetchBalance } = useReadContract({
+  const { data: balance, refetch: refetchBalance } = useSafeReadContract({
     address: contracts.USDT as `0x${string}`,
     abi: MOCK_USDT_ABI,
     functionName: 'balanceOf',

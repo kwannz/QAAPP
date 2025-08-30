@@ -65,9 +65,38 @@ export function EnhancedProductCard({
     purchaseWithETH: () => {},
     isWritePending: false,
     isConfirming: false,
-    formatUSDT: (value: any) => value,
-    formatAPY: (value: any) => value,
-    formatDuration: (value: any) => value,
+    formatUSDT: (value: any) => {
+      // 如果是wei格式的数字，转换为USDT (除以10^6)
+      if (typeof value === 'bigint') {
+        return (Number(value) / 1000000).toString()
+      }
+      if (typeof value === 'number' && value > 1000000) {
+        return (value / 1000000).toString()
+      }
+      return value.toString()
+    },
+    formatAPY: (value: any) => {
+      // 基点转百分比：1200 bps = 12%
+      if (typeof value === 'bigint') {
+        return (Number(value) / 100).toString()
+      }
+      if (typeof value === 'number' && value > 100) {
+        return (value / 100).toString()
+      }
+      return value.toString()
+    },
+    formatDuration: (value: any) => {
+      // 秒转天数
+      if (typeof value === 'bigint') {
+        const days = Number(value) / (24 * 60 * 60)
+        return `${Math.round(days)} 天`
+      }
+      if (typeof value === 'number' && value > 86400) {
+        const days = value / (24 * 60 * 60)
+        return `${Math.round(days)} 天`
+      }
+      return `${value} 天`
+    },
     priceInfo: null,
     isContractReady: false
   } // useTreasuryContract()

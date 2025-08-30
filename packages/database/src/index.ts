@@ -1,6 +1,7 @@
 // 数据库包主入口文件
 export * from '@prisma/client';
 export { PrismaClient } from '@prisma/client';
+export { Decimal } from '@prisma/client/runtime/library';
 
 // 导出新的数据库管理器和缓存管理器
 export * from './connection';

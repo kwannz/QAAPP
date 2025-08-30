@@ -1,7 +1,7 @@
 import { IsEmail, IsString, IsOptional, IsEthereumAddress, IsEnum, IsUUID, MinLength, Matches, IsInt, Min, Max, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { UserRole, KycStatus } from '@prisma/client';
+import { UserRole, KycStatus } from '@qa-app/database';
 
 export class UpdateUserProfileDto {
   @ApiPropertyOptional({ example: 'user@example.com' })

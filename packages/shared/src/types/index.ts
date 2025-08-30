@@ -3,14 +3,14 @@
 // 用户相关类型
 export enum UserRole {
   USER = 'USER',
-  AGENT = 'AGENT',  
+  AGENT = 'AGENT',
   ADMIN = 'ADMIN'
 }
 
 export enum KycStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED', 
+  REJECTED = 'REJECTED',
   EXPIRED = 'EXPIRED'
 }
 

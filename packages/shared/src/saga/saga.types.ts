@@ -136,6 +136,7 @@ export interface OrderSagaEvents {
     entityId: string;
     action: string;
   };
+
   // 补偿事件
   OrderCancelled: {
     orderId: string;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { WithdrawalType } from '@prisma/client';
+import { WithdrawalType } from '@qa-app/database';
 
 export interface RiskFactor {
   category: string;

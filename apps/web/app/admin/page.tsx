@@ -82,7 +82,7 @@ const quickStats = [
     icon: UserCheck,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
-    href: '/admin/kyc-review'
+    href: '/admin/kycreview'
   },
   {
     title: '待审核提现',

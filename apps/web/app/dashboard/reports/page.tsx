@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
 import { Header } from '../../../components/layout/Header'
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'
-import { useAuthStore } from '../../../lib/auth-store'
+import { useAuthStore } from '../../../lib/auth-context'
 import { reportApi } from '../../../lib/api-client'
 import toast from 'react-hot-toast'
 

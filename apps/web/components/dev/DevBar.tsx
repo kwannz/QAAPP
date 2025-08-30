@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Code, X, ChevronUp, ChevronDown, Settings, Zap } from 'lucide-react'
 import { DevNavigation } from './DevNavigation'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 
 export function DevBar() {
   const [isVisible, setIsVisible] = useState(false)

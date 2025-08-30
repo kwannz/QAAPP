@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { wsClient, WebSocketStatus, WebSocketMessage, useNotifications } from '../../lib/websocket-client'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 
 // WebSocket 上下文类型
 interface WebSocketContextType {

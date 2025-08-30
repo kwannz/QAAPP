@@ -8,7 +8,7 @@ import { Menu, X, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 import { Button, cn } from '@/components/ui'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 
 const navigation = [
   { name: '首页', href: '/' },
