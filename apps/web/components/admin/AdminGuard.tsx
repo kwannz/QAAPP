@@ -17,11 +17,22 @@ export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardPro
   const router = useRouter()
 
   useEffect(() => {
+    // 设置超时，防止无限等待
+    const timeout = setTimeout(() => {
+      if (isChecking) {
+        console.warn('AdminGuard: Auth check timeout, assuming not authenticated')
+        setIsChecking(false)
+      }
+    }, 5000) // 5秒超时
+
     const checkAccess = async () => {
       // 等待认证状态加载完成
       if (isLoading) {
         return
       }
+
+      // 清除超时定时器
+      clearTimeout(timeout)
 
       // 未登录，跳转到登录页
       if (!isAuthenticated || !user) {
@@ -39,7 +50,12 @@ export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardPro
     }
 
     checkAccess()
-  }, [isAuthenticated, user, isLoading, router, allowedRoles])
+
+    // 清理函数
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [isAuthenticated, user, isLoading, router, allowedRoles, isChecking])
 
   // 加载中状态
   if (isLoading || isChecking) {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAccount, useSignMessage } from 'wagmi'
+import { useSafeAccount } from '../../lib/hooks/use-safe-wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import toast from 'react-hot-toast'
 
@@ -18,8 +18,17 @@ interface Web3LoginSectionProps {
 export function Web3LoginSection({ isRegister = false, referralCode }: Web3LoginSectionProps) {
   // Web3 功能已恢复
   const [isLoading, setIsLoading] = useState(false)
-  const { address, isConnected } = useAccount()
-  const { signMessageAsync } = useSignMessage()
+  const { address, isConnected } = useSafeAccount()
+  // Note: useSignMessage requires proper Wagmi context, will handle separately
+  const signMessageAsync = async (config: any) => {
+    try {
+      const { useSignMessage } = require('wagmi')
+      const { signMessageAsync: signFn } = useSignMessage()
+      return await signFn(config)
+    } catch (error) {
+      throw new Error('钱包签名功能需要Web3连接')
+    }
+  }
   const router = useRouter()
   const { setUser, setTokens } = useAuthStore()
 

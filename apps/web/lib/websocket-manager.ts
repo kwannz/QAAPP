@@ -20,7 +20,7 @@ export class WebSocketManager extends EventEmitter {
 
   constructor(url?: string) {
     super()
-    this.url = url || process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001'
+    this.url = url || process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws'
   }
 
   connect(token?: string): void {
@@ -109,9 +109,20 @@ export class WebSocketManager extends EventEmitter {
     this.reconnectAttempts++
     console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`)
     
-    setTimeout(() => {
-      this.connect()
-    }, this.reconnectDelay * this.reconnectAttempts)
+    // 检查后端服务是否运行
+    if (typeof window !== 'undefined') {
+      fetch('http://localhost:3001/health')
+        .then(() => {
+          setTimeout(() => {
+            this.connect()
+          }, this.reconnectDelay * this.reconnectAttempts)
+        })
+        .catch(() => {
+          console.warn('Backend service not available, skipping WebSocket reconnection')
+          // 可选：在后端不可用时停止重连尝试
+          // this.reconnectAttempts = this.maxReconnectAttempts
+        })
+    }
   }
 
   private startHeartbeat(): void {

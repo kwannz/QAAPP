@@ -47,7 +47,7 @@ export interface AuthState {
 const DEV_DEFAULT_USER: User = {
   id: 'dev-user-001',
   email: 'dev@qaapp.com',
-  role: 'USER' as UserRole,
+  role: 'ADMIN' as UserRole,
   kycStatus: 'APPROVED' as KycStatus,
   referralCode: 'DEV001',
   isActive: true,

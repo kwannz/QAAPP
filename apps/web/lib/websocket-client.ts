@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react'
 import { useAuthStore } from './auth-store'
 import toast from 'react-hot-toast'
 
@@ -257,10 +258,10 @@ export const wsClient = new WebSocketClient()
 
 // React Hook 用于在组件中使用 WebSocket
 export function useWebSocket() {
-  const [status, setStatus] = React.useState<WebSocketStatus>(wsClient.getStatus())
-  const [lastMessage, setLastMessage] = React.useState<WebSocketMessage | null>(null)
+  const [status, setStatus] = useState<WebSocketStatus>(wsClient.getStatus())
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     // 订阅状态变化
     const unsubscribeStatus = wsClient.onStatusChange(setStatus)
     
@@ -279,7 +280,7 @@ export function useWebSocket() {
     }
   }, [])
 
-  const sendMessage = React.useCallback((message: Omit<WebSocketMessage, 'timestamp'>) => {
+  const sendMessage = useCallback((message: Omit<WebSocketMessage, 'timestamp'>) => {
     wsClient.send(message)
   }, [])
 
@@ -294,10 +295,10 @@ export function useWebSocket() {
 
 // 专用的通知 Hook
 export function useNotifications() {
-  const [notifications, setNotifications] = React.useState<any[]>([])
-  const [unreadCount, setUnreadCount] = React.useState(0)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const unsubscribe = wsClient.onMessage((message) => {
       if (message.type === 'notification') {
         setNotifications(prev => [message.payload, ...prev].slice(0, 50)) // 最多保留50条
@@ -322,14 +323,14 @@ export function useNotifications() {
     return unsubscribe
   }, [])
 
-  const markAsRead = React.useCallback((notificationId: string) => {
+  const markAsRead = useCallback((notificationId: string) => {
     wsClient.send({
       type: 'mark_notification_read',
       payload: { notificationId },
     })
   }, [])
 
-  const clearAll = React.useCallback(() => {
+  const clearAll = useCallback(() => {
     wsClient.send({
       type: 'clear_notifications',
       payload: {},
@@ -343,5 +344,3 @@ export function useNotifications() {
     clearAll,
   }
 }
-
-import React from 'react'
