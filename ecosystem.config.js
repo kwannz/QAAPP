@@ -13,8 +13,9 @@ module.exports = {
       exec_mode: 'cluster', // 集群模式
       env: {
         NODE_ENV: 'production',
+        PORT: 3001,
         API_PORT: 3001,
-        DATABASE_URL: 'postgresql://qa_user:qa_password@localhost:5432/qa_database?schema=public',
+        DATABASE_URL: 'postgresql://qa_user:qa_password123@localhost:5432/qa_database?schema=public',
         REDIS_URL: 'redis://localhost:6379',
         LOG_LEVEL: 'info',
         ENABLE_METRICS: 'true',
