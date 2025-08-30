@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from '@nes
 import { MockDatabaseService, MockOrder } from '../database/mock-database.service';
 import { MockProductsService } from '../products/mock-products.service';
 import { PositionsService } from '../positions/positions.service';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@qa-app/database';
 
 @Injectable()
 export class MockOrdersService {

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLog, Prisma } from '@qa-app/database';
 
 export interface CreateAuditLogDto {
   actorId?: string;
@@ -26,7 +27,7 @@ export interface AuditLogQueryDto {
 export class AuditService {
   constructor(private prisma: PrismaService) {}
 
-  async createAuditLog(data: CreateAuditLogDto) {
+  async createAuditLog(data: CreateAuditLogDto): Promise<AuditLog> {
     return this.prisma.auditLog.create({
       data: {
         actorId: data.actorId,
@@ -41,7 +42,7 @@ export class AuditService {
     });
   }
 
-  async getAuditLogs(query: AuditLogQueryDto) {
+  async getAuditLogs(query: AuditLogQueryDto): Promise<{ logs: AuditLog[], pagination: any }> {
     const {
       actorId,
       action,
@@ -94,7 +95,7 @@ export class AuditService {
     };
   }
 
-  async getAuditLogById(id: string) {
+  async getAuditLogById(id: string): Promise<AuditLog | null> {
     return this.prisma.auditLog.findUnique({
       where: { id },
       include: {

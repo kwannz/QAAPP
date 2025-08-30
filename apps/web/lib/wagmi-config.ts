@@ -2,8 +2,9 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, polygon, arbitrum, sepolia, hardhat } from 'wagmi/chains'
 import { http } from 'viem'
 
-// 获取环境变量，使用默认的项目ID避免SSR错误
-const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '2f5aa3f7c1c0a3e8f9f8c5e3d2a1b3c4'
+// 获取环境变量，使用有效的WalletConnect项目ID
+// 使用一个更稳定的测试项目ID
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'a7f416d3f78b2ad3c80d7c29ad5b4c2c'
 
 // 本地开发链配置
 const hardhatLocal = {
@@ -33,13 +34,13 @@ export const wagmiConfig = getDefaultConfig({
   projectId,
   chains,
   ssr: true,
-  // 使用HTTP传输提高稳定性
+  // 使用HTTP传输提高稳定性，使用公共RPC端点
   transports: {
     [hardhatLocal.id]: http('http://localhost:8545'),
-    [mainnet.id]: http(process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0]),
-    [polygon.id]: http(process.env.NEXT_PUBLIC_POLYGON_RPC_URL || polygon.rpcUrls.default.http[0]),
-    [arbitrum.id]: http(process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || arbitrum.rpcUrls.default.http[0]),
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0]),
+    [mainnet.id]: http(process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || 'https://eth.llamarpc.com'),
+    [polygon.id]: http(process.env.NEXT_PUBLIC_POLYGON_RPC_URL || 'https://polygon.llamarpc.com'),
+    [arbitrum.id]: http(process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || 'https://arbitrum.llamarpc.com'),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || 'https://ethereum-sepolia.publicnode.com'),
   },
 })
 

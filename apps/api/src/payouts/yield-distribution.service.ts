@@ -551,8 +551,8 @@ export class YieldDistributionService implements OnModuleInit {
   private async getProductInfo(productId: string): Promise<any> {
     // 模拟产品信息
     const productMap = new Map([
-      ['prod-silver-001', { aprBps: 1200, name: '银卡产品' }],
-      ['prod-gold-001', { aprBps: 1500, name: '金卡产品' }],
+      ['prod-silver-001', { aprBps: 800, name: '银卡产品' }],
+      ['prod-gold-001', { aprBps: 1200, name: '金卡产品' }],
       ['prod-diamond-001', { aprBps: 1800, name: '钻石卡产品' }],
     ]);
     

@@ -11,7 +11,7 @@ import {
   UserResponseDto,
   UserStatsResponseDto
 } from './dto/users.dto';
-import { UserRole, KycStatus } from '@prisma/client';
+import { UserRole, KycStatus } from '@qa-app/database';
 
 @Injectable()
 export class UsersService {

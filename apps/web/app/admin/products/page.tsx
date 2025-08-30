@@ -79,7 +79,7 @@ export default function ProductsManagementPage() {
   const [stats, setStats] = useState<ProductStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
-    status: '',
+    status: 'all',
     search: '',
     minAPR: '',
     maxAPR: '',
@@ -460,7 +460,7 @@ export default function ProductsManagementPage() {
                       <SelectValue placeholder="全部" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">全部</SelectItem>
+                      <SelectItem value="all">全部</SelectItem>
                       <SelectItem value="active">活跃</SelectItem>
                       <SelectItem value="inactive">暂停</SelectItem>
                     </SelectContent>

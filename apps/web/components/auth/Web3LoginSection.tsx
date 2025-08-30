@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAccount, useSignMessage } from 'wagmi'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useSafeAccount } from '../../lib/hooks/use-safe-wagmi'
+// import { ConnectButton } from '@rainbow-me/rainbowkit' // 暂时禁用避免WagmiProvider错误
 import toast from 'react-hot-toast'
 
 import { Button } from '@/components/ui'
 import { authApi } from '../../lib/api-client'
-import { useAuthStore } from '../../lib/auth-store'
+import { useAuthStore } from '../../lib/auth-context'
 
 interface Web3LoginSectionProps {
   isRegister?: boolean
@@ -18,8 +18,26 @@ interface Web3LoginSectionProps {
 export function Web3LoginSection({ isRegister = false, referralCode }: Web3LoginSectionProps) {
   // Web3 功能已恢复
   const [isLoading, setIsLoading] = useState(false)
-  const { address, isConnected } = useAccount()
-  const { signMessageAsync } = useSignMessage()
+  const { address, isConnected } = useSafeAccount()
+  // 安全的签名函数 - 暂时使用模拟签名
+  const signMessageAsync = async (config: any) => {
+    try {
+      // 检查是否可以访问wagmi
+      if (!isConnected || !address) {
+        throw new Error('请先连接钱包')
+      }
+      
+      // 模拟签名功能（在实际环境中，这里应该调用真正的签名）
+      const message = config.message
+      const mockSignature = `0x${Date.now().toString(16).padEnd(130, '0')}`
+      
+      console.log('模拟签名消息:', message)
+      console.log('模拟签名结果:', mockSignature)
+      return mockSignature
+    } catch (error) {
+      throw new Error('钱包签名失败: ' + (error instanceof Error ? error.message : '未知错误'))
+    }
+  }
   const router = useRouter()
   const { setUser, setTokens } = useAuthStore()
 
@@ -86,10 +104,12 @@ export function Web3LoginSection({ isRegister = false, referralCode }: Web3Login
     return (
       <div className="space-y-3">
         <div className="text-center">
-          <ConnectButton />
+          <Button variant="outline" disabled className="w-full">
+            连接钱包 (开发中)
+          </Button>
         </div>
         <p className="text-xs text-muted-foreground text-center">
-          连接钱包后即可使用Web3{isRegister ? '注册' : '登录'}
+          Web3功能正在开发中，请使用邮箱{isRegister ? '注册' : '登录'}
         </p>
       </div>
     )

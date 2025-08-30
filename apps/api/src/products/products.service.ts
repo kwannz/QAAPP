@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from '@nes
 import { DatabaseService } from '../database/database.service';
 import { MockProductsService } from './mock-products.service';
 import { CreateProductDto, UpdateProductDto, ProductQueryDto, ProductListResponseDto, ProductResponseDto } from './dto/products.dto';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal, Product, Prisma } from '@qa-app/database';
 
 @Injectable()
 export class ProductsService {
@@ -24,7 +24,7 @@ export class ProductsService {
   /**
    * 原始的数据库查询方法 - 备用
    */
-  async findAllFromDatabase(queryDto: ProductQueryDto = {}) {
+  async findAllFromDatabase(queryDto: ProductQueryDto = {}): Promise<any> {
     const { 
       page = 1, 
       limit = 20, 
@@ -157,7 +157,7 @@ export class ProductsService {
   /**
    * 原始的数据库查询方法 - 备用
    */
-  async findOneFromDatabase(id: string) {
+  async findOneFromDatabase(id: string): Promise<any> {
     const product = await this.database.product.findUnique({
       where: { id },
       include: {
@@ -237,7 +237,7 @@ export class ProductsService {
   /**
    * 根据符号查找产品
    */
-  async findBySymbol(symbol: string) {
+  async findBySymbol(symbol: string): Promise<any> {
     const product = await this.database.product.findUnique({
       where: { symbol: symbol.toUpperCase() },
     });
@@ -265,7 +265,7 @@ export class ProductsService {
   /**
    * 原始的数据库创建方法 - 备用
    */
-  async createInDatabase(createProductDto: CreateProductDto, adminId: string) {
+  async createInDatabase(createProductDto: CreateProductDto, adminId: string): Promise<any> {
     // 检查产品符号是否已存在
     const existingProduct = await this.database.product.findUnique({
       where: { symbol: createProductDto.symbol.toUpperCase() },
@@ -334,7 +334,7 @@ export class ProductsService {
   /**
    * 原始的数据库更新方法 - 备用
    */
-  async updateInDatabase(id: string, updateProductDto: UpdateProductDto, adminId: string) {
+  async updateInDatabase(id: string, updateProductDto: UpdateProductDto, adminId: string): Promise<any> {
     const existingProduct = await this.database.product.findUnique({
       where: { id },
     });

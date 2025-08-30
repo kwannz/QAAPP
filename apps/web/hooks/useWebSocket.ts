@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { getWebSocketManager, WebSocketMessage } from '../lib/websocket-manager'
-import { useAuthStore } from '../lib/auth-store'
+import { useAuthStore } from '../lib/auth-context'
 
 interface UseWebSocketOptions {
   autoConnect?: boolean

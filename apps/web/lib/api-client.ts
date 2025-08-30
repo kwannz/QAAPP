@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios'
-import { useAuthStore } from './auth-store'
+import { tokenManager } from './token-manager'
 import toast from 'react-hot-toast'
 import logger from './logger'
 
@@ -18,7 +18,7 @@ export const apiClient = axios.create({
 // 请求拦截器 - 添加认证token和日志
 apiClient.interceptors.request.use(
   (config) => {
-    const { accessToken } = useAuthStore.getState()
+    const accessToken = tokenManager.getAccessToken()
     
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
@@ -34,8 +34,8 @@ apiClient.interceptors.request.use(
     config.headers['X-Request-Id'] = requestId
     
     // 保存请求开始时间
-    (config as any).requestStartTime = Date.now()
-    (config as any).requestId = requestId
+    ;(config as any).requestStartTime = Date.now()
+    ;(config as any).requestId = requestId
     
     return config
   },
@@ -54,7 +54,7 @@ apiClient.interceptors.response.use(
     
     // 记录响应日志
     logger.logApiResponse(
-      config.requestId,
+      config.requestId || 'unknown',
       response.status,
       response.data,
       duration
@@ -69,7 +69,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       
-      const { refreshToken, clearAuth } = useAuthStore.getState()
+      const refreshToken = tokenManager.getRefreshToken()
       
       if (refreshToken) {
         try {
@@ -78,27 +78,33 @@ apiClient.interceptors.response.use(
           })
           
           const { accessToken: newAccessToken } = response.data
-          useAuthStore.getState().setTokens(newAccessToken, refreshToken)
+          tokenManager.setTokens(newAccessToken, refreshToken)
           
           // 重试原始请求
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
           return apiClient(originalRequest)
         } catch (refreshError) {
           // 刷新失败，清除认证信息
-          clearAuth()
+          tokenManager.clearTokens()
           toast.error('登录已过期，请重新登录')
           window.location.href = '/auth/login'
           return Promise.reject(refreshError)
         }
       } else {
         // 没有refresh token，直接跳转登录
-        clearAuth()
+        tokenManager.clearTokens()
         window.location.href = '/auth/login'
       }
     }
     
     // 处理其他错误
     const errorMessage = (error.response?.data as any)?.message || (error as any).message || '请求失败'
+    
+    // 记录错误日志
+    const config = error.config as any
+    if (config && config.requestId) {
+      logger.logApiError(config.requestId, error)
+    }
     
     // 不显示某些错误的toast
     const silentErrors = [401, 403]
