@@ -74,15 +74,33 @@ export function getDatabaseConfig(): DatabaseConfig {
 export function validateDatabaseConfig(): boolean {
   try {
     const config = getDatabaseConfig()
-    
+
+    // 在启用 Mock 数据库或非生产环境下，允许跳过严格校验或使用 SQLite
+    const useMock = process.env.USE_MOCK_DATABASE === 'true'
+    const isProd = getEnvironment() === 'production'
+
     if (!config.url) {
       console.error('❌ 数据库URL未配置')
       return false
     }
 
-    if (!config.url.startsWith('postgresql://')) {
-      console.error('❌ 数据库URL格式错误，必须是PostgreSQL格式')
-      return false
+    // 生产环境强制使用 PostgreSQL
+    if (isProd) {
+      if (!config.url.startsWith('postgresql://')) {
+        console.error('❌ 生产环境必须使用PostgreSQL格式的URL')
+        return false
+      }
+    } else {
+      // 非生产环境允许 postgresql / sqlite / file: URL
+      const allowed = (
+        config.url.startsWith('postgresql://') ||
+        config.url.startsWith('sqlite:') ||
+        config.url.startsWith('file:')
+      )
+      if (!allowed && !useMock) {
+        console.error('❌ 开发环境数据库URL不被支持，请使用 postgresql:// 或 sqlite/file: URL')
+        return false
+      }
     }
 
     console.log(`✅ 数据库配置验证通过`)

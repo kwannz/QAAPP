@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../database/database.service';
+import { Injectable, Inject } from '@nestjs/common';
+import type { DatabaseService } from '../database/database.service';
 import { WithdrawalType } from '@qa-app/database';
 
 export interface RiskFactor {
@@ -35,7 +35,7 @@ export interface WithdrawalRiskInput {
 
 @Injectable()
 export class RiskEngineService {
-  constructor(private database: DatabaseService) {}
+  constructor(@Inject('DatabaseService') private database: DatabaseService) {}
 
   async performComprehensiveRiskAssessment(
     input: WithdrawalRiskInput

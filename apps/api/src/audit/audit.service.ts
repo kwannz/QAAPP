@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../database/database.service';
+import { Injectable, Inject } from '@nestjs/common';
+import type { DatabaseService } from '../database/database.service';
 import { AuditLog, Prisma } from '@qa-app/database';
 
 export interface CreateAuditLogDto {
@@ -25,7 +25,7 @@ export interface AuditLogQueryDto {
 
 @Injectable()
 export class AuditService {
-  constructor(private database: DatabaseService) {}
+  constructor(@Inject('DatabaseService') private database: DatabaseService) {}
 
   async createAuditLog(data: CreateAuditLogDto): Promise<AuditLog> {
     return this.database.auditLog.create({

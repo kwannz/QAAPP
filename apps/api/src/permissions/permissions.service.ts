@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../database/database.service';
+import { Injectable, Inject } from '@nestjs/common';
+import type { DatabaseService } from '../database/database.service';
 
 export interface Permission {
   id: string;
@@ -38,7 +38,7 @@ export class PermissionsService {
   private permissions: Map<string, Permission> = new Map();
   private userRoles: Map<string, string[]> = new Map();
 
-  constructor(private database: DatabaseService) {
+  constructor(@Inject('DatabaseService') private database: DatabaseService) {
     this.initializeDefaultRoles();
   }
 

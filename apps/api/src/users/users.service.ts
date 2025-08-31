@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, Inject } from '@nestjs/common';
 import { hash } from 'bcryptjs';
-import { DatabaseService } from '../database/database.service';
+import type { DatabaseService } from '../database/database.service';
 import { 
   UpdateUserProfileDto, 
   AddWalletDto, 
@@ -17,7 +17,7 @@ import { UserRole, KycStatus } from '@qa-app/database';
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private database: DatabaseService) {}
+  constructor(@Inject('DatabaseService') private database: DatabaseService) {}
 
   /**
    * 根据ID查找用户

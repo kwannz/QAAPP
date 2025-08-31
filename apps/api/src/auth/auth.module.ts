@@ -9,7 +9,7 @@ import { MockAuthService } from '../mock/mock-auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletSignatureService } from './services/wallet-signature.service';
 // import { UsersModule } from '../users/users.module';
-import { DatabaseService } from '../database/database.service';
+import type { DatabaseService } from '../database/database.service';
 import { UsersService } from '../users/users.service';
 
 @Module({
@@ -60,7 +60,7 @@ import { UsersService } from '../users/users.service';
           walletSignatureService,
         );
       },
-      inject: [ConfigService, DatabaseService, JwtService, UsersService, WalletSignatureService],
+      inject: [ConfigService, 'DatabaseService', JwtService, UsersService, WalletSignatureService],
     },
     MockAuthService, // 仍然提供MockAuthService供测试使用
     JwtStrategy,
