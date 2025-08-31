@@ -73,8 +73,8 @@ import { WebSocketModule } from './websocket/websocket.module';
     OrdersModule,
     PositionsModule,
 
-    // WebSocket 实时通信模块
-    WebSocketModule,
+    // WebSocket 实时通信模块（根据配置开关决定是否启用）
+    WebSocketModule.forRoot(),
 
     // 金融模块
     PayoutsModule,

@@ -29,7 +29,15 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   constructor(private configService: ConfigService) {
     this.config = this.loadCacheConfig();
     this.initializeL1Cache();
-    this.initializeL2Cache();
+    
+    // 只有在L2启用时才初始化Redis
+    const l2Enabled = this.configService.get<string>('CACHE_L2_ENABLED') === 'true';
+    if (l2Enabled) {
+      this.initializeL2Cache();
+    } else {
+      this.logger.log('L2 Redis cache disabled by configuration');
+    }
+    
     this.initializeStats();
   }
 
@@ -39,7 +47,9 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    await this.l2Cache.disconnect();
+    if (this.l2Cache) {
+      await this.l2Cache.disconnect();
+    }
     this.l1Cache.clear();
   }
 
@@ -141,20 +151,22 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
         return result;
       }
 
-      // L2 Cache Check
-      const l2Data = await this.l2Cache.get(key);
-      if (l2Data) {
-        const l2Item = this.deserialize(l2Data, this.config.l2.serialization as 'json' | 'msgpack');
-        if (l2Item && l2Item.expiry > Date.now()) {
-          result = l2Item.value;
-          hitLayer = CacheLayer.L2_REDIS;
-          
-          // 回填L1缓存
-          await this.setL1(key, result, this.config.l1.ttl);
-          
-          this.updateStats(CacheLayer.L2_REDIS, true, Date.now() - startTime);
-          this.updateStats(CacheLayer.L1_MEMORY, false, 0);
-          return result;
+      // L2 Cache Check (只有在L2启用时才检查)
+      if (this.l2Cache) {
+        const l2Data = await this.l2Cache.get(key);
+        if (l2Data) {
+          const l2Item = this.deserialize(l2Data, this.config.l2.serialization as 'json' | 'msgpack');
+          if (l2Item && l2Item.expiry > Date.now()) {
+            result = l2Item.value;
+            hitLayer = CacheLayer.L2_REDIS;
+            
+            // 回填L1缓存
+            await this.setL1(key, result, this.config.l1.ttl);
+            
+            this.updateStats(CacheLayer.L2_REDIS, true, Date.now() - startTime);
+            this.updateStats(CacheLayer.L1_MEMORY, false, 0);
+            return result;
+          }
         }
       }
 
@@ -195,11 +207,14 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
       const l1Ttl = ttl || this.config.l1.ttl;
       const l2Ttl = ttl || this.config.l2.ttl;
 
-      // 并行写入L1和L2
-      await Promise.all([
-        this.setL1(key, value, l1Ttl),
-        this.setL2(key, value, l2Ttl)
-      ]);
+      // 写入L1，如果L2启用则也写入L2
+      const promises = [this.setL1(key, value, l1Ttl)];
+      
+      if (this.l2Cache) {
+        promises.push(this.setL2(key, value, l2Ttl));
+      }
+      
+      await Promise.all(promises);
 
       // 异步写入L3 (CDN)
       this.setL3(key, value, ttl || this.config.l3.ttl).catch(error => {
@@ -224,6 +239,10 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async setL2<T>(key: string, value: T, ttl: number): Promise<void> {
+    if (!this.l2Cache) {
+      return; // L2未启用，直接返回
+    }
+    
     const cacheItem: CacheItem<T> = {
       value,
       expiry: Date.now() + ttl,
@@ -256,17 +275,23 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
       if (keyOrPattern.includes('*') || keyOrPattern.includes('?')) {
         // 批量删除
         const keys = await this.getKeysByPattern(keyOrPattern);
-        await Promise.all([
-          this.deleteBatchL1(keys),
-          this.deleteBatchL2(keys)
-        ]);
+        const promises = [this.deleteBatchL1(keys)];
+        
+        if (this.l2Cache) {
+          promises.push(this.deleteBatchL2(keys));
+        }
+        
+        await Promise.all(promises);
         deleted = keys.length > 0;
       } else {
         // 单个删除
-        await Promise.all([
-          this.deleteL1(keyOrPattern),
-          this.deleteL2(keyOrPattern)
-        ]);
+        const promises = [this.deleteL1(keyOrPattern)];
+        
+        if (this.l2Cache) {
+          promises.push(this.deleteL2(keyOrPattern));
+        }
+        
+        await Promise.all(promises);
         deleted = true;
       }
 
@@ -282,6 +307,9 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async deleteL2(key: string): Promise<number> {
+    if (!this.l2Cache) {
+      return 0;
+    }
     return await this.l2Cache.del(key);
   }
 
@@ -290,7 +318,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async deleteBatchL2(keys: string[]): Promise<number> {
-    if (keys.length === 0) return 0;
+    if (keys.length === 0 || !this.l2Cache) return 0;
     return await this.l2Cache.del(...keys);
   }
 
@@ -300,8 +328,11 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
       this.matchPattern(key, pattern)
     );
 
-    // L2缓存模式匹配
-    const l2Keys = await this.l2Cache.keys(pattern);
+    // L2缓存模式匹配（如果L2启用）
+    let l2Keys: string[] = [];
+    if (this.l2Cache) {
+      l2Keys = await this.l2Cache.keys(pattern);
+    }
     
     return [...new Set([...l1Keys, ...l2Keys])];
   }
@@ -343,10 +374,12 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
     const l1Stats = this.stats.get(CacheLayer.L1_MEMORY)!;
     l1Stats.memoryUsage = this.l1Cache.size * 1024; // 估算内存使用
 
-    // 更新L2统计
-    const l2Info = await this.l2Cache.info('memory');
-    const l2Stats = this.stats.get(CacheLayer.L2_REDIS)!;
-    l2Stats.memoryUsage = this.parseRedisMemoryUsage(l2Info);
+    // 更新L2统计（如果L2启用）
+    if (this.l2Cache) {
+      const l2Info = await this.l2Cache.info('memory');
+      const l2Stats = this.stats.get(CacheLayer.L2_REDIS)!;
+      l2Stats.memoryUsage = this.parseRedisMemoryUsage(l2Info);
+    }
 
     return this.stats;
   }
@@ -432,10 +465,13 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
           return result !== undefined;
         })(),
         
-        // L2 健康检查
+        // L2 健康检查（如果L2启用）
         (async () => {
-          await this.l2Cache.ping();
-          return true;
+          if (this.l2Cache) {
+            await this.l2Cache.ping();
+            return true;
+          }
+          return false; // L2未启用
         })(),
         
         // L3 健康检查
