@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 import { AuditLog, Prisma } from '@qa-app/database';
 
 export interface CreateAuditLogDto {
@@ -25,10 +25,10 @@ export interface AuditLogQueryDto {
 
 @Injectable()
 export class AuditService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private database: DatabaseService) {}
 
   async createAuditLog(data: CreateAuditLogDto): Promise<AuditLog> {
-    return this.prisma.auditLog.create({
+    return this.database.auditLog.create({
       data: {
         actorId: data.actorId,
         actorType: data.actorType || 'USER',
@@ -66,7 +66,7 @@ export class AuditService {
     }
 
     const [logs, total] = await Promise.all([
-      this.prisma.auditLog.findMany({
+      this.database.auditLog.findMany({
         where,
         include: {
           actor: {
@@ -81,7 +81,7 @@ export class AuditService {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prisma.auditLog.count({ where }),
+      this.database.auditLog.count({ where }),
     ]);
 
     return {
@@ -96,7 +96,7 @@ export class AuditService {
   }
 
   async getAuditLogById(id: string): Promise<AuditLog | null> {
-    return this.prisma.auditLog.findUnique({
+    return this.database.auditLog.findUnique({
       where: { id },
       include: {
         actor: {
@@ -125,20 +125,20 @@ export class AuditService {
       actorTypeStats,
       recentActivity,
     ] = await Promise.all([
-      this.prisma.auditLog.count({ where }),
-      this.prisma.auditLog.groupBy({
+      this.database.auditLog.count({ where }),
+      this.database.auditLog.groupBy({
         by: ['action'],
         where,
         _count: true,
         orderBy: { _count: { action: 'desc' } },
         take: 10,
       }),
-      this.prisma.auditLog.groupBy({
+      this.database.auditLog.groupBy({
         by: ['actorType'],
         where,
         _count: true,
       }),
-      this.prisma.auditLog.findMany({
+      this.database.auditLog.findMany({
         where: {
           ...where,
           createdAt: {

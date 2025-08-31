@@ -39,43 +39,9 @@ const nextConfig = {
       '@tanstack/react-query': require.resolve('@tanstack/react-query')
     };
     
-    // 生产环境优化
-    if (!dev && !isServer) {
-      // 代码分割优化
-      config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-          },
-          // 将大型UI库分离
-          ui: {
-            test: /[\\/]node_modules[\\/](@headlessui|@heroicons|lucide-react)[\\/]/,
-            name: 'ui',
-            chunks: 'all',
-            priority: 20,
-          },
-          // 将动画库分离
-          animations: {
-            test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
-            name: 'animations',
-            chunks: 'all',
-            priority: 20,
-          },
-          // 将Web3相关库分离
-          web3: {
-            test: /[\\/]node_modules[\\/](wagmi|viem|@wagmi|@rainbow-me)[\\/]/,
-            name: 'web3',
-            chunks: 'all',
-            priority: 20,
-          },
-        },
-      }
-    }
+    // 生产环境优化 - 使用Next.js默认的代码分割策略
+    // 复杂的自定义splitChunks已被移除，使用Next.js的默认优化
+    // 如果后续需要特定优化，可以根据性能指标再添加
     
     // Bundle 分析
     if (process.env.ANALYZE === 'true') {
@@ -103,6 +69,14 @@ const nextConfig = {
   
   // 安全头部配置
   async headers() {
+    // CSP策略配置 - 可通过环境变量选择预设
+    const cspPreset = process.env.CSP_PRESET || 'default';
+    const cspPolicies = {
+      default: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://api.qa-app.com wss://api.qa-app.com https://*.infura.io https://*.alchemy.com https://*.quicknode.com wss://*.walletconnect.org https://*.walletconnect.org https://*.web3modal.org https://pulse.walletconnect.org wss://relay.walletconnect.org https://*.reown.com;",
+      strict: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self';",
+      development: "default-src *; script-src * 'unsafe-eval' 'unsafe-inline'; style-src * 'unsafe-inline';"
+    };
+
     return [
       {
         source: '/(.*)',
@@ -121,7 +95,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://api.qa-app.com wss://api.qa-app.com https://*.infura.io https://*.alchemy.com https://*.quicknode.com wss://*.walletconnect.org https://*.walletconnect.org https://*.web3modal.org https://pulse.walletconnect.org wss://relay.walletconnect.org https://*.reown.com;"
+            value: cspPolicies[cspPreset] || cspPolicies.default
           }
         ]
       }

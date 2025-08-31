@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, DynamicModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
@@ -49,8 +49,8 @@ import { WebSocketModule } from './websocket/websocket.module';
     // 全局安全模块 - 暂时禁用修复编译错误
     // SecurityModule,
 
-    // 数据库模块 (全局) - 临时禁用使用Mock服务
-    // PrismaModule,
+    // 数据库模块 (全局)
+    DatabaseModule,
 
     // 缓存模块 (全局缓存服务)
     CacheModule,
@@ -58,14 +58,13 @@ import { WebSocketModule } from './websocket/websocket.module';
     // 健康检查模块 (不依赖数据库)
     HealthModule,
 
-    // Mock模块 (用于测试核心业务逻辑)
-    MockModule,
+    // Mock模块 - 仅在测试环境加载
+    ...(process.env.NODE_ENV === 'test' || process.env.USE_MOCK_SERVICES === 'true' 
+      ? [MockModule] 
+      : []),
 
     // 认证和用户模块 (核心功能)
     AuthModule,
-
-    // 数据库服务模块
-    DatabaseModule,
 
     // 核心业务模块
     UsersModule,
@@ -73,8 +72,8 @@ import { WebSocketModule } from './websocket/websocket.module';
     OrdersModule,
     PositionsModule,
 
-    // WebSocket 实时通信模块
-    WebSocketModule,
+    // WebSocket 实时通信模块（根据配置开关决定是否启用）
+    WebSocketModule.forRoot(),
 
     // 金融模块
     PayoutsModule,

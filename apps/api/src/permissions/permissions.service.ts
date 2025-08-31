@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 
 export interface Permission {
   id: string;
@@ -38,7 +38,7 @@ export class PermissionsService {
   private permissions: Map<string, Permission> = new Map();
   private userRoles: Map<string, string[]> = new Map();
 
-  constructor(private prisma: PrismaService) {
+  constructor(private database: DatabaseService) {
     this.initializeDefaultRoles();
   }
 

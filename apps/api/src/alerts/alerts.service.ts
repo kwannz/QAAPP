@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 import { AuditService } from '../audit/audit.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -49,7 +49,7 @@ export class AlertsService {
   private alertHandlers: Map<string, Function> = new Map();
 
   constructor(
-    private prisma: PrismaService,
+    private database: DatabaseService,
     private auditService: AuditService,
   ) {
     this.initializeDefaultRules();
