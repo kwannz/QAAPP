@@ -1,7 +1,47 @@
-import { PrismaClient, UserRole, KycStatus, OrderStatus, PositionStatus, CommissionType, CommissionStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+// 定义枚举值常量
+const UserRole = {
+  USER: 'USER',
+  AGENT: 'AGENT',
+  ADMIN: 'ADMIN'
+};
+
+const KycStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  EXPIRED: 'EXPIRED'
+};
+
+const OrderStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  CANCELED: 'CANCELED'
+};
+
+const PositionStatus = {
+  ACTIVE: 'ACTIVE',
+  REDEEMING: 'REDEEMING',
+  CLOSED: 'CLOSED',
+  DEFAULTED: 'DEFAULTED'
+};
+
+const CommissionType = {
+  REFERRAL: 'REFERRAL',
+  AGENT: 'AGENT'
+};
+
+const CommissionStatus = {
+  PENDING: 'PENDING',
+  READY: 'READY',
+  PAID: 'PAID',
+  FAILED: 'FAILED'
+};
 
 async function main() {
   console.log('开始种子数据初始化...');
