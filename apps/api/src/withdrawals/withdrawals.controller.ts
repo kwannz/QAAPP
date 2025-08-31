@@ -23,13 +23,13 @@ import { WithdrawalStatus, WithdrawalType } from '@qa-app/database';
 // DTO定义
 class CreateWithdrawalRequestDto {
   amount: number;
-  withdrawalType: WithdrawalType;
+  withdrawalType: keyof typeof WithdrawalType;
   walletAddress: string;
   chainId: number;
 }
 
 class UpdateWithdrawalRequestDto {
-  status?: WithdrawalStatus;
+  status?: keyof typeof WithdrawalStatus;
   reviewNotes?: string;
   rejectionReason?: string;
 }
@@ -43,8 +43,8 @@ class WithdrawalResponseDto {
   id: string;
   userId: string;
   amount: number;
-  withdrawalType: WithdrawalType;
-  status: WithdrawalStatus;
+  withdrawalType: keyof typeof WithdrawalType;
+  status: keyof typeof WithdrawalStatus;
   walletAddress: string;
   chainId: number;
   platformFee: number;

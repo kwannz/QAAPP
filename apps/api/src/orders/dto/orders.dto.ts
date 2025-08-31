@@ -61,7 +61,7 @@ export class UpdateOrderDto extends PartialType(CreateOrderDto) {
   @ApiPropertyOptional({ enum: OrderStatus })
   @IsOptional()
   @IsEnum(OrderStatus)
-  status?: OrderStatus;
+  status?: keyof typeof OrderStatus;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -85,7 +85,7 @@ export class OrderQueryDto {
   @ApiPropertyOptional({ enum: OrderStatus })
   @IsOptional()
   @IsEnum(OrderStatus)
-  status?: OrderStatus;
+  status?: keyof typeof OrderStatus;
 
   @ApiPropertyOptional({ example: 'product-uuid' })
   @IsOptional()
@@ -118,7 +118,7 @@ export class OrderResponseDto {
   txHash?: string;
 
   @ApiProperty({ enum: OrderStatus })
-  status: OrderStatus;
+  status: keyof typeof OrderStatus;
 
   @ApiProperty()
   referrerId?: string;

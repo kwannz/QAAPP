@@ -57,7 +57,7 @@ export interface MockOrder {
   usdtAmount: number;
   platformFee: number;
   txHash?: string;
-  status: OrderStatus;
+  status: keyof typeof OrderStatus;
   referrerId?: string;
   agentId?: string;
   failureReason?: string;

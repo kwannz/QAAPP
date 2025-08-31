@@ -45,7 +45,7 @@ export class AddWalletDto {
 export class UpdateKycStatusDto {
   @ApiProperty({ enum: KycStatus })
   @IsEnum(KycStatus)
-  kycStatus: KycStatus;
+  kycStatus: keyof typeof KycStatus;
 
   @ApiPropertyOptional({ 
     example: { reason: 'Documents verified successfully' },
@@ -58,7 +58,7 @@ export class UpdateKycStatusDto {
 export class UpdateUserRoleDto {
   @ApiProperty({ enum: UserRole })
   @IsEnum(UserRole)
-  role: UserRole;
+  role: keyof typeof UserRole;
 }
 
 export class UserQueryDto {
@@ -85,12 +85,12 @@ export class UserQueryDto {
   @ApiPropertyOptional({ enum: UserRole })
   @IsOptional()
   @IsEnum(UserRole)
-  role?: UserRole;
+  role?: keyof typeof UserRole;
 
   @ApiPropertyOptional({ enum: KycStatus })
   @IsOptional()
   @IsEnum(KycStatus)
-  kycStatus?: KycStatus;
+  kycStatus?: keyof typeof KycStatus;
 
   @ApiPropertyOptional({ example: 'REFER123' })
   @IsOptional()
@@ -124,13 +124,13 @@ export class UserResponseDto {
   email?: string;
 
   @ApiProperty({ enum: UserRole })
-  role: UserRole;
+  role: keyof typeof UserRole;
 
   @ApiProperty()
   referralCode: string;
 
   @ApiProperty({ enum: KycStatus })
-  kycStatus: KycStatus;
+  kycStatus: keyof typeof KycStatus;
 
   @ApiProperty()
   isActive: boolean;

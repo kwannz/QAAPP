@@ -7,20 +7,20 @@ import { RiskEngineService, WithdrawalRiskInput } from '../risk/risk-engine.serv
 export interface CreateWithdrawalDto {
   userId: string;
   amount: number;
-  withdrawalType: WithdrawalType;
+  withdrawalType: keyof typeof WithdrawalType;
   walletAddress: string;
   chainId: number;
 }
 
 export interface UpdateWithdrawalDto {
-  status?: WithdrawalStatus;
+  status?: keyof typeof WithdrawalStatus;
   reviewNotes?: string;
   rejectionReason?: string;
   reviewerId?: string;
 }
 
 export interface WithdrawalQueryDto {
-  status?: WithdrawalStatus;
+  status?: keyof typeof WithdrawalStatus;
   riskLevel?: string;
   userId?: string;
   page?: number;
@@ -341,7 +341,7 @@ export class WithdrawalsService {
   private async validateUserBalance(
     userId: string,
     amount: number,
-    type: WithdrawalType,
+    type: keyof typeof WithdrawalType,
   ): Promise<void> {
     // 根据提现类型验证不同的余额
     let availableBalance = 0;
@@ -397,7 +397,7 @@ export class WithdrawalsService {
 
   private async calculateWithdrawalFee(
     amount: number,
-    type: WithdrawalType,
+    type: keyof typeof WithdrawalType,
   ): Promise<number> {
     // 从系统配置获取手续费率
     const feeConfig = await this.database.systemConfig.findUnique({
@@ -430,12 +430,12 @@ export class WithdrawalsService {
   }
 
   private validateStatusTransition(
-    currentStatus: WithdrawalStatus,
-    newStatus?: WithdrawalStatus,
+    currentStatus: keyof typeof WithdrawalStatus,
+    newStatus?: keyof typeof WithdrawalStatus,
   ): void {
     if (!newStatus) return;
 
-    const validTransitions: Record<WithdrawalStatus, WithdrawalStatus[]> = {
+    const validTransitions: Record<keyof typeof WithdrawalStatus, Array<keyof typeof WithdrawalStatus>> = {
       [WithdrawalStatus.PENDING]: [
         WithdrawalStatus.REVIEWING,
         WithdrawalStatus.APPROVED,

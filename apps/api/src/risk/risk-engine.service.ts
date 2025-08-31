@@ -23,7 +23,7 @@ export interface RiskAssessmentResult {
 export interface WithdrawalRiskInput {
   userId: string;
   amount: number;
-  withdrawalType: WithdrawalType;
+  withdrawalType: keyof typeof WithdrawalType;
   walletAddress: string;
   chainId: number;
   metadata?: {
@@ -202,7 +202,7 @@ export class RiskEngineService {
   private async assessBehaviorRisk(
     userId: string,
     amount: number,
-    type: WithdrawalType
+    type: keyof typeof WithdrawalType
   ): Promise<{ score: number; factors: RiskFactor[] }> {
     const factors: RiskFactor[] = [];
     let score = 0;
@@ -643,15 +643,13 @@ export class RiskEngineService {
     const knownDevices = await this.database.auditLog.findMany({
       where: {
         actorId: userId,
-        metadata: {
-          path: ['deviceFingerprint'],
-          equals: deviceFingerprint,
-        },
+        // 由于 Prisma 对 Json 的查询在不同驱动上不统一，这里改为在应用层过滤
       },
-      take: 1,
+      take: 20,
     });
+    const matched = knownDevices.some(log => (log as any).metadata?.deviceFingerprint === deviceFingerprint);
 
-    return { isNewDevice: knownDevices.length === 0 };
+    return { isNewDevice: !matched };
   }
 
   private async performAMLCheck(input: WithdrawalRiskInput): Promise<{

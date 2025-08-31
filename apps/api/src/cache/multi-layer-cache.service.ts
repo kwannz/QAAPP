@@ -47,10 +47,15 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    if (this.l2Cache) {
-      await this.l2Cache.disconnect();
+    try {
+      if (this.l2Cache && typeof (this.l2Cache as any).disconnect === 'function') {
+        await (this.l2Cache as any).disconnect();
+      }
+    } catch (error) {
+      this.logger.warn('Error during Redis disconnect:', error);
+    } finally {
+      this.l1Cache.clear();
     }
-    this.l1Cache.clear();
   }
 
   private loadCacheConfig(): MultiLayerCacheConfig {
@@ -153,7 +158,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
 
       // L2 Cache Check (只有在L2启用时才检查)
       if (this.l2Cache) {
-        const l2Data = await this.l2Cache.get(key);
+        const l2Data = await (this.l2Cache as any).get(key);
         if (l2Data) {
           const l2Item = this.deserialize(l2Data, this.config.l2.serialization as 'json' | 'msgpack');
           if (l2Item && l2Item.expiry > Date.now()) {
@@ -208,7 +213,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
       const l2Ttl = ttl || this.config.l2.ttl;
 
       // 写入L1，如果L2启用则也写入L2
-      const promises = [this.setL1(key, value, l1Ttl)];
+      const promises: Array<Promise<any>> = [this.setL1(key, value, l1Ttl)];
       
       if (this.l2Cache) {
         promises.push(this.setL2(key, value, l2Ttl));
@@ -251,7 +256,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
     };
 
     const serializedData = this.serialize(cacheItem, this.config.l2.serialization as 'json' | 'msgpack');
-    await this.l2Cache.setex(key, Math.floor(ttl / 1000), serializedData);
+    await (this.l2Cache as any).setex(key, Math.floor(ttl / 1000), serializedData);
   }
 
   private async setL3<T>(key: string, value: T, ttl: number): Promise<void> {
@@ -275,23 +280,28 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
       if (keyOrPattern.includes('*') || keyOrPattern.includes('?')) {
         // 批量删除
         const keys = await this.getKeysByPattern(keyOrPattern);
-        const promises = [this.deleteBatchL1(keys)];
-        
+        // 先执行 L1 删除（同步）
+        this.deleteBatchL1(keys);
+        // L2 删除放入 Promise 列表
+        const promises: Array<Promise<any>> = [];
         if (this.l2Cache) {
           promises.push(this.deleteBatchL2(keys));
         }
-        
-        await Promise.all(promises);
+        if (promises.length) {
+          await Promise.all(promises);
+        }
         deleted = keys.length > 0;
       } else {
         // 单个删除
-        const promises = [this.deleteL1(keyOrPattern)];
-        
+        // 先执行 L1 删除（同步）
+        this.deleteL1(keyOrPattern);
+        const promises: Array<Promise<any>> = [];
         if (this.l2Cache) {
           promises.push(this.deleteL2(keyOrPattern));
         }
-        
-        await Promise.all(promises);
+        if (promises.length) {
+          await Promise.all(promises);
+        }
         deleted = true;
       }
 
@@ -310,7 +320,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
     if (!this.l2Cache) {
       return 0;
     }
-    return await this.l2Cache.del(key);
+    return await (this.l2Cache as any).del(key);
   }
 
   private deleteBatchL1(keys: string[]): void {
@@ -319,7 +329,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
 
   private async deleteBatchL2(keys: string[]): Promise<number> {
     if (keys.length === 0 || !this.l2Cache) return 0;
-    return await this.l2Cache.del(...keys);
+    return await (this.l2Cache as any).del(...keys);
   }
 
   private async getKeysByPattern(pattern: string): Promise<string[]> {
@@ -331,7 +341,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
     // L2缓存模式匹配（如果L2启用）
     let l2Keys: string[] = [];
     if (this.l2Cache) {
-      l2Keys = await this.l2Cache.keys(pattern);
+      l2Keys = await (this.l2Cache as any).keys(pattern);
     }
     
     return [...new Set([...l1Keys, ...l2Keys])];
@@ -376,7 +386,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
 
     // 更新L2统计（如果L2启用）
     if (this.l2Cache) {
-      const l2Info = await this.l2Cache.info('memory');
+      const l2Info = await (this.l2Cache as any).info('memory');
       const l2Stats = this.stats.get(CacheLayer.L2_REDIS)!;
       l2Stats.memoryUsage = this.parseRedisMemoryUsage(l2Info);
     }
