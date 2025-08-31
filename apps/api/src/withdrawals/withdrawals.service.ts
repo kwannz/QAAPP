@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 import { WithdrawalStatus, WithdrawalType, Prisma } from '@qa-app/database';
 import { AuditService } from '../audit/audit.service';
 import { RiskEngineService, WithdrawalRiskInput } from '../risk/risk-engine.service';
@@ -32,7 +32,7 @@ export interface WithdrawalQueryDto {
 @Injectable()
 export class WithdrawalsService {
   constructor(
-    private prisma: PrismaService,
+    private database: DatabaseService,
     private auditService: AuditService,
     private riskEngine: RiskEngineService,
   ) {}
@@ -64,7 +64,7 @@ export class WithdrawalsService {
     };
     const riskAssessment = await this.riskEngine.performComprehensiveRiskAssessment(riskInput);
     
-    const withdrawal = await this.prisma.withdrawal.create({
+    const withdrawal = await this.database.withdrawal.create({
       data: {
         userId: createDto.userId,
         amount: new Prisma.Decimal(createDto.amount),
@@ -136,7 +136,7 @@ export class WithdrawalsService {
     if (userId) where.userId = userId;
 
     const [withdrawals, total] = await Promise.all([
-      this.prisma.withdrawal.findMany({
+      this.database.withdrawal.findMany({
         where,
         include: {
           user: {
@@ -154,7 +154,7 @@ export class WithdrawalsService {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prisma.withdrawal.count({ where }),
+      this.database.withdrawal.count({ where }),
     ]);
 
     return {
@@ -169,7 +169,7 @@ export class WithdrawalsService {
   }
 
   async getWithdrawalById(id: string): Promise<any> {
-    const withdrawal = await this.prisma.withdrawal.findUnique({
+    const withdrawal = await this.database.withdrawal.findUnique({
       where: { id },
       include: {
         user: {
@@ -225,7 +225,7 @@ export class WithdrawalsService {
       updateData.reviewNotes = updateDto.reviewNotes;
     }
 
-    const updatedWithdrawal = await this.prisma.withdrawal.update({
+    const updatedWithdrawal = await this.database.withdrawal.update({
       where: { id },
       data: updateData,
       include: {
@@ -300,20 +300,20 @@ export class WithdrawalsService {
       riskLevelStats,
       recentActivity,
     ] = await Promise.all([
-      this.prisma.withdrawal.count(),
-      this.prisma.withdrawal.count({ where: { status: WithdrawalStatus.PENDING } }),
-      this.prisma.withdrawal.count({ where: { status: WithdrawalStatus.COMPLETED } }),
-      this.prisma.withdrawal.count({ where: { status: WithdrawalStatus.REJECTED } }),
-      this.prisma.withdrawal.aggregate({
+      this.database.withdrawal.count(),
+      this.database.withdrawal.count({ where: { status: WithdrawalStatus.PENDING } }),
+      this.database.withdrawal.count({ where: { status: WithdrawalStatus.COMPLETED } }),
+      this.database.withdrawal.count({ where: { status: WithdrawalStatus.REJECTED } }),
+      this.database.withdrawal.aggregate({
         _sum: { amount: true },
         where: { status: WithdrawalStatus.COMPLETED },
       }),
-      this.prisma.withdrawal.groupBy({
+      this.database.withdrawal.groupBy({
         by: ['riskLevel'],
         _count: true,
         where: { status: { in: [WithdrawalStatus.PENDING, WithdrawalStatus.REVIEWING] } },
       }),
-      this.prisma.withdrawal.count({
+      this.database.withdrawal.count({
         where: {
           createdAt: {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // 最近24小时
@@ -349,7 +349,7 @@ export class WithdrawalsService {
     switch (type) {
       case WithdrawalType.EARNINGS:
         // 检查可领取收益
-        const claimablePayouts = await this.prisma.payout.aggregate({
+        const claimablePayouts = await this.database.payout.aggregate({
           _sum: { amount: true },
           where: {
             userId,
@@ -362,7 +362,7 @@ export class WithdrawalsService {
 
       case WithdrawalType.COMMISSION:
         // 检查可提取佣金
-        const availableCommissions = await this.prisma.commission.aggregate({
+        const availableCommissions = await this.database.commission.aggregate({
           _sum: { amount: true },
           where: {
             userId,
@@ -374,7 +374,7 @@ export class WithdrawalsService {
 
       case WithdrawalType.PRINCIPAL:
         // 检查可赎回本金（需要持仓到期）
-        const redeemablePositions = await this.prisma.position.aggregate({
+        const redeemablePositions = await this.database.position.aggregate({
           _sum: { principal: true },
           where: {
             userId,
@@ -400,7 +400,7 @@ export class WithdrawalsService {
     type: WithdrawalType,
   ): Promise<number> {
     // 从系统配置获取手续费率
-    const feeConfig = await this.prisma.systemConfig.findUnique({
+    const feeConfig = await this.database.systemConfig.findUnique({
       where: { key: 'withdrawal_fees' },
     });
 
@@ -422,7 +422,7 @@ export class WithdrawalsService {
 
 
   private async isKycVerified(userId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.database.user.findUnique({
       where: { id: userId },
       select: { kycStatus: true },
     });

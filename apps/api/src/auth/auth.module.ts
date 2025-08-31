@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
 import { AuthController } from './auth.controller';
@@ -30,12 +30,25 @@ import { WalletSignatureService } from './services/wallet-signature.service';
   ],
   controllers: [AuthController],
   providers: [
-    // AuthService, // Replaced with MockAuthService for testing
+    // 根据环境变量决定使用哪个服务
     {
       provide: AuthService,
-      useClass: MockAuthService,
+      useFactory: (configService: ConfigService, ...deps: any[]) => {
+        const useMock = configService.get<string>('USE_MOCK_AUTH') === 'true';
+        const nodeEnv = configService.get<string>('NODE_ENV');
+        
+        // 只在测试环境或明确指定时使用Mock
+        if (useMock || nodeEnv === 'test') {
+          console.log('⚠️  Using Mock Auth Service');
+          return new MockAuthService(...deps);
+        }
+        
+        console.log('✅ Using Real Auth Service');
+        return new AuthService(...deps);
+      },
+      inject: [ConfigService, 'DatabaseService', JwtService],
     },
-    MockAuthService, // Provide MockAuthService for JwtStrategy
+    MockAuthService, // 仍然提供MockAuthService供测试使用
     JwtStrategy,
     WalletSignatureService,
   ],

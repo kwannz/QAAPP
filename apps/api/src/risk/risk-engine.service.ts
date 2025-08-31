@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 import { WithdrawalType } from '@qa-app/database';
 
 export interface RiskFactor {
@@ -35,7 +35,7 @@ export interface WithdrawalRiskInput {
 
 @Injectable()
 export class RiskEngineService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private database: DatabaseService) {}
 
   async performComprehensiveRiskAssessment(
     input: WithdrawalRiskInput
@@ -91,7 +91,7 @@ export class RiskEngineService {
     const factors: RiskFactor[] = [];
     let score = 0;
 
-    const user = await this.prisma.user.findUnique({
+    const user = await this.database.user.findUnique({
       where: { id: userId },
       select: {
         kycStatus: true,
@@ -208,7 +208,7 @@ export class RiskEngineService {
     let score = 0;
 
     // 获取历史提现记录
-    const historicalWithdrawals = await this.prisma.withdrawal.findMany({
+    const historicalWithdrawals = await this.database.withdrawal.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -640,7 +640,7 @@ export class RiskEngineService {
     isNewDevice: boolean;
   }> {
     // 模拟设备风险评估
-    const knownDevices = await this.prisma.auditLog.findMany({
+    const knownDevices = await this.database.auditLog.findMany({
       where: {
         actorId: userId,
         metadata: {
