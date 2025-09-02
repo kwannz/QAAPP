@@ -3,62 +3,18 @@ export * from '@prisma/client';
 export { PrismaClient } from '@prisma/client';
 export { Decimal } from '@prisma/client/runtime/library';
 
-// 导出枚举值常量（SQLite不支持enum，使用常量代替）
-export const UserRole = {
-  USER: 'USER',
-  AGENT: 'AGENT',
-  ADMIN: 'ADMIN'
-} as const;
-
-export const KycStatus = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-  EXPIRED: 'EXPIRED'
-} as const;
-
-export const OrderStatus = {
-  PENDING: 'PENDING',
-  SUCCESS: 'SUCCESS',
-  FAILED: 'FAILED',
-  CANCELED: 'CANCELED'
-} as const;
-
-export const PositionStatus = {
-  ACTIVE: 'ACTIVE',
-  REDEEMING: 'REDEEMING',
-  CLOSED: 'CLOSED',
-  DEFAULTED: 'DEFAULTED'
-} as const;
-
-export const CommissionType = {
-  REFERRAL: 'REFERRAL',
-  AGENT: 'AGENT'
-} as const;
-
-export const CommissionStatus = {
-  PENDING: 'PENDING',
-  READY: 'READY',
-  PAID: 'PAID',
-  FAILED: 'FAILED'
-} as const;
-
-export const WithdrawalStatus = {
-  PENDING: 'PENDING',
-  REVIEWING: 'REVIEWING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-  PROCESSING: 'PROCESSING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  CANCELED: 'CANCELED'
-} as const;
-
-export const WithdrawalType = {
-  EARNINGS: 'EARNINGS',
-  PRINCIPAL: 'PRINCIPAL',
-  COMMISSION: 'COMMISSION'
-} as const;
+// 导出PostgreSQL原生枚举（类型和值）
+export {
+  UserRole,
+  KycStatus,
+  OrderStatus,
+  PositionStatus,
+  CommissionType,
+  CommissionStatus,
+  WithdrawalStatus,
+  WithdrawalType,
+  RiskLevel
+} from '@prisma/client';
 
 // 导出新的数据库管理器和缓存管理器
 export * from './connection';
