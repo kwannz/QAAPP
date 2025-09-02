@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { WithdrawalStatus, WithdrawalType, Prisma } from '@qa-app/database';
+import { WithdrawalStatus, WithdrawalType, RiskLevel, Prisma } from '@qa-app/database';
 import { AuditService } from '../audit/audit.service';
 import { RiskEngineService, WithdrawalRiskInput } from '../risk/risk-engine.service';
 
@@ -21,7 +21,7 @@ export interface UpdateWithdrawalDto {
 
 export interface WithdrawalQueryDto {
   status?: WithdrawalStatus;
-  riskLevel?: string;
+  riskLevel?: RiskLevel;
   userId?: string;
   page?: number;
   limit?: number;

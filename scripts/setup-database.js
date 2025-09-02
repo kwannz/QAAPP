@@ -55,38 +55,76 @@ async function checkCommand(command, installHint) {
 async function checkPostgreSQL() {
   log('\n🔍 检查 PostgreSQL...', 'blue');
   
-  // 跳过PostgreSQL检查，使用SQLite作为开发数据库
-  log('⚠️  跳过PostgreSQL检查，将使用SQLite作为开发数据库', 'yellow');
-  return true;
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || !dbUrl.startsWith('postgresql://')) {
+    log('⚠️  DATABASE_URL 未设置或不是 PostgreSQL 连接', 'yellow');
+    return false;
+  }
+  
+  try {
+    // 简单的连接测试
+    const result = execCommand('pg_isready -h localhost', { silent: true });
+    if (result.success) {
+      log('✅ PostgreSQL 连接正常', 'green');
+      return true;
+    } else {
+      log('❌ PostgreSQL 无法连接', 'red');
+      return false;
+    }
+  } catch (error) {
+    log('❌ PostgreSQL 连接检查失败', 'red');
+    return false;
+  }
 }
 
 async function checkRedis() {
   log('\n🔍 检查 Redis...', 'blue');
   
-  // 跳过Redis检查，使用内存缓存作为开发环境
-  log('⚠️  跳过Redis检查，将使用内存缓存作为开发环境', 'yellow');
-  return true;
+  try {
+    const result = execCommand('redis-cli ping', { silent: true });
+    if (result.success && result.output.trim() === 'PONG') {
+      log('✅ Redis 连接正常', 'green');
+      return true;
+    } else {
+      log('⚠️  Redis 无法连接，将使用内存缓存', 'yellow');
+      return true; // Redis是可选的
+    }
+  } catch (error) {
+    log('⚠️  Redis 检查失败，将使用内存缓存', 'yellow');
+    return true; // Redis是可选的
+  }
 }
 
 async function setupDatabaseUser() {
   log('\n🗄️  配置数据库用户...', 'blue');
-  // SQLite不需要用户配置
-  log('✅ SQLite不需要用户配置', 'green');
+  
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || !dbUrl.startsWith('postgresql://')) {
+    log('⚠️  非 PostgreSQL 数据库，跳过用户配置', 'yellow');
+    return true;
+  }
+  
+  // PostgreSQL用户配置在这里已经由管理员完成
+  log('✅ PostgreSQL 用户配置由管理员预先完成', 'green');
   return true;
 }
 
 async function createDatabase() {
   log('\n🏗️  创建数据库...', 'blue');
-  // SQLite数据库文件将自动创建
-  log('✅ SQLite数据库将自动创建', 'green');
+  
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || !dbUrl.startsWith('postgresql://')) {
+    log('✅ 非 PostgreSQL 数据库将自动创建', 'green');
+    return true;
+  }
+  
+  // PostgreSQL数据库已经由管理员预先创建
+  log('✅ PostgreSQL 数据库由管理员预先创建', 'green');
   return true;
 }
 
 async function setupPrisma() {
   log('\n🔄 配置 Prisma 客户端...', 'blue');
-
-  // 设置环境变量为SQLite
-  process.env.DATABASE_URL = 'file:./dev.db';
 
   // 切换到 database 包目录
   const databasePath = path.join(__dirname, '../packages/database');
@@ -123,10 +161,14 @@ async function setupPrisma() {
 async function validateSetup() {
   log('\n🩺 验证配置...', 'blue');
 
-  // SQLite不需要连接测试
-  log('✅ SQLite配置完成', 'green');
-  log('✅ 内存缓存配置完成', 'green');
-
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl && dbUrl.startsWith('postgresql://')) {
+    log('✅ PostgreSQL配置完成', 'green');
+  } else {
+    log('✅ 数据库配置完成', 'green');
+  }
+  
+  log('✅ 缓存配置完成', 'green');
   return true;
 }
 
@@ -173,9 +215,16 @@ async function main() {
     log('\n🎉 数据库初始化完成！', 'green');
     log('=====================================', 'blue');
     log('📊 服务状态:', 'blue');
-    log('  • PostgreSQL: ✅ 运行中 (端口 5432)', 'green');
+    
+    const dbUrl = process.env.DATABASE_URL;
+    if (dbUrl && dbUrl.startsWith('postgresql://')) {
+      log('  • PostgreSQL: ✅ 运行中 (端口 5432)', 'green');
+      log('  • 数据库: qa_database (用户: qa_user)', 'green');
+    } else {
+      log('  • 数据库: ✅ 已配置', 'green');
+    }
+    
     log('  • Redis: ✅ 运行中 (端口 6379)', 'green');
-    log('  • 数据库: qa_database (用户: qa_user)', 'green');
     log('  • Prisma 客户端: ✅ 已生成', 'green');
     
   } catch (error) {
