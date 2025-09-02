@@ -80,8 +80,8 @@ export function validateDatabaseConfig(): boolean {
       return false
     }
 
-    if (!config.url.startsWith('postgresql://')) {
-      console.error('❌ 数据库URL格式错误，必须是PostgreSQL格式')
+    if (!config.url.startsWith('postgresql://') && !config.url.startsWith('file:')) {
+      console.error('❌ 数据库URL格式错误，必须是PostgreSQL或SQLite格式')
       return false
     }
 

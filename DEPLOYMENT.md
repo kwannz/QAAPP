@@ -24,10 +24,10 @@ npx prisma generate
 
 ### 3. 启动服务
 
-#### 使用 Docker（推荐）
+#### 使用 PM2（推荐）
 ```bash
-# 构建并启动所有服务
-docker-compose -f docker-compose.production.yml up -d
+# 启动生产服务
+pnpm start
 ```
 
 #### 手动启动
@@ -39,6 +39,93 @@ pnpm start:prod
 # 启动Web应用
 cd apps/web
 pnpm start
+```
+
+## 🐧 Linux VPS 部署
+
+### 自动化部署（推荐）
+```bash
+# 1. 运行环境设置脚本（仅首次）
+chmod +x scripts/setup-vps.sh
+./scripts/setup-vps.sh
+
+# 2. 一键部署
+chmod +x scripts/vps-deploy.sh
+./scripts/vps-deploy.sh
+```
+
+### 手动部署步骤
+
+#### 环境准备 (Ubuntu/Debian)
+```bash
+# 更新系统
+sudo apt update && sudo apt upgrade -y
+
+# 安装 Node.js 18+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# 安装 pnpm
+npm install -g pnpm
+
+# 安装 PostgreSQL
+sudo apt-get install -y postgresql postgresql-contrib
+
+# 安装 Redis
+sudo apt-get install -y redis-server
+
+# 启动服务
+sudo systemctl start postgresql redis
+sudo systemctl enable postgresql redis
+```
+
+#### 环境准备 (CentOS/RHEL/Fedora)
+```bash
+# 安装 Node.js 18+
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo dnf install -y nodejs npm
+
+# 安装 pnpm
+npm install -g pnpm
+
+# 安装 PostgreSQL
+sudo dnf install -y postgresql postgresql-server postgresql-contrib
+sudo postgresql-setup --initdb
+
+# 安装 Redis
+sudo dnf install -y redis
+
+# 启动服务
+sudo systemctl start postgresql redis
+sudo systemctl enable postgresql redis
+```
+
+#### 可选：配置系统服务（自动启动）
+```bash
+# 创建应用用户
+sudo useradd -m -s /bin/bash qaapp
+sudo mkdir -p /opt/qa-app
+sudo chown qaapp:qaapp /opt/qa-app
+
+# 复制项目文件到生产目录
+sudo cp -r . /opt/qa-app/
+sudo chown -R qaapp:qaapp /opt/qa-app
+
+# 安装系统服务
+sudo cp systemd/qa-app.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable qa-app.service
+```
+
+#### 数据库初始化
+```bash
+# 创建数据库用户
+sudo -u postgres psql -c "CREATE USER qa_user WITH ENCRYPTED PASSWORD 'qa_password';"
+sudo -u postgres psql -c "CREATE DATABASE qa_database OWNER qa_user;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE qa_database TO qa_user;"
+
+# 测试连接
+PGPASSWORD=qa_password psql -h localhost -U qa_user -d qa_database -c "SELECT 1;"
 ```
 
 ## 🔧 配置说明
@@ -138,6 +225,60 @@ NEXT_PUBLIC_CONTRACT_ADDRESS=YOUR_CONTRACT_ADDRESS
 1. **API连接失败**: 检查CORS配置和API URL
 2. **导出功能异常**: 确保浏览器允许下载
 3. **数据不更新**: 检查实时更新配置
+
+## 🔗 反向代理配置 (Nginx)
+
+### 安装和配置 Nginx
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y nginx
+
+# CentOS/RHEL/Fedora
+sudo dnf install -y nginx
+
+# 复制配置文件
+sudo cp nginx/qa-app.conf /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/qa-app.conf /etc/nginx/sites-enabled/
+
+# 测试配置
+sudo nginx -t
+
+# 启动 Nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+```
+
+### SSL 证书配置
+```bash
+# 使用 Let's Encrypt (推荐)
+sudo apt-get install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d qa-app.com -d www.qa-app.com -d api.qa-app.com
+
+# 或者使用自签名证书 (仅开发)
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/ssl/private/qa-app.com.key \
+    -out /etc/ssl/certs/qa-app.com.crt
+```
+
+## 📋 备份和恢复
+
+### 数据库备份
+```bash
+# 每日备份脚本
+pg_dump -h localhost -U qa_user -d qa_database > backup_$(date +%Y%m%d).sql
+
+# 压缩备份
+pg_dump -h localhost -U qa_user -d qa_database | gzip > backup_$(date +%Y%m%d).sql.gz
+```
+
+### 数据库恢复
+```bash
+# 从备份恢复
+psql -h localhost -U qa_user -d qa_database < backup_20240902.sql
+
+# 从压缩备份恢复
+gunzip -c backup_20240902.sql.gz | psql -h localhost -U qa_user -d qa_database
+```
 
 ### 联系支持
 - 技术问题: dev@qa-app.com

@@ -25,38 +25,38 @@ function log(message, color = 'reset') {
 
 function execCommand(command, options = {}) {
   try {
-    const result = execSync(command, { 
-      encoding: 'utf8', 
+    const result = execSync(command, {
+      encoding: 'utf8',
       stdio: options.silent ? 'pipe' : 'inherit',
       ...options
     });
     return { success: true, output: result };
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error.message,
-      code: error.status 
+      code: error.status
     };
   }
 }
 
 async function stopPM2Services() {
   log('\n🛑 停止 PM2 服务...', 'blue');
-  
+
   // 检查 PM2 是否安装
   const pm2Check = execCommand('command -v pm2', { silent: true });
   if (!pm2Check.success) {
     log('⚠️  PM2 未找到，跳过 PM2 服务停止', 'yellow');
     return true;
   }
-  
+
   // 获取当前 PM2 进程列表
   const listResult = execCommand('pm2 list --no-color', { silent: true });
   if (!listResult.success || !listResult.output.includes('qa-')) {
     log('✅ 没有运行的 PM2 服务', 'green');
     return true;
   }
-  
+
   // 停止所有 QA App 相关服务
   log('🔄 停止 QA App 服务...', 'yellow');
   const stopResult = execCommand('pm2 stop ecosystem.config.js', { silent: true });
@@ -65,7 +65,7 @@ async function stopPM2Services() {
   } else {
     log('⚠️  停止 PM2 服务可能失败', 'yellow');
   }
-  
+
   // 删除 PM2 进程
   log('🗑️  删除 PM2 进程...', 'yellow');
   const deleteResult = execCommand('pm2 delete ecosystem.config.js', { silent: true });
@@ -74,20 +74,20 @@ async function stopPM2Services() {
   } else {
     log('⚠️  删除 PM2 进程可能失败', 'yellow');
   }
-  
+
   return true;
 }
 
 async function stopLegacyProcesses() {
   log('\n🔍 查找并停止遗留进程...', 'blue');
-  
+
   const pidFiles = [
     'logs/api.pid',
     'logs/web.pid'
   ];
-  
+
   let stoppedProcesses = 0;
-  
+
   for (const pidFile of pidFiles) {
     if (fs.existsSync(pidFile)) {
       try {
@@ -115,7 +115,7 @@ async function stopLegacyProcesses() {
       }
     }
   }
-  
+
   if (stoppedProcesses === 0) {
     log('✅ 没有发现遗留进程', 'green');
   } else {
@@ -125,10 +125,10 @@ async function stopLegacyProcesses() {
 
 async function stopPortProcesses() {
   log('\n🔌 检查并停止端口占用进程...', 'blue');
-  
+
   const ports = [3001, 3002]; // API 和 Web 端口
   let stoppedPorts = 0;
-  
+
   for (const port of ports) {
     const portCheck = execCommand(`lsof -ti:${port}`, { silent: true });
     if (portCheck.success && portCheck.output.trim()) {
@@ -147,7 +147,7 @@ async function stopPortProcesses() {
       log(`✅ 端口 ${port} 已释放`, 'green');
     }
   }
-  
+
   if (stoppedPorts === 0) {
     log('✅ 没有端口占用进程需要停止', 'green');
   } else {
@@ -155,42 +155,15 @@ async function stopPortProcesses() {
   }
 }
 
-async function stopDockerServices() {
-  log('\n🐳 停止 Docker 服务...', 'blue');
-  
-  // 检查 Docker Compose 是否可用
-  const dockerCheck = execCommand('command -v docker-compose', { silent: true });
-  if (!dockerCheck.success) {
-    log('⚠️  Docker Compose 未找到，跳过 Docker 服务停止', 'yellow');
-    return true;
-  }
-  
-  // 检查是否有运行的 Docker 服务
-  const composeCheck = execCommand('docker-compose ps -q', { silent: true });
-  if (!composeCheck.success || !composeCheck.output.trim()) {
-    log('✅ 没有运行的 Docker 服务', 'green');
-    return true;
-  }
-  
-  // 停止 Docker 服务
-  log('🔄 停止 Docker Compose 服务...', 'yellow');
-  const stopResult = execCommand('docker-compose down');
-  if (stopResult.success) {
-    log('✅ Docker 服务已停止', 'green');
-  } else {
-    log('⚠️  停止 Docker 服务可能失败', 'yellow');
-  }
-  
-  return true;
-}
+
 
 async function cleanupLogs() {
   log('\n🧹 清理临时文件...', 'blue');
-  
+
   // 不删除日志文件，只清理临时文件
   const tempDirs = ['temp', '.turbo/cache'];
   let cleanedFiles = 0;
-  
+
   for (const dir of tempDirs) {
     if (fs.existsSync(dir)) {
       try {
@@ -207,7 +180,7 @@ async function cleanupLogs() {
       }
     }
   }
-  
+
   if (cleanedFiles > 0) {
     log(`✅ 清理了 ${cleanedFiles} 个临时文件`, 'green');
   } else {
@@ -217,7 +190,7 @@ async function cleanupLogs() {
 
 async function displayStatus() {
   log('\n📊 最终状态检查...', 'blue');
-  
+
   // 检查端口状态
   const ports = [3001, 3002];
   for (const port of ports) {
@@ -228,7 +201,7 @@ async function displayStatus() {
       log(`✅ 端口 ${port} 已释放`, 'green');
     }
   }
-  
+
   // 检查 PM2 状态
   const pm2Check = execCommand('pm2 list --no-color', { silent: true });
   if (pm2Check.success && pm2Check.output.includes('qa-')) {
@@ -242,40 +215,37 @@ async function displayStatus() {
 async function main() {
   log('🛑 开始停止 QA App 系统...', 'bold');
   log('=====================================', 'blue');
-  
+
   try {
     // 停止 PM2 服务
     await stopPM2Services();
-    
+
     // 停止遗留进程
     await stopLegacyProcesses();
-    
+
     // 停止端口占用进程
     await stopPortProcesses();
-    
-    // 停止 Docker 服务
-    await stopDockerServices();
-    
+
     // 清理临时文件
     await cleanupLogs();
-    
+
     // 显示最终状态
     await displayStatus();
-    
+
     log('\n🎯 系统停止完成！', 'green');
     log('=====================================', 'blue');
-    
+
     log('💡 提示:', 'yellow');
     log('  • 所有服务已停止', 'green');
     log('  • 日志文件已保留', 'green');
     log('  • 数据库和 Redis 服务未受影响', 'green');
     log('  • 临时文件已清理', 'green');
-    
+
     log('\n🔧 重新启动命令:', 'blue');
     log('  • 开发模式: pnpm run start:dev', 'green');
     log('  • 生产模式: pnpm run start', 'green');
-    log('  • Docker 模式: pnpm run start:docker', 'green');
-    
+
+
   } catch (error) {
     log(`\n💥 停止过程中出现错误: ${error.message}`, 'red');
     process.exit(1);
@@ -297,6 +267,5 @@ module.exports = {
   stopPM2Services,
   stopLegacyProcesses,
   stopPortProcesses,
-  stopDockerServices,
   cleanupLogs
 };

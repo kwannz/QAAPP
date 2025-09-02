@@ -78,10 +78,23 @@ async function setupEnvironment() {
   // 设置生产环境变量
   process.env.NODE_ENV = 'production';
   process.env.LOG_LEVEL = 'info';
-  process.env.DATABASE_URL = 'postgresql://qa_user:qa_password@localhost:5432/qa_database?schema=public';
-  process.env.API_PORT = '3001';
-  process.env.WEB_PORT = '3002';
-  process.env.ENABLE_METRICS = 'true';
+  
+  // 读取DATABASE_URL from .env或使用默认值
+  if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = 'postgresql://qa_user:qa_password@localhost:5432/qa_database?schema=public';
+    log('⚠️  使用默认 DATABASE_URL，建议在 .env 中配置', 'yellow');
+  }
+  
+  // 验证数据库URL是PostgreSQL
+  if (!process.env.DATABASE_URL.startsWith('postgresql://')) {
+    log('❌ DATABASE_URL 必须是 PostgreSQL 连接字符串', 'red');
+    log('💡 正确格式: postgresql://user:password@host:port/database', 'yellow');
+    process.exit(1);
+  }
+  
+  process.env.API_PORT = process.env.API_PORT || '3001';
+  process.env.WEB_PORT = process.env.WEB_PORT || '3002';
+  process.env.ENABLE_METRICS = process.env.ENABLE_METRICS || 'true';
   
   // 确保环境文件存在
   if (!fs.existsSync('.env')) {
