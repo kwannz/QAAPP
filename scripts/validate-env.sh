@@ -14,6 +14,19 @@ log() {
     echo -e "${2:-$NC}$1${NC}"
 }
 
+# Load .env file if exists
+if [[ -f .env ]]; then
+    set -a
+    source .env
+    set +a
+    log "✅ Loaded .env file" "$GREEN"
+elif [[ -f .env.production ]]; then
+    log "⚠️  Using .env.production (copy to .env for customization)" "$YELLOW"
+    set -a
+    source .env.production
+    set +a
+fi
+
 # Required environment variables
 REQUIRED_VARS=(
     "NODE_ENV"
