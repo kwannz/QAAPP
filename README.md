@@ -28,7 +28,7 @@ QA App是一个创新的Web3金融平台，将传统固定收益产品与区块�
 - **区块链**: Solidity + Hardhat 2.22.15 + OpenZeppelin 5.2.0
 - **Web3集成**: wagmi 2.16.4 + viem 2.34.0 + RainbowKit 2.2.0
 - **开发工具**: pnpm 10.15.0 + Turbo + ESLint 9.34.0 + Playwright 1.55.0
-- **部署**: Docker + nginx + PM2
+- **部署**: nginx + PM2
 
 ### 项目结构
 ```
@@ -50,7 +50,6 @@ qa-app/
 ### 环境要求
 - Node.js >= 18.17.0
 - pnpm >= 10.0.0
-- Docker & Docker Compose
 - PostgreSQL >= 14
 - Redis >= 6
 
@@ -78,10 +77,7 @@ vim .env
 
 4. **启动开发环境**
 ```bash
-# 启动所有服务(数据库、Redis、Hardhat、API、Web)
-docker-compose up -d
-
-# 或者手动启动
+# 启动开发服务
 pnpm run dev
 ```
 
@@ -96,10 +92,7 @@ pnpm run db:seed
 
 6. **访问应用**
 - 🌐 前端应用: http://localhost:3000
-- 🔌 API文档: http://localhost:3001/api/docs  
-- 🗄️ 数据库管理: http://localhost:8080 (Adminer)
-- 🔴 Redis管理: http://localhost:8081
-- 📧 邮件测试: http://localhost:8025 (MailHog)
+- 🔌 API文档: http://localhost:3001/api/docs
 
 ## 🛠️ 开发指南
 

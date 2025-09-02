@@ -46,7 +46,7 @@ ON CONFLICT (id) DO NOTHING;
 -- 创建审计日志示例
 INSERT INTO audit_logs (id, actor_id, actor_type, action, resource_type, resource_id, ip_address, user_agent, metadata, created_at)
 VALUES 
-  ('audit_001', 'clm123admin001', 'ADMIN', 'SYSTEM_INIT', 'SYSTEM', 'qa_app_dev', '127.0.0.1', 'Docker/Init', '{"action": "database_initialized", "version": "1.0.0"}', 'now())
+  ('audit_001', 'clm123admin001', 'ADMIN', 'SYSTEM_INIT', 'SYSTEM', 'qa_app_dev', '127.0.0.1', 'System/Init', '{"action": "database_initialized", "version": "1.0.0"}', 'now())
 ON CONFLICT (id) DO NOTHING;
 
 -- 输出初始化完成信息

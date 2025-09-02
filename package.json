@@ -21,9 +21,7 @@
     "start": "npm run start:prod",
     "start:dev": "turbo run dev",
     "start:prod": "node scripts/start-production.js",
-    "start:docker": "docker-compose up -d",
     "stop": "node scripts/stop-system.js",
-    "stop:docker": "docker-compose down",
     "restart": "npm run stop && npm run start",
     "status": "node scripts/system-status.js",
     "lint": "turbo run lint",
@@ -41,7 +39,19 @@
     "clean:logs": "rm -rf logs/*.log logs/*.pid",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "health": "curl http://localhost:3001/health && curl http://localhost:3002",
-    "logs": "tail -f logs/api.log logs/web.log"
+    "logs": "tail -f logs/api.log logs/web.log",
+    "deploy:vps": "pnpm install --frozen-lockfile && pnpm run build:deps && pnpm run build:db:prod && pnpm run build:apps && pnpm start",
+    "setup:vps": "chmod +x scripts/setup-vps.sh && ./scripts/setup-vps.sh",
+    "deploy:vps": "chmod +x scripts/vps-deploy.sh && ./scripts/vps-deploy.sh",
+    "validate:vps": "chmod +x scripts/validate-deployment.sh && ./scripts/validate-deployment.sh",
+    "validate:env": "chmod +x scripts/validate-env.sh && ./scripts/validate-env.sh",
+    "db:migrate:prod": "chmod +x scripts/migrate-db.sh && ./scripts/migrate-db.sh",
+    "db:backup": "chmod +x scripts/backup-db.sh && ./scripts/backup-db.sh",
+    "start:vps": "pnpm start",
+    "build:db:prod": "pnpm --filter=@qa-app/database db:generate && pnpm --filter=@qa-app/database db:migrate:deploy",
+    "pm2:start": "pm2 start ecosystem.config.js --env production && pm2 save",
+    "pm2:stop": "pm2 stop ecosystem.config.js || true && pm2 delete ecosystem.config.js || true",
+    "pm2:logs": "pm2 logs"
   },
   "dependencies": {
     "pm2": "^5.4.2"

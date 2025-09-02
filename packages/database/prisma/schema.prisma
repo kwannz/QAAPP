@@ -6,30 +6,84 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// SQLite不支持enum，使用String类型代替
-// 用户角色: USER, AGENT, ADMIN
-// KYC状态: PENDING, APPROVED, REJECTED, EXPIRED
-// 订单状态: PENDING, SUCCESS, FAILED, CANCELED
-// 持仓状态: ACTIVE, REDEEMING, CLOSED, DEFAULTED
-// 佣金类型: REFERRAL, AGENT
-// 佣金状态: PENDING, READY, PAID, FAILED
-// 提现状态: PENDING, REVIEWING, APPROVED, REJECTED, PROCESSING, COMPLETED, FAILED, CANCELED
-// 提现类型: EARNINGS, PRINCIPAL, COMMISSION
+// PostgreSQL枚举定义
+enum UserRole {
+  USER
+  AGENT
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum OrderStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+enum PositionStatus {
+  ACTIVE
+  REDEEMING
+  CLOSED
+  DEFAULTED
+}
+
+enum CommissionType {
+  REFERRAL
+  AGENT
+}
+
+enum CommissionStatus {
+  PENDING
+  READY
+  PAID
+  FAILED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  REJECTED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+enum WithdrawalType {
+  EARNINGS
+  PRINCIPAL
+  COMMISSION
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
 
 // 用户表
 model User {
   id              String    @id @default(cuid())
   email           String?   @unique
   passwordHash    String?   @map("password_hash")
-  role            String    @default("USER")
+  role            UserRole  @default(USER)
   referralCode    String    @unique @map("referral_code")
   referredById    String?   @map("referred_by_id")
   agentId         String?   @map("agent_id")
-  kycStatus       String    @default("PENDING") @map("kyc_status")
+  kycStatus       KycStatus @default(PENDING) @map("kyc_status")
   kycData         Json?     @map("kyc_data")
   isActive        Boolean   @default(true) @map("is_active")
   lastLoginAt     DateTime? @map("last_login_at")
@@ -117,7 +171,7 @@ model Order {
   usdtAmount    Decimal     @map("usdt_amount")
   platformFee   Decimal     @default(0) @map("platform_fee")
   txHash        String?     @map("tx_hash")
-  status        String      @default("PENDING")
+  status        OrderStatus @default(PENDING)
   referrerId    String?     @map("referrer_id")
   agentId       String?     @map("agent_id")
   failureReason String?     @map("failure_reason")
@@ -154,7 +208,7 @@ model Position {
   nextPayoutAt   DateTime?      @map("next_payout_at")
   nftTokenId     Int?           @map("nft_token_id")
   nftTokenUri    String?        @map("nft_token_uri")
-  status         String         @default("ACTIVE")
+  status         PositionStatus @default(ACTIVE)
   metadata       Json?          // 持仓相关元数据
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
@@ -212,8 +266,8 @@ model Commission {
   basisAmount       Decimal          @map("basis_amount") // 计算基数
   rateBps           Int              @map("rate_bps") // 佣金比例(基点)
   amount            Decimal         
-  commissionType    String           @map("commission_type")
-  status            String           @default("PENDING")
+  commissionType    CommissionType   @map("commission_type")
+  status            CommissionStatus @default(PENDING)
   settledAt         DateTime?        @map("settled_at")
   settlementTxHash  String?          @map("settlement_tx_hash")
   batchId           String?          @map("batch_id")
@@ -275,8 +329,8 @@ model Withdrawal {
   id                String           @id @default(cuid())
   userId            String           @map("user_id")
   amount            Decimal         
-  withdrawalType    String           @map("withdrawal_type")
-  status            String           @default("PENDING")
+  withdrawalType    WithdrawalType   @map("withdrawal_type")
+  status            WithdrawalStatus @default(PENDING)
   walletAddress     String           @map("wallet_address")
   chainId           Int              @map("chain_id")
   platformFee       Decimal          @default(0) @map("platform_fee")
@@ -288,7 +342,7 @@ model Withdrawal {
   
   // 风险评估字段
   riskScore         Int              @default(0) @map("risk_score") // 0-100风险评分
-  riskLevel         String           @default("LOW") @map("risk_level") // LOW, MEDIUM, HIGH, CRITICAL
+  riskLevel         RiskLevel        @default(LOW) @map("risk_level")
   riskFactors       Json?            @map("risk_factors") // 风险因素详情
   autoApproved      Boolean          @default(false) @map("auto_approved")
   
