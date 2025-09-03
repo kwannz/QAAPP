@@ -5,15 +5,13 @@ import { YieldDistributionService } from './yield-distribution.service';
 import { PayoutsController } from './payouts.controller';
 import { YieldDistributionController } from './yield-distribution.controller';
 import { DatabaseModule } from '../database/database.module';
-import { MockModule } from '../mock/mock.module';
 import { PositionsModule } from '../positions/positions.module';
 import { BlockchainModule } from '../blockchain/blockchain.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    // DatabaseModule, // 暂时禁用数据库模块
-    MockModule,
+    DatabaseModule,
     PositionsModule,
     BlockchainModule, // 启用区块链模块
   ],

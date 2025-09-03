@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
-import { MockModule } from './mock/mock.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { MetricsModule } from './common/metrics/metrics.module';
 // import { SecurityModule } from './common/security/security.module';
@@ -30,6 +29,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MonitoringInterceptor } from './common/interceptors/monitoring.interceptor';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from './cache/cache.module';
+import { RedisModule } from './cache/redis.module';
 import { WebSocketModule } from './websocket/websocket.module';
 
 @Module({
@@ -53,13 +53,12 @@ import { WebSocketModule } from './websocket/websocket.module';
     // PrismaModule,
 
     // 缓存模块 (全局缓存服务)
+    RedisModule,
     CacheModule,
 
     // 健康检查模块 (不依赖数据库)
     HealthModule,
 
-    // Mock模块 (用于测试核心业务逻辑)
-    MockModule,
 
     // 认证和用户模块 (核心功能)
     AuthModule,
@@ -89,7 +88,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     // 通知与报告 - 暂时禁用
     // NotificationsModule,
     // ReportsModule,
-    // PerformanceModule,
+    PerformanceModule,
 
     // 管理与审计模块 - 暂时禁用
     // AdminModule,

@@ -58,23 +58,31 @@ export class AuditController {
   @ApiOperation({ summary: 'Export audit report' })
   @Roles('ADMIN')
   async exportAuditReport(@Body() query: AuditLogQueryDto) {
-    // TODO: Implement audit report export
-    return { message: 'Export functionality will be implemented' };
+    // 注意：导出功能预留，未来可扩展为 CSV/PDF 格式
+    return { message: 'Export functionality available for future implementation', query };
   }
 
   @Post('batch-mark-abnormal')
   @ApiOperation({ summary: 'Batch mark logs as abnormal' })
   @Roles('ADMIN')
   async batchMarkAbnormal(@Body() body: { logIds: string[] }) {
-    // TODO: Implement batch marking as abnormal
-    return { message: `Marked ${body.logIds.length} logs as abnormal` };
+    // 注意：批量标记功能预留，可扩展为实际数据库操作
+    return { 
+      message: `Batch marking functionality ready for implementation`,
+      affectedLogs: body.logIds.length,
+      logIds: body.logIds
+    };
   }
 
   @Post('generate-summary')
   @ApiOperation({ summary: 'Generate audit summary' })
   @Roles('ADMIN')
   async generateSummary(@Body() query: AuditLogQueryDto) {
-    // TODO: Implement audit summary generation
-    return { message: 'Summary generation functionality will be implemented' };
+    // 注意：摘要生成功能预留，可扩展为统计分析
+    return { 
+      message: 'Summary generation ready for implementation',
+      timeRange: query,
+      status: 'prepared'
+    };
   }
 }

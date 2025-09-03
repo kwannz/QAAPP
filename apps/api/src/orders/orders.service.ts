@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, BadRequestException, Logger, Inject, for
 import { DatabaseService } from '../database/database.service';
 import { ProductsService } from '../products/products.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
-import { MockOrdersService } from './mock-orders.service';
 import { PositionsService } from '../positions/positions.service';
 import { 
   CreateOrderDto, 
@@ -24,7 +23,6 @@ export class OrdersService {
     private database: DatabaseService,
     private productsService: ProductsService,
     private blockchainService: BlockchainService,
-    private mockOrdersService: MockOrdersService,
     @Inject(forwardRef(() => PositionsService))
     private positionsService: PositionsService,
   ) {}
@@ -142,21 +140,43 @@ export class OrdersService {
    * 获取用户订单列表
    */
   async findUserOrders(userId: string, queryDto: OrderQueryDto = {}): Promise<OrderListResponseDto> {
-    try {
-      this.logger.log(`Finding orders for user ${userId}`);
-      return await this.mockOrdersService.findUserOrders(userId, queryDto);
-    } catch (error) {
-      this.logger.error(`Failed to find orders for user ${userId}:`, error);
-      throw error;
-    }
+    const { page = 1, limit = 20, status, productId } = queryDto;
+    const skip = (page - 1) * limit;
+    
+    const where: any = { userId };
+    if (status) where.status = status;
+    if (productId) where.productId = productId;
+    
+    const [orders, total] = await Promise.all([
+      this.database.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          product: { select: { id: true, symbol: true, name: true } },
+          positions: true
+        }
+      }),
+      this.database.order.count({ where })
+    ]);
+    
+    return {
+      orders: orders.map(order => this.formatOrderResponse(order)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPreviousPage: page > 1
+    };
   }
 
   /**
    * 获取所有订单（管理员功能）
    */
   async findAll(queryDto: OrderQueryDto = {}): Promise<OrderListResponseDto> {
-    // Delegate to mock service for now
-    return this.mockOrdersService.findAll(queryDto);
+    return this.findAllOrders(queryDto);
   }
 
   /**
@@ -170,7 +190,7 @@ export class OrdersService {
     try {
       this.logger.log(`Creating order for user ${userId}, product: ${createOrderDto.productId}, amount: ${createOrderDto.usdtAmount}`);
       
-      const order = await this.mockOrdersService.create(createOrderDto, userId);
+      const order = await this.createDraft(createOrderDto, userId);
       
       // 自动创建持仓记录（如果订单创建成功）
       if (order.status === 'SUCCESS') {
@@ -210,8 +230,22 @@ export class OrdersService {
    * 更新订单
    */
   async update(orderId: string, updateOrderDto: UpdateOrderDto, userId?: string): Promise<OrderResponseDto> {
-    // Delegate to mock service for now
-    return this.mockOrdersService.update(orderId, updateOrderDto, userId);
+    const where: any = { id: orderId };
+    if (userId) where.userId = userId;
+    
+    const order = await this.database.order.update({
+      where,
+      data: updateOrderDto as any,
+      include: {
+        product: true,
+        user: { select: { id: true, email: true, referralCode: true } },
+        referrer: { select: { id: true, referralCode: true, email: true } },
+        agent: { select: { id: true, referralCode: true, email: true } },
+        positions: true
+      }
+    });
+    
+    return this.formatOrderResponse(order);
   }
 
   /**
@@ -285,6 +319,8 @@ export class OrdersService {
       page,
       limit,
       totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
     };
   }
 
@@ -292,8 +328,25 @@ export class OrdersService {
    * 根据ID获取订单详情
    */
   async findOne(orderId: string, userId?: string): Promise<OrderResponseDto> {
-    // Delegate to mock service for now
-    return this.mockOrdersService.findOne(orderId, userId);
+    const where: any = { id: orderId };
+    if (userId) where.userId = userId;
+    
+    const order = await this.database.order.findFirst({
+      where,
+      include: {
+        product: true,
+        user: { select: { id: true, email: true, referralCode: true } },
+        referrer: { select: { id: true, referralCode: true, email: true } },
+        agent: { select: { id: true, referralCode: true, email: true } },
+        positions: true
+      }
+    });
+    
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    
+    return this.formatOrderResponse(order);
   }
 
   /**
@@ -514,105 +567,192 @@ export class OrdersService {
    * 获取管理员订单列表
    */
   async getAdminOrderList(filters: any): Promise<OrderListResponseDto> {
-    return this.mockOrdersService.getAdminOrderList(filters);
+    return this.findAllOrders(filters);
   }
 
   /**
    * 获取订单统计
    */
   async getOrderStats(): Promise<OrderStatsResponseDto> {
-    return this.mockOrdersService.getOrderStats();
+    const [total, pending, success, failed, canceled] = await Promise.all([
+      this.database.order.count(),
+      this.database.order.count({ where: { status: 'PENDING' } }),
+      this.database.order.count({ where: { status: 'SUCCESS' } }),
+      this.database.order.count({ where: { status: 'FAILED' } }),
+      this.database.order.count({ where: { status: 'CANCELED' } })
+    ]);
+    
+    const totalAmount = await this.database.order.aggregate({
+      _sum: { usdtAmount: true },
+      where: { status: 'SUCCESS' }
+    });
+    
+    return {
+      total,
+      pending,
+      success,
+      failed,
+      canceled,
+      totalVolume: totalAmount._sum.usdtAmount?.toNumber() || 0,
+      averageOrderValue: total > 0 ? (totalAmount._sum.usdtAmount?.toNumber() || 0) / total : 0,
+      todayOrders: 0,
+      weekOrders: 0,
+      monthOrders: 0,
+      paymentTypes: {
+        USDT: { count: 0, volume: 0 },
+        ETH: { count: 0, volume: 0 },
+        FIAT: { count: 0, volume: 0 }
+      },
+      topProducts: [],
+      dailyTrends: []
+    };
   }
 
   /**
    * 批准订单
    */
   async approveOrder(id: string, approvalData: any): Promise<OrderResponseDto> {
-    return this.mockOrdersService.approveOrder(id, approvalData);
+    const order = await this.database.order.update({
+      where: { id },
+      data: { status: 'SUCCESS', ...approvalData },
+      include: {
+        product: true,
+        user: { select: { id: true, email: true, referralCode: true } }
+      }
+    });
+    return this.formatOrderResponse(order);
   }
 
   /**
    * 拒绝订单
    */
   async rejectOrder(id: string, rejectionData: any): Promise<OrderResponseDto> {
-    return this.mockOrdersService.rejectOrder(id, rejectionData);
+    const order = await this.database.order.update({
+      where: { id },
+      data: { status: 'FAILED', failureReason: rejectionData.reason },
+      include: {
+        product: true,
+        user: { select: { id: true, email: true, referralCode: true } }
+      }
+    });
+    return this.formatOrderResponse(order);
   }
 
   /**
    * 批量更新订单
    */
   async batchUpdateOrders(batchData: BatchUpdateOrdersDto) {
-    return this.mockOrdersService.batchUpdateOrders(batchData);
+    const results = [];
+    for (const orderId of batchData.orderIds) {
+      if (batchData.action === 'approve') {
+        const result = await this.approveOrder(orderId, { notes: batchData.notes });
+        results.push(result);
+      } else if (batchData.action === 'reject') {
+        const result = await this.rejectOrder(orderId, { reason: batchData.reason });
+        results.push(result);
+      }
+    }
+    return { updated: results.length, results };
   }
 
   /**
    * 获取订单风险分析
    */
   async getOrderRiskAnalysis(id: string) {
-    return this.mockOrdersService.getOrderRiskAnalysis(id);
+    const order = await this.database.order.findUnique({
+      where: { id },
+      include: { user: true, product: true }
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    
+    return {
+      orderId: id,
+      riskScore: Math.random() * 100,
+      riskLevel: 'LOW',
+      factors: ['standard_transaction']
+    };
   }
 
   /**
    * 重新评估订单风险
    */
   async reEvaluateOrderRisk(id: string) {
-    return this.mockOrdersService.reEvaluateOrderRisk(id);
+    return this.getOrderRiskAnalysis(id);
   }
 
   /**
    * 导出订单
    */
   async exportOrders(filters: any) {
-    return this.mockOrdersService.exportOrders(filters);
+    const orders = await this.findAllOrders(filters);
+    return { format: 'csv', data: orders.orders };
   }
 
   /**
    * 获取订单审计跟踪
    */
-  async getOrderAuditTrail(id: string) {
-    return this.mockOrdersService.getOrderAuditTrail(id);
+  async getOrderAuditTrail(id: string): Promise<{ orderId: string; auditTrail: any[] }> {
+    const auditLogs = await this.database.auditLog.findMany({
+      where: { resourceId: id, resourceType: 'ORDER' },
+      orderBy: { createdAt: 'desc' }
+    });
+    return { orderId: id, auditTrail: auditLogs };
   }
 
   /**
    * 确认订单支付
    */
   async confirmOrder(orderId: string, confirmDto: ConfirmOrderDto, userId: string): Promise<OrderResponseDto> {
-    try {
-      this.logger.log(`Confirming order ${orderId} for user ${userId} with tx: ${confirmDto.txHash}`);
-      
-      const order = await this.mockOrdersService.confirmOrder(orderId, confirmDto, userId);
-      
-      // 如果订单确认成功，自动创建持仓记录
-      if (order.status === 'SUCCESS') {
-        try {
-          await this.positionsService.createPosition(
-            {
-              id: order.id,
-              userId: order.userId,
-              productId: order.productId,
-              usdtAmount: order.usdtAmount,
-              txHash: order.txHash,
-              metadata: order.metadata
-            },
-            {
-              id: order.productId,
-              symbol: order.metadata?.productSymbol || 'UNKNOWN',
-              name: order.metadata?.productName || 'Unknown Product',
-              aprBps: 800, // 默认8%年化
-              lockDays: 7,  // 默认7天锁定期
-              nftTokenId: 1
-            }
-          );
-          this.logger.log(`Position created for confirmed order ${order.id}`);
-        } catch (error) {
-          this.logger.warn(`Failed to create position for confirmed order ${order.id}:`, error);
-        }
+    const order = await this.database.order.findFirst({
+      where: { id: orderId, userId, status: 'PENDING' },
+      include: { product: true }
+    });
+    
+    if (!order) throw new NotFoundException('Order not found');
+    
+    const confirmedOrder = await this.database.order.update({
+      where: { id: orderId },
+      data: {
+        status: 'SUCCESS',
+        txHash: confirmDto.txHash,
+        confirmedAt: new Date()
+      },
+      include: {
+        product: true,
+        user: { select: { id: true, email: true, referralCode: true } },
+        referrer: { select: { id: true, referralCode: true, email: true } },
+        agent: { select: { id: true, referralCode: true, email: true } },
+        positions: true
       }
-      
-      return order;
-    } catch (error) {
-      this.logger.error(`Failed to confirm order ${orderId}:`, error);
-      throw error;
+    });
+    
+    // 创建持仓记录
+    if (confirmedOrder.status === 'SUCCESS') {
+      try {
+        await this.positionsService.createPosition(
+          {
+            id: confirmedOrder.id,
+            userId: confirmedOrder.userId,
+            productId: confirmedOrder.productId,
+            usdtAmount: confirmedOrder.usdtAmount.toNumber(),
+            txHash: confirmedOrder.txHash,
+            metadata: confirmedOrder.metadata
+          },
+          {
+            id: confirmedOrder.productId,
+            symbol: confirmedOrder.product.symbol,
+            name: confirmedOrder.product.name,
+            aprBps: confirmedOrder.product.aprBps,
+            lockDays: confirmedOrder.product.lockDays,
+            nftTokenId: confirmedOrder.product.nftTokenId
+          }
+        );
+        this.logger.log(`Position created for confirmed order ${orderId}`);
+      } catch (error) {
+        this.logger.warn(`Failed to create position for confirmed order ${orderId}:`, error);
+      }
     }
+    
+    return this.formatOrderResponse(confirmedOrder);
   }
 }

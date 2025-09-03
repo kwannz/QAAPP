@@ -453,7 +453,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('admin/:id/audit-trail')
-  async getOrderAuditTrail(@Param('id', ParseUUIDPipe) id: string) {
+  async getOrderAuditTrail(@Param('id', ParseUUIDPipe) id: string): Promise<{ orderId: string; auditTrail: any[] }> {
     return this.ordersService.getOrderAuditTrail(id);
   }
 }

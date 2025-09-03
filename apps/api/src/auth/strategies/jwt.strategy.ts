@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { MockAuthService } from '../../mock/mock-auth.service';
+import { AuthService } from '../auth.service';
 
 export interface JwtPayload {
   sub: string; // user id
@@ -19,7 +19,7 @@ export interface JwtPayload {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private mockAuthService: MockAuthService,
+    private authService: AuthService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload): Promise<any> {
     // 验证用户是否存在且活跃
-    const user = await this.mockAuthService.getUserById(payload.sub);
+    const user = await this.authService.getUserById(payload.sub);
     
     if (!user || !user.isActive) {
       throw new UnauthorizedException('User not found or inactive');

@@ -35,4 +35,14 @@ export class PerformanceController {
   generatePerformanceReport(@Query('period') period: string = '24h') {
     return this.performanceService.generatePerformanceReport(period);
   }
+
+  @ApiOperation({ summary: 'Get real-time performance metrics' })
+  @ApiResponse({ status: 200, description: 'Real-time metrics retrieved successfully' })
+  @ApiBearerAuth()
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @Get('realtime')
+  getRealTimeMetrics() {
+    return this.performanceService.getRealTimeMetrics();
+  }
 }

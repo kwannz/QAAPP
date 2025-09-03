@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { MockProductsService } from './mock-products.service';
 import { CreateProductDto, UpdateProductDto, ProductQueryDto, ProductListResponseDto, ProductResponseDto } from './dto/products.dto';
 import { Decimal, Product, Prisma } from '@qa-app/database';
 
@@ -9,16 +8,14 @@ export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
   constructor(
-    private database: DatabaseService,
-    private mockProductsService: MockProductsService
+    private database: DatabaseService
   ) {}
 
   /**
    * 获取所有活跃产品
    */
   async findAll(queryDto: ProductQueryDto = {}): Promise<ProductListResponseDto> {
-    // Delegate to mock service for now
-    return this.mockProductsService.findAll(queryDto);
+    return this.findAllFromDatabase(queryDto);
   }
 
   /**
@@ -150,8 +147,7 @@ export class ProductsService {
    * 根据ID获取产品详情
    */
   async findOne(id: string): Promise<ProductResponseDto> {
-    // Delegate to mock service for now
-    return this.mockProductsService.findOne(id);
+    return this.findOneFromDatabase(id);
   }
 
   /**
@@ -258,8 +254,7 @@ export class ProductsService {
    * 创建新产品（管理员功能）
    */
   async create(createProductDto: CreateProductDto, adminId: string): Promise<ProductResponseDto> {
-    // Delegate to mock service for now
-    return this.mockProductsService.create(createProductDto, adminId);
+    return this.createInDatabase(createProductDto, adminId);
   }
 
   /**
@@ -327,8 +322,7 @@ export class ProductsService {
    * 更新产品信息（管理员功能）
    */
   async update(id: string, updateProductDto: UpdateProductDto, adminId: string): Promise<ProductResponseDto> {
-    // Delegate to mock service for now
-    return this.mockProductsService.update(id, updateProductDto, adminId);
+    return this.updateInDatabase(id, updateProductDto, adminId);
   }
 
   /**
@@ -433,8 +427,8 @@ export class ProductsService {
    * 删除产品（软删除，设置为不活跃）
    */
   async remove(id: string, adminId: string): Promise<{ message: string; productId: string }> {
-    // Delegate to mock service for now
-    return this.mockProductsService.remove(id, adminId);
+    const result = await this.removeFromDatabase(id, adminId);
+    return { message: 'Product deactivated successfully', productId: result.id };
   }
 
   /**
@@ -486,8 +480,8 @@ export class ProductsService {
    * 获取产品统计信息
    */
   async getStatistics(id: string) {
-    // Delegate to mock service for now
-    return this.mockProductsService.getStatistics(id);
+    const product = await this.findOneFromDatabase(id);
+    return product.stats;
   }
 
   /**
@@ -499,8 +493,8 @@ export class ProductsService {
     maxAmount?: number;
     remainingCapacity?: number;
   }> {
-    // Delegate to mock service for now
-    return this.mockProductsService.checkAvailability(productId, amount);
+    const result = await this.checkAvailabilityFromDatabase(productId, amount);
+    return result;
   }
 
   /**

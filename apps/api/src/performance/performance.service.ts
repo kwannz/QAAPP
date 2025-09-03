@@ -1,10 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { MultiLayerCacheService } from '../cache/multi-layer-cache.service';
+import { RedisService } from '../cache/redis.service';
 
 @Injectable()
 export class PerformanceService {
+  private readonly logger = new Logger(PerformanceService.name);
   private performanceMetrics = new Map<string, any>();
   private responseTimes: number[] = [];
   private requestCounts = new Map<string, number>();
+  private dbQueryTimes: number[] = [];
+
+  constructor(
+    private readonly cacheService: MultiLayerCacheService,
+    private readonly redisService: RedisService
+  ) {}
 
   startTimer(requestId: string): void {
     this.performanceMetrics.set(requestId, {
@@ -32,9 +41,65 @@ export class PerformanceService {
     this.performanceMetrics.delete(requestId);
   }
 
-  getPerformanceStats(): any {
+  // Database performance tracking
+  trackDbQuery(queryTime: number): void {
+    this.dbQueryTimes.push(queryTime);
+    
+    // Keep only last 1000 query times
+    if (this.dbQueryTimes.length > 1000) {
+      this.dbQueryTimes.shift();
+    }
+
+    // Log slow queries
+    if (queryTime > 1000) {
+      this.logger.warn(`🐌 Slow database query detected: ${queryTime}ms`);
+    }
+  }
+
+  // Real-time performance metrics
+  async getRealTimeMetrics(): Promise<any> {
+    const stats = await this.getPerformanceStats();
+    
+    return {
+      timestamp: Date.now(),
+      performance: {
+        responseTime: {
+          current: this.responseTimes[this.responseTimes.length - 1] || 0,
+          average: stats.responseTimes.average,
+          p95: stats.responseTimes.p95
+        },
+        memory: {
+          heapUsed: stats.memory.heapUsed,
+          heapTotal: stats.memory.heapTotal,
+          usagePercent: Math.round((stats.memory.heapUsed / stats.memory.heapTotal) * 100)
+        },
+        cache: {
+          hitRate: stats.cache.stats[0]?.hitRate || 0,
+          health: stats.cache.health
+        },
+        database: {
+          averageQueryTime: stats.database.queryTimes.average,
+          slowQueries: this.dbQueryTimes.filter(time => time > 1000).length
+        }
+      }
+    };
+  }
+
+  async getPerformanceStats(): Promise<any> {
     const memUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
+    
+    // 获取缓存统计
+    const cacheStats = await this.cacheService.getStats();
+    const cacheHealthCheck = await this.cacheService.healthCheck();
+    
+    // 获取 Redis 内存信息
+    let redisMemory = { used: 0, peak: 0, fragmentation: 1 };
+    try {
+      redisMemory = await this.redisService.getMemoryInfo();
+    } catch (error) {
+      this.logger.warn('Could not retrieve Redis memory info:', error);
+    }
     
     return {
       memory: {
@@ -42,7 +107,12 @@ export class PerformanceService {
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
         external: Math.round(memUsage.external / 1024 / 1024), // MB
-        arrayBuffers: Math.round(memUsage.arrayBuffers / 1024 / 1024) // MB
+        arrayBuffers: Math.round(memUsage.arrayBuffers / 1024 / 1024), // MB
+        redis: {
+          used: Math.round(redisMemory.used / 1024 / 1024), // MB
+          peak: Math.round(redisMemory.peak / 1024 / 1024), // MB
+          fragmentation: redisMemory.fragmentation
+        }
       },
       cpu: {
         user: cpuUsage.user,
@@ -53,8 +123,24 @@ export class PerformanceService {
         p50: this.calculatePercentile(this.responseTimes, 50),
         p95: this.calculatePercentile(this.responseTimes, 95),
         p99: this.calculatePercentile(this.responseTimes, 99),
-        min: Math.min(...this.responseTimes),
-        max: Math.max(...this.responseTimes)
+        min: this.responseTimes.length > 0 ? Math.min(...this.responseTimes) : 0,
+        max: this.responseTimes.length > 0 ? Math.max(...this.responseTimes) : 0
+      },
+      database: {
+        queryTimes: {
+          average: this.calculateAverage(this.dbQueryTimes),
+          p95: this.calculatePercentile(this.dbQueryTimes, 95),
+          count: this.dbQueryTimes.length
+        }
+      },
+      cache: {
+        health: cacheHealthCheck,
+        stats: Array.from(cacheStats.entries()).map(([layer, stats]) => ({
+          layer,
+          hitRate: Math.round(stats.hitRate * 100), // Convert to percentage
+          missRate: Math.round(stats.missRate * 100),
+          memoryUsage: Math.round(stats.memoryUsage / 1024 / 1024) // MB
+        }))
       },
       requests: {
         total: Array.from(this.requestCounts.values()).reduce((sum, count) => sum + count, 0),
@@ -77,8 +163,8 @@ export class PerformanceService {
     return sorted[index] || 0;
   }
 
-  getHealthCheck(): any {
-    const stats = this.getPerformanceStats();
+  async getHealthCheck(): Promise<any> {
+    const stats = await this.getPerformanceStats();
     const avgResponseTime = stats.responseTimes.average;
     const memoryUsage = (stats.memory.heapUsed / stats.memory.heapTotal) * 100;
 
@@ -117,8 +203,8 @@ export class PerformanceService {
     return 'healthy';
   }
 
-  generatePerformanceReport(period: string): any {
-    const stats = this.getPerformanceStats();
+  async generatePerformanceReport(period: string): Promise<any> {
+    const stats = await this.getPerformanceStats();
     
     return {
       period,
@@ -127,7 +213,7 @@ export class PerformanceService {
         averageResponseTime: stats.responseTimes.average,
         uptime: stats.uptime,
         memoryUsage: stats.memory.heapUsed,
-        healthStatus: this.getHealthCheck().status
+        healthStatus: (await this.getHealthCheck()).status
       },
       details: {
         responseTimes: stats.responseTimes,

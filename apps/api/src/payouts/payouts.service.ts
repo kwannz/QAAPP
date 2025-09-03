@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { MockDatabaseService } from '../database/mock-database.service';
+import { DatabaseService } from '../database/database.service';
 
 export interface MockPosition {
   id: string;
@@ -37,7 +37,7 @@ export interface MockPayout {
 export class PayoutsService {
   private readonly logger = new Logger(PayoutsService.name);
 
-  constructor(private mockDatabase: MockDatabaseService) {}
+  constructor(private database: DatabaseService) {}
 
   /**
    * 计算每日收益
@@ -72,7 +72,7 @@ export class PayoutsService {
         }
 
         // 获取产品信息计算收益
-        const product = await this.mockDatabase.findProduct(position.productId);
+        const product = await this.database.product.findUnique({ where: { id: position.productId } });
         if (!product) {
           this.logger.warn(`Product not found for position ${position.id}`);
           continue;
