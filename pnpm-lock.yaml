@@ -226,6 +226,9 @@ importers:
       '@types/bcrypt':
         specifier: ^5.0.2
         version: 5.0.2
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.3
@@ -327,7 +330,7 @@ importers:
         version: 5.85.5(@tanstack/react-query@5.85.5(react@19.1.1))(react@19.1.1)
       axios:
         specifier: ^1.7.9
-        version: 1.11.0
+        version: 1.11.0(debug@4.4.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -436,7 +439,7 @@ importers:
         version: 5.4.0(@openzeppelin/contracts@5.4.0)
       axios:
         specifier: ^1.11.0
-        version: 1.11.0
+        version: 1.11.0(debug@4.4.1)
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
@@ -16596,14 +16599,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  axios@1.11.0:
-    dependencies:
-      follow-redirects: 1.15.11(debug@4.3.7)
-      form-data: 4.0.4
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
   axios@1.11.0(debug@4.4.1):
     dependencies:
       follow-redirects: 1.15.11(debug@4.4.1)
@@ -18360,7 +18355,7 @@ snapshots:
   eth-gas-reporter@0.2.27(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
       '@solidity-parser/parser': 0.14.5
-      axios: 1.11.0
+      axios: 1.11.0(debug@4.4.1)
       cli-table3: 0.5.1
       colors: 1.4.0
       ethereum-cryptography: 1.2.0

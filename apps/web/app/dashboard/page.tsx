@@ -2,14 +2,74 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { PlusCircle, Wallet, TrendingUp, Gift, MoreHorizontal } from 'lucide-react'
+import { 
+  PlusCircle, 
+  Wallet, 
+  TrendingUp, 
+  Gift, 
+  MoreHorizontal,
+  User,
+  Mail,
+  Phone,
+  Shield,
+  Key,
+  Bell,
+  Globe,
+  CreditCard,
+  FileText,
+  Camera,
+  Edit,
+  Save,
+  X,
+  Check,
+  AlertTriangle,
+  Lock,
+  Unlock,
+  Eye,
+  EyeOff,
+  Upload,
+  Download,
+  Trash2,
+  RefreshCw,
+  Settings,
+  MapPin,
+  Calendar,
+  Briefcase,
+  Link as LinkIcon,
+  Smartphone,
+  Laptop,
+  Monitor,
+  Copy,
+  ExternalLink,
+  AlertCircle,
+  CheckCircle,
+  Plus,
+  BellRing,
+  Search,
+  Archive,
+  Star,
+  Clock,
+  Activity,
+  MessageSquare,
+  Info,
+  Volume2,
+  VolumeX
+} from 'lucide-react'
 import Link from 'next/link'
+import { formatUnits } from 'viem'
+import { toast } from 'react-hot-toast'
 
-import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui'
 import { Header } from '../../components/layout/Header'
 import { useAuthStore } from '../../lib/auth-context'
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute'
 import { UserNFTs } from '../../components/dashboard/UserNFTs'
+import { TabContainer } from '../../components/common/TabContainer'
+import { useFeatureFlag } from '../../lib/feature-flags'
+import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../lib/hooks/use-safe-wagmi'
+import { useUSDT } from '../../lib/hooks/use-contracts'
+import { getContractAddresses } from '../../lib/contracts/addresses'
+import { notificationApi } from '../../lib/api-client'
 
 // 模拟数据
 const mockStats = {

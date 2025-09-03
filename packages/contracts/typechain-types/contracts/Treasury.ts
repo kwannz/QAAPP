@@ -56,6 +56,7 @@ export interface TreasuryInterface extends Interface {
       | "DEFAULT_ADMIN_ROLE"
       | "OPERATOR_ROLE"
       | "PAUSER_ROLE"
+      | "UPGRADE_INTERFACE_VERSION"
       | "WITHDRAWER_ROLE"
       | "batchDeposit"
       | "claimPeriodReward"
@@ -89,6 +90,7 @@ export interface TreasuryInterface extends Interface {
       | "periodRewards"
       | "priceValidityPeriod"
       | "products"
+      | "proxiableUUID"
       | "purchaseProduct"
       | "purchaseProductWithETH"
       | "purchaseProductWithReferral"
@@ -114,6 +116,7 @@ export interface TreasuryInterface extends Interface {
       | "updateDailyWithdrawalLimit"
       | "updateETHPrice"
       | "updateProduct"
+      | "upgradeToAndCall"
       | "usdtToken"
       | "userDeposits"
       | "userEthDeposits"
@@ -145,6 +148,7 @@ export interface TreasuryInterface extends Interface {
       | "RoleGranted"
       | "RoleRevoked"
       | "Unpaused"
+      | "Upgraded"
       | "Withdrawal"
       | "Withdrawn"
   ): EventFragment;
@@ -159,6 +163,10 @@ export interface TreasuryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -288,6 +296,10 @@ export interface TreasuryInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "purchaseProduct",
     values: [BigNumberish, BigNumberish]
   ): string;
@@ -389,6 +401,10 @@ export interface TreasuryInterface extends Interface {
       boolean
     ]
   ): string;
+  encodeFunctionData(
+    functionFragment: "upgradeToAndCall",
+    values: [AddressLike, BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "usdtToken", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "userDeposits",
@@ -429,6 +445,10 @@ export interface TreasuryInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -540,6 +560,10 @@ export interface TreasuryInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "products", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "purchaseProduct",
     data: BytesLike
   ): Result;
@@ -625,6 +649,10 @@ export interface TreasuryInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "updateProduct",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeToAndCall",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "usdtToken", data: BytesLike): Result;
@@ -1066,6 +1094,18 @@ export namespace UnpausedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UpgradedEvent {
+  export type InputTuple = [implementation: AddressLike];
+  export type OutputTuple = [implementation: string];
+  export interface OutputObject {
+    implementation: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace WithdrawalEvent {
   export type InputTuple = [
     to: AddressLike,
@@ -1170,6 +1210,8 @@ export interface Treasury extends BaseContract {
   OPERATOR_ROLE: TypedContractMethod<[], [string], "view">;
 
   PAUSER_ROLE: TypedContractMethod<[], [string], "view">;
+
+  UPGRADE_INTERFACE_VERSION: TypedContractMethod<[], [string], "view">;
 
   WITHDRAWER_ROLE: TypedContractMethod<[], [string], "view">;
 
@@ -1314,6 +1356,8 @@ export interface Treasury extends BaseContract {
     "view"
   >;
 
+  proxiableUUID: TypedContractMethod<[], [string], "view">;
+
   purchaseProduct: TypedContractMethod<
     [productType: BigNumberish, amount: BigNumberish],
     [void],
@@ -1428,6 +1472,12 @@ export interface Treasury extends BaseContract {
     "nonpayable"
   >;
 
+  upgradeToAndCall: TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
+
   usdtToken: TypedContractMethod<[], [string], "view">;
 
   userDeposits: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
@@ -1472,6 +1522,9 @@ export interface Treasury extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "PAUSER_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "UPGRADE_INTERFACE_VERSION"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "WITHDRAWER_ROLE"
@@ -1638,6 +1691,9 @@ export interface Treasury extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "proxiableUUID"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "purchaseProduct"
   ): TypedContractMethod<
     [productType: BigNumberish, amount: BigNumberish],
@@ -1743,6 +1799,13 @@ export interface Treasury extends BaseContract {
     ],
     [void],
     "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "upgradeToAndCall"
+  ): TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
   >;
   getFunction(
     nameOrSignature: "usdtToken"
@@ -1913,6 +1976,13 @@ export interface Treasury extends BaseContract {
     UnpausedEvent.InputTuple,
     UnpausedEvent.OutputTuple,
     UnpausedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Upgraded"
+  ): TypedContractEvent<
+    UpgradedEvent.InputTuple,
+    UpgradedEvent.OutputTuple,
+    UpgradedEvent.OutputObject
   >;
   getEvent(
     key: "Withdrawal"
@@ -2137,6 +2207,17 @@ export interface Treasury extends BaseContract {
       UnpausedEvent.InputTuple,
       UnpausedEvent.OutputTuple,
       UnpausedEvent.OutputObject
+    >;
+
+    "Upgraded(address)": TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
+    >;
+    Upgraded: TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
     >;
 
     "Withdrawal(address,uint256,address,bytes32,uint256)": TypedContractEvent<

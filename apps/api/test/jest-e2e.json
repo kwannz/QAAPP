@@ -14,5 +14,5 @@
     "!src/main.ts"
   ],
   "coverageDirectory": "./coverage-e2e",
-  "setupFilesAfterEnv": ["<rootDir>/test/e2e-setup.ts"]
+  "setupFilesAfterEnv": ["<rootDir>/e2e-setup.ts"]
 }

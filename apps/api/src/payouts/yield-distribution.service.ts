@@ -2,8 +2,10 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PayoutsService, MockPayout } from './payouts.service';
 import { PositionsService, MockPosition } from '../positions/positions.service';
-// import { BlockchainService } from '../blockchain/blockchain.service';
-// import { DatabaseService } from '../database/database.service';
+
+// Future blockchain integration planned:
+// - BlockchainService for on-chain yield distribution
+// - DatabaseService for persistent task storage
 
 export interface YieldDistributionTask {
   id: string;

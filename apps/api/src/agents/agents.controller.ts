@@ -12,7 +12,6 @@ import {
   HttpStatus
 } from '@nestjs/common';
 import { AgentsService } from './agents.service';
-import { Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -20,7 +19,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @ApiTags('agents')
 @Controller('agents')
 export class AgentsController {
-  constructor(@Inject('AgentsService') private readonly agentsService: any) {}
+  constructor(private readonly agentsService: AgentsService) {}
 
   // ==================== 用户端点 ====================
 

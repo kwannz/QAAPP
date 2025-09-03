@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @title QACard
@@ -30,7 +31,8 @@ contract QACard is
     AccessControlUpgradeable,
     PausableUpgradeable,
     ERC1155BurnableUpgradeable,
-    ERC1155SupplyUpgradeable
+    ERC1155SupplyUpgradeable,
+    UUPSUpgradeable
 {
     // 角色定义
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -538,4 +540,13 @@ contract QACard is
     {
         return super.supportsInterface(interfaceId);
     }
+
+    /**
+     * @dev UUPS 升级授权检查
+     */
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        override
+    {}
 }

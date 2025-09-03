@@ -121,6 +121,41 @@ jest.mock('bcrypt', () => ({
   genSalt: jest.fn().mockResolvedValue('salt'),
 }));
 
+// Mock LRU Cache for performance optimization
+jest.mock('lru-cache', () => {
+  return jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    set: jest.fn(),
+    delete: jest.fn(),
+    clear: jest.fn(),
+    has: jest.fn().mockReturnValue(false),
+  }));
+});
+
+// Mock ioredis for Redis caching
+jest.mock('ioredis', () => {
+  return jest.fn().mockImplementation(() => ({
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    del: jest.fn().mockResolvedValue(1),
+    exists: jest.fn().mockResolvedValue(0),
+    expire: jest.fn().mockResolvedValue(1),
+    flushall: jest.fn().mockResolvedValue('OK'),
+    pipeline: jest.fn().mockReturnValue({
+      get: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([]),
+    }),
+    multi: jest.fn().mockReturnValue({
+      get: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([]),
+    }),
+    disconnect: jest.fn().mockResolvedValue(undefined),
+    status: 'ready',
+  }));
+});
+
 // Clean up after each test
 afterEach(() => {
   jest.clearAllMocks();

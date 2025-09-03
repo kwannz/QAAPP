@@ -12,25 +12,18 @@ import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { PositionsModule } from './positions/positions.module';
 import { PayoutsModule } from './payouts/payouts.module';
-import { WithdrawalsModule } from './withdrawals/withdrawals.module';
-import { CommissionsModule } from './commissions/commissions.module';
-import { RiskModule } from './risk/risk.module';
-// import { MonitoringModule } from './monitoring/monitoring.module'; // Removed
-import { AgentsModule } from './agents/agents.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { ReportsModule } from './reports/reports.module';
-import { PerformanceModule } from './performance/performance.module';
-import { AdminModule } from './admin/admin.module';
-import { AuditModule } from './audit/audit.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
-import { LogsModule } from './logs/logs.module';
-import { AlertsModule } from './alerts/alerts.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MonitoringInterceptor } from './common/interceptors/monitoring.interceptor';
-import { PrismaModule } from './prisma/prisma.module';
+// import { PrismaModule } from './prisma/prisma.module'; // Disabled - using mock services
 import { CacheModule } from './cache/cache.module';
 import { RedisModule } from './cache/redis.module';
 import { WebSocketModule } from './websocket/websocket.module';
+
+// 新的整合模块
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { FinanceModule } from './finance/finance.module';
+import { DatabaseOptimizationModule } from './common/database/database-optimization.module';
 
 @Module({
   imports: [
@@ -75,29 +68,16 @@ import { WebSocketModule } from './websocket/websocket.module';
     // WebSocket 实时通信模块
     WebSocketModule,
 
-    // 金融模块
-    PayoutsModule,
-    // WithdrawalsModule,
-    // CommissionsModule,
-
-    // 风险管理与监控 - 暂时禁用
-    // RiskModule,
-    // MonitoringModule,
-    // AgentsModule,
-
-    // 通知与报告 - 暂时禁用
-    // NotificationsModule,
-    // ReportsModule,
-    PerformanceModule,
-
-    // 管理与审计模块 - 暂时禁用
-    // AdminModule,
-    // AuditModule,
-
     // 高级功能模块
     BlockchainModule,
-    // LogsModule,
-    // AlertsModule,
+
+    // 整合模块 (Sprint 2)
+    MonitoringModule, // 整合 logs + audit + alerts + performance
+    FinanceModule,    // 整合 payouts + withdrawals + commissions + transactions
+    DatabaseOptimizationModule, // 数据库查询优化
+    
+    // 其他保留模块
+    PayoutsModule
   ],
   controllers: [],
   providers: [

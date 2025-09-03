@@ -29,6 +29,7 @@ export interface QACardInterface extends Interface {
       | "DEFAULT_ADMIN_ROLE"
       | "MINTER_ROLE"
       | "PAUSER_ROLE"
+      | "UPGRADE_INTERFACE_VERSION"
       | "URI_SETTER_ROLE"
       | "authorizedOperators"
       | "balanceOf"
@@ -51,6 +52,7 @@ export interface QACardInterface extends Interface {
       | "owner"
       | "pause"
       | "paused"
+      | "proxiableUUID"
       | "renounceRole"
       | "revokeRole"
       | "safeBatchTransferFrom"
@@ -68,6 +70,7 @@ export interface QACardInterface extends Interface {
       | "totalSupply(uint256)"
       | "treasury"
       | "unpause"
+      | "upgradeToAndCall"
       | "uri"
       | "userTokens"
   ): FunctionFragment;
@@ -89,6 +92,7 @@ export interface QACardInterface extends Interface {
       | "URI"
       | "URIUpdated"
       | "Unpaused"
+      | "Upgraded"
   ): EventFragment;
 
   encodeFunctionData(
@@ -101,6 +105,10 @@ export interface QACardInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -195,6 +203,10 @@ export interface QACardInterface extends Interface {
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, AddressLike]
   ): string;
@@ -259,6 +271,10 @@ export interface QACardInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "upgradeToAndCall",
+    values: [AddressLike, BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "userTokens",
@@ -275,6 +291,10 @@ export interface QACardInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -323,6 +343,10 @@ export interface QACardInterface extends Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -376,6 +400,10 @@ export interface QACardInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeToAndCall",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "userTokens", data: BytesLike): Result;
 }
@@ -672,6 +700,18 @@ export namespace UnpausedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UpgradedEvent {
+  export type InputTuple = [implementation: AddressLike];
+  export type OutputTuple = [implementation: string];
+  export interface OutputObject {
+    implementation: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface QACard extends BaseContract {
   connect(runner?: ContractRunner | null): QACard;
   waitForDeployment(): Promise<this>;
@@ -720,6 +760,8 @@ export interface QACard extends BaseContract {
   MINTER_ROLE: TypedContractMethod<[], [string], "view">;
 
   PAUSER_ROLE: TypedContractMethod<[], [string], "view">;
+
+  UPGRADE_INTERFACE_VERSION: TypedContractMethod<[], [string], "view">;
 
   URI_SETTER_ROLE: TypedContractMethod<[], [string], "view">;
 
@@ -861,6 +903,8 @@ export interface QACard extends BaseContract {
 
   paused: TypedContractMethod<[], [boolean], "view">;
 
+  proxiableUUID: TypedContractMethod<[], [string], "view">;
+
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
     [void],
@@ -970,6 +1014,12 @@ export interface QACard extends BaseContract {
 
   unpause: TypedContractMethod<[], [void], "nonpayable">;
 
+  upgradeToAndCall: TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
+
   uri: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
   userTokens: TypedContractMethod<
@@ -990,6 +1040,9 @@ export interface QACard extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "PAUSER_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "UPGRADE_INTERFACE_VERSION"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "URI_SETTER_ROLE"
@@ -1150,6 +1203,9 @@ export interface QACard extends BaseContract {
     nameOrSignature: "paused"
   ): TypedContractMethod<[], [boolean], "view">;
   getFunction(
+    nameOrSignature: "proxiableUUID"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -1263,6 +1319,13 @@ export interface QACard extends BaseContract {
   getFunction(
     nameOrSignature: "unpause"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "upgradeToAndCall"
+  ): TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
   getFunction(
     nameOrSignature: "uri"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
@@ -1378,6 +1441,13 @@ export interface QACard extends BaseContract {
     UnpausedEvent.InputTuple,
     UnpausedEvent.OutputTuple,
     UnpausedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Upgraded"
+  ): TypedContractEvent<
+    UpgradedEvent.InputTuple,
+    UpgradedEvent.OutputTuple,
+    UpgradedEvent.OutputObject
   >;
 
   filters: {
@@ -1544,6 +1614,17 @@ export interface QACard extends BaseContract {
       UnpausedEvent.InputTuple,
       UnpausedEvent.OutputTuple,
       UnpausedEvent.OutputObject
+    >;
+
+    "Upgraded(address)": TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
+    >;
+    Upgraded: TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
     >;
   };
 }

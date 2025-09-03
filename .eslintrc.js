@@ -84,8 +84,8 @@ module.exports = {
     'import/no-useless-path-segments': 'error',
     'import/no-duplicates': 'error',
 
-    // 安全规则 (暂时禁用由于兼容性问题)
-    // TODO: 升级到兼容版本后重新启用
+    // Security rules disabled - eslint-plugin-security@3.0.1 incompatible with ESLint@8.57.1
+    // Consider upgrading to ESLint v9+ for security rule compatibility
 
     // Promise规则
     'promise/always-return': 'error',

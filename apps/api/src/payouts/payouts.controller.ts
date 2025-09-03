@@ -9,7 +9,8 @@ import {
   HttpStatus,
   HttpCode,
   BadRequestException,
-  NotFoundException
+  NotFoundException,
+  Logger
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -60,6 +61,8 @@ class ClaimResponseDto {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class PayoutsController {
+  private readonly logger = new Logger(PayoutsController.name);
+
   constructor(
     private payoutsService: PayoutsService,
     private positionsService: PositionsService,
@@ -124,7 +127,7 @@ export class PayoutsController {
         totalAmount,
       };
     } catch (error) {
-      console.error(`Failed to get claimable payouts for user ${userId}:`, error);
+      this.logger.error(`Failed to get claimable payouts for user ${userId}:`, error);
       throw new BadRequestException(`获取可领取收益失败: ${error.message}`);
     }
   }
@@ -206,7 +209,7 @@ export class PayoutsController {
         totalPending,
       };
     } catch (error) {
-      console.error(`Failed to get payout history for user ${userId}:`, error);
+      this.logger.error(`Failed to get payout history for user ${userId}:`, error);
       throw new BadRequestException(`获取收益历史失败: ${error.message}`);
     }
   }
@@ -265,7 +268,7 @@ export class PayoutsController {
         claimedPayouts: payoutIds,
       };
     } catch (error) {
-      console.error('Failed to claim payouts:', error);
+      this.logger.error('Failed to claim payouts:', error);
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
@@ -305,7 +308,7 @@ export class PayoutsController {
         updatedAt: payout.updatedAt.toISOString(),
       };
     } catch (error) {
-      console.error(`Failed to get payout ${payoutId}:`, error);
+      this.logger.error(`Failed to get payout ${payoutId}:`, error);
       if (error instanceof NotFoundException) {
         throw error;
       }

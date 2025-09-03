@@ -98,7 +98,7 @@ export class AgentsService {
     };
   }
 
-  async getAgentHierarchy(rootAgentId?: string) {
+  async getAgentHierarchy(_rootAgentId?: string) {
     // Mock hierarchy data
     return {
       rootAgents: [
@@ -361,7 +361,7 @@ export class AgentsService {
     };
   }
 
-  async submitAgentApplication(applicationData: any) {
+  async submitAgentApplication(_applicationData: any) {
     return {
       success: true,
       message: 'Agent application submitted successfully',

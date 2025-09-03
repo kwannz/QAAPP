@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { hash, compare } from 'bcryptjs';
+import { hash, compare } from 'bcrypt';
 
 import { DatabaseService } from '../database/database.service';
 import { WalletSignatureService } from './services/wallet-signature.service';
