@@ -4,10 +4,7 @@ import {
   Post,
   Body,
   Query,
-  Param,
   UseGuards,
-  Put,
-  Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

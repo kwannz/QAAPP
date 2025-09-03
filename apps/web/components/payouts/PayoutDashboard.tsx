@@ -77,7 +77,6 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
       setClaimableData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
-      console.error('Failed to fetch claimable payouts:', err)
     } finally {
       setLoading(false)
     }
@@ -98,7 +97,6 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
       setHistoryData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
-      console.error('Failed to fetch payout history:', err)
     } finally {
       setLoading(false)
     }

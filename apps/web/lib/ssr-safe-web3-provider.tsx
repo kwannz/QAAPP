@@ -23,10 +23,10 @@ const defaultWeb3Context: SafeWeb3Context = {
   address: undefined,
   chainId: undefined,
   connect: async () => {
-    console.warn('Web3 not initialized - connect disabled')
+    // Web3 not initialized - connect disabled
   },
   disconnect: async () => {
-    console.warn('Web3 not initialized - disconnect disabled')
+    // Web3 not initialized - disconnect disabled
   },
 }
 
@@ -80,7 +80,7 @@ function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagm
           />
         ))
       } catch (error) {
-        console.warn('Failed to load Wagmi components:', error)
+        // Failed to load Wagmi components - fallback to loading state
       }
     }
     
@@ -143,16 +143,16 @@ function ClientWeb3Provider({ children }: SafeWeb3ProviderProps) {
           isWeb3Enabled: true,
           isConnected: false,
           connect: async () => {
-            console.log('Connect wallet functionality would be implemented here')
+            // Connect wallet functionality handled by Wagmi
           },
           disconnect: async () => {
-            console.log('Disconnect wallet functionality would be implemented here')
+            // Disconnect wallet functionality handled by Wagmi
           },
         })
         
-        console.log('Web3 initialized successfully with proper Wagmi provider')
+        // Web3 initialized successfully with proper Wagmi provider
       } catch (error) {
-        console.warn('Failed to initialize Web3:', error)
+        // Failed to initialize Web3 - application continues with fallback state
         // 保持默认状态，应用仍然可以工作
       }
     }

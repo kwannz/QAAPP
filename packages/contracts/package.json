@@ -7,16 +7,23 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:coverage": "hardhat coverage",
+    "clean": "hardhat clean",
+    "size": "hardhat size-contracts",
+    "flatten": "hardhat flatten",
+    
+    "node": "hardhat node",
+    "node:fork": "FORK_MAINNET=true hardhat node",
+    "start-local": "node ../../scripts/start-local-blockchain.js",
+    
     "deploy": "hardhat deploy",
     "deploy:local": "hardhat deploy --network localhost",
     "deploy:sepolia": "hardhat deploy --network sepolia",
-    "deploy:mumbai": "hardhat deploy --network polygon-mumbai",
-    "deploy:polygon": "hardhat deploy --network polygon",
-    "verify": "hardhat verify",
-    "node": "hardhat node",
-    "clean": "hardhat clean",
-    "size": "hardhat size-contracts",
-    "flatten": "hardhat flatten"
+    
+    "verify:sepolia": "hardhat verify --network sepolia",
+    
+    "test:local": "hardhat test --network localhost",
+    "test:sepolia": "hardhat test --network sepolia",
+    "test:integration": "npm run deploy:local && hardhat test --network localhost"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",

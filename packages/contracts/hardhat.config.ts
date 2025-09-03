@@ -2,7 +2,6 @@ import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-verify';
 import '@openzeppelin/hardhat-upgrades';
-import 'hardhat-deploy';
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
 import 'solidity-coverage';
@@ -23,71 +22,58 @@ const config: HardhatUserConfig = {
   },
   
   networks: {
-    // 本地网络
+    // ========== 开发网络 ==========
+    // 本地 Hardhat 网络
     localhost: {
-      url: 'http://127.0.0.1:8545'
-      // 使用默认的hardhat账户，不需要指定私钥
-    },
-    
-    // 以太坊主网
-    ethereum: {
-      url: process.env.ETHEREUM_RPC_URL || 'https://eth-mainnet.alchemyapi.io/v2/YOUR-API-KEY',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      url: 'http://127.0.0.1:8545',
+      chainId: 31337,
+      timeout: 60000,
+      gas: 'auto',
       gasPrice: 'auto',
-      chainId: 1
+      gasMultiplier: 1.2,
     },
     
-    // Polygon 主网
-    polygon: {
-      url: process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 'auto',
-      chainId: 137
+    // 本地 Hardhat 节点（内置）
+    hardhat: {
+      chainId: 31337,
+      accounts: {
+        count: 10,
+        accountsBalance: '10000000000000000000000', // 10000 ETH
+      },
+      forking: process.env.FORK_MAINNET === 'true' ? {
+        url: process.env.ETHEREUM_RPC_URL || 'https://eth-mainnet.alchemyapi.io/v2/demo',
+        blockNumber: parseInt(process.env.FORK_BLOCK_NUMBER || '0') || undefined,
+      } : undefined,
     },
     
-    // Ethereum Sepolia 测试网
+    // ========== 以太坊测试网 ==========
+    // Sepolia 测试网 (主要测试网络)
     sepolia: {
       url: process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/YOUR-PROJECT-ID',
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 11155111,
       gasPrice: 'auto',
-      chainId: 11155111
+      gasMultiplier: 1.2,
+      timeout: 60000,
+      confirmations: 2,
     },
-    
-    // Polygon Mumbai 测试网
-    'polygon-mumbai': {
-      url: process.env.MUMBAI_RPC_URL || 'https://rpc-mumbai.maticvigil.com',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 'auto',
-      chainId: 80001
-    },
-    
-    // Arbitrum One
-    arbitrum: {
-      url: process.env.ARBITRUM_RPC_URL || 'https://arb1.arbitrum.io/rpc',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 'auto',
-      chainId: 42161
-    },
-    
-    // Arbitrum Goerli 测试网
-    'arbitrum-goerli': {
-      url: process.env.ARBITRUM_GOERLI_RPC_URL || 'https://goerli-rollup.arbitrum.io/rpc',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 'auto',
-      chainId: 421613
-    }
   },
   
   // Etherscan API配置，用于合约验证
   etherscan: {
     apiKey: {
-      ethereum: process.env.ETHERSCAN_API_KEY || '',
       sepolia: process.env.ETHERSCAN_API_KEY || '',
-      polygon: process.env.POLYGONSCAN_API_KEY || '',
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
-      arbitrumOne: process.env.ARBISCAN_API_KEY || '',
-      arbitrumGoerli: process.env.ARBISCAN_API_KEY || ''
-    }
+    },
+    customChains: [
+      {
+        network: 'sepolia',
+        chainId: 11155111,
+        urls: {
+          apiURL: 'https://api-sepolia.etherscan.io/api',
+          browserURL: 'https://sepolia.etherscan.io'
+        }
+      }
+    ]
   },
   
   // Gas reporter配置
@@ -105,18 +91,8 @@ const config: HardhatUserConfig = {
     disambiguatePaths: false,
   },
   
-  // 部署配置
-  namedAccounts: {
-    deployer: {
-      default: 0, // 默认使用第一个账户作为部署者
-    },
-    treasury: {
-      default: 1, // 第二个账户作为资金库
-    },
-    operator: {
-      default: 2, // 第三个账户作为操作员
-    }
-  },
+  // 默认网络
+  defaultNetwork: 'hardhat',
   
   // 路径配置
   paths: {

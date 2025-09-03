@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { hash } from 'bcryptjs';
+import { hash } from 'bcrypt';
 import { DatabaseService } from '../database/database.service';
+import { PerformanceOptimizerService } from '../common/performance/performance-optimizer.service';
 import { 
   UpdateUserProfileDto, 
   AddWalletDto, 
@@ -17,49 +18,61 @@ import { UserRole, KycStatus } from '@qa-app/database';
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private database: DatabaseService) {}
+  constructor(
+    private database: DatabaseService,
+    private performanceOptimizer: PerformanceOptimizerService
+  ) {}
 
   /**
-   * 根据ID查找用户
+   * 根据ID查找用户 - 优化版本
    */
   async findById(id: string): Promise<any> {
-    const user = await this.database.user.findUnique({
-      where: { id },
-      include: {
-        wallets: {
-          select: {
-            id: true,
-            address: true,
-            chainId: true,
-            isPrimary: true,
-            label: true,
-            createdAt: true,
+    const cacheKey = `user_detail:${id}`;
+    
+    return this.performanceOptimizer.optimizeDbQuery(
+      cacheKey,
+      async () => {
+        const user = await this.database.user.findUnique({
+          where: { id },
+          include: {
+            wallets: {
+              select: {
+                id: true,
+                address: true,
+                chainId: true,
+                isPrimary: true,
+                label: true,
+                createdAt: true,
+              },
+              orderBy: { isPrimary: 'desc' }, // 主钱包优先
+            },
+            referredBy: {
+              select: {
+                id: true,
+                referralCode: true,
+                email: true,
+              },
+            },
+            agent: {
+              select: {
+                id: true,
+                referralCode: true,
+                email: true,
+              },
+            },
           },
-        },
-        referredBy: {
-          select: {
-            id: true,
-            referralCode: true,
-            email: true,
-          },
-        },
-        agent: {
-          select: {
-            id: true,
-            referralCode: true,
-            email: true,
-          },
-        },
+        });
+
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+
+        // 不返回敏感信息
+        const { passwordHash, ...safeUser } = user;
+        return safeUser;
       },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    // 不返回敏感信息
-    const { passwordHash, ...safeUser } = user;
-    return safeUser;
+      { selectFields: ['id', 'email', 'role', 'isActive'], joinOptimization: true } // 用户数据优化
+    );
   }
 
   /**
@@ -99,7 +112,7 @@ export class UsersService {
   }
 
   /**
-   * 查找所有用户（分页）
+   * 查找所有用户（分页）- 优化版本
    */
   async findAll(queryDto: UserQueryDto): Promise<{
     users: UserResponseDto[];
@@ -111,82 +124,104 @@ export class UsersService {
     const { page = 1, limit = 20, email, role, kycStatus, referralCode, isActive } = queryDto;
     const skip = (page - 1) * limit;
 
-    // 构建查询条件
-    const where: any = {};
-    
-    if (email) {
-      where.email = { contains: email, mode: 'insensitive' };
-    }
-    
-    if (role) {
-      where.role = role;
-    }
-    
-    if (kycStatus) {
-      where.kycStatus = kycStatus;
-    }
-    
-    if (referralCode) {
-      where.referralCode = { contains: referralCode, mode: 'insensitive' };
-    }
-    
-    if (isActive !== undefined) {
-      where.isActive = isActive;
-    }
+    // 构建缓存键
+    const cacheKey = `users_list:${JSON.stringify(queryDto)}`;
 
-    // 查询用户和总数
-    const [users, total] = await Promise.all([
-      this.database.user.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          referralCode: true,
-          kycStatus: true,
-          isActive: true,
-          createdAt: true,
-          lastLoginAt: true,
-          wallets: {
+    return this.performanceOptimizer.optimizeDbQuery(
+      cacheKey,
+      async () => {
+        // 构建查询条件
+        const where: any = {};
+        
+        if (email) {
+          where.email = { contains: email, mode: 'insensitive' };
+        }
+        
+        if (role) {
+          where.role = role;
+        }
+        
+        if (kycStatus) {
+          where.kycStatus = kycStatus;
+        }
+        
+        if (referralCode) {
+          where.referralCode = { contains: referralCode, mode: 'insensitive' };
+        }
+        
+        if (isActive !== undefined) {
+          where.isActive = isActive;
+        }
+
+        // 优化：使用批处理和高效选择
+        const [users, total] = await Promise.all([
+          this.database.user.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: [
+              { createdAt: 'desc' },
+              { id: 'asc' } // 辅助排序保证一致性
+            ],
             select: {
               id: true,
-              address: true,
-              chainId: true,
-              isPrimary: true,
-              label: true,
-            },
-          },
-          referredBy: {
-            select: {
-              id: true,
-              referralCode: true,
               email: true,
-            },
-          },
-          agent: {
-            select: {
-              id: true,
+              role: true,
               referralCode: true,
-              email: true,
+              kycStatus: true,
+              isActive: true,
+              createdAt: true,
+              lastLoginAt: true,
+              // 优化：只加载主钱包，减少数据传输
+              wallets: {
+                where: { isPrimary: true },
+                select: {
+                  id: true,
+                  address: true,
+                  chainId: true,
+                  label: true,
+                },
+                take: 1
+              },
+              referredBy: {
+                select: {
+                  id: true,
+                  referralCode: true,
+                  email: true,
+                },
+              },
+              agent: {
+                select: {
+                  id: true,
+                  referralCode: true,
+                  email: true,
+                },
+              },
+              // 添加聚合信息减少额外查询
+              _count: {
+                select: {
+                  referrals: true,
+                  agentUsers: true,
+                  orders: true
+                }
+              }
             },
-          },
-        },
-      }),
-      this.database.user.count({ where }),
-    ]);
+          }),
+          this.database.user.count({ where }),
+        ]);
 
-    const totalPages = Math.ceil(total / limit);
+        const totalPages = Math.ceil(total / limit);
 
-    return {
-      users: users as UserResponseDto[],
-      total,
-      page,
-      limit,
-      totalPages,
-    };
+        return {
+          users: users as UserResponseDto[],
+          total,
+          page,
+          limit,
+          totalPages,
+        };
+      },
+      { selectFields: ['id', 'email', 'role', 'kycStatus'], joinOptimization: true } // 用户列表优化
+    );
   }
 
   /**
