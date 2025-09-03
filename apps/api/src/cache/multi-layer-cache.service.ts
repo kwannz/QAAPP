@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config';
 import Redis, { Cluster } from 'ioredis';
 import { LRUCache } from 'lru-cache';
-import * as msgpack from 'msgpack-lite';
+// msgpack-lite not available - using JSON serialization
 import {
   CacheLayer,
   CacheOperation,
@@ -364,7 +364,8 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   private serialize(data: any, format: 'json' | 'msgpack'): string {
     switch (format) {
       case 'msgpack':
-        return Buffer.from(msgpack.encode(data)).toString('base64');
+        // msgpack-lite not available - fallback to JSON
+        return JSON.stringify(data);
       case 'json':
       default:
         return JSON.stringify(data);
@@ -375,7 +376,8 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
     try {
       switch (format) {
         case 'msgpack':
-          return msgpack.decode(Buffer.from(data, 'base64'));
+          // msgpack-lite not available - fallback to JSON
+          return JSON.parse(data);
         case 'json':
         default:
           return JSON.parse(data);

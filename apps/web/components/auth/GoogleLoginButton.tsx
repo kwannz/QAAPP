@@ -1,9 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/lib/auth-context'
 import { toast } from 'sonner'
+
+// 声明 Google API 类型
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
 interface GoogleLoginButtonProps {
   className?: string
@@ -25,37 +32,54 @@ export function GoogleLoginButton({
     setIsLoading(true)
     
     try {
-      // 在实际实现中，这里会使用Google OAuth SDK
-      // 现在模拟Google登录流程
-      const mockGoogleToken = 'mock-google-token-' + Date.now()
-      
-      const response = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: mockGoogleToken }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Google登录失败')
+      // 使用 Google Identity Services API
+      if (!window.google) {
+        throw new Error('Google SDK 未加载')
       }
 
-      const data = await response.json()
-      
-      // 更新认证状态
-      setUser(data.user)
-      setTokens(data.accessToken, data.refreshToken)
-      
-      toast.success('Google登录成功！')
-      onSuccess?.()
+      // 初始化 Google OAuth
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+        callback: async (response: any) => {
+          try {
+            const backendResponse = await fetch('/api/auth/google', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ token: response.credential }),
+            })
+            
+            if (!backendResponse.ok) {
+              const error = await backendResponse.json()
+              throw new Error(error.message || 'Google登录失败')
+            }
+
+            const data = await backendResponse.json()
+            
+            // 更新认证状态
+            setUser(data.user)
+            setTokens(data.accessToken, data.refreshToken)
+            
+            toast.success('Google登录成功！')
+            onSuccess?.()
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Google登录失败'
+            toast.error(errorMessage)
+            onError?.(errorMessage)
+          } finally {
+            setIsLoading(false)
+          }
+        }
+      })
+
+      // 显示 Google 登录弹窗
+      window.google.accounts.id.prompt()
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Google登录失败'
       toast.error(errorMessage)
       onError?.(errorMessage)
-    } finally {
       setIsLoading(false)
     }
   }

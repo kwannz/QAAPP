@@ -8,7 +8,6 @@
     "apps/*"
   ],
   "scripts": {
-    "postinstall": "node scripts/database/setup-database.js",
     "prestart": "npm run build",
     "dev": "turbo run dev",
     "build": "npm run build:deps && npm run build:db && npm run build:apps",
@@ -27,13 +26,16 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
+    "test:coverage": "./scripts/test-coverage.sh",
+    "test:verify": "node scripts/verify-coverage.js",
+    "test:api:coverage": "cd apps/api && npm run test:cov",
+    "test:web:coverage": "cd apps/web && npm test -- --coverage --watchAll=false",
     "db:generate": "turbo run db:generate",
     "db:push": "turbo run db:push",
     "db:migrate": "turbo run db:migrate",
     "db:seed": "turbo run db:seed",
     "db:setup": "node scripts/database/setup-database.js",
     "db:reset": "turbo run db:reset",
-    
     "blockchain:start": "node scripts/start-local-blockchain.js",
     "blockchain:stop": "pkill -f 'hardhat node' || true",
     "blockchain:restart": "npm run blockchain:stop && npm run blockchain:start",
@@ -47,9 +49,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "health": "curl http://localhost:3001/health && curl http://localhost:3002",
     "logs": "tail -f logs/api.log logs/web.log",
-    "deploy:vps": "pnpm install --frozen-lockfile && pnpm run build:deps && pnpm run build:db:prod && pnpm run build:apps && pnpm start",
-    "setup:vps": "chmod +x scripts/deployment/setup-vps.sh && ./scripts/deployment/setup-vps.sh",
     "deploy:vps": "chmod +x scripts/deployment/vps-deploy.sh && ./scripts/deployment/vps-deploy.sh",
+    "setup:vps": "chmod +x scripts/deployment/setup-vps.sh && ./scripts/deployment/setup-vps.sh",
     "validate:vps": "chmod +x scripts/deployment/validate-deployment.sh && ./scripts/deployment/validate-deployment.sh",
     "validate:env": "chmod +x scripts/deployment/validate-env.sh && ./scripts/deployment/validate-env.sh",
     "db:migrate:prod": "chmod +x scripts/database/migrate-db.sh && ./scripts/database/migrate-db.sh",
@@ -97,6 +98,9 @@
       "react-dom": "^19.1.0",
       "ethers": "^6.13.4",
       "chai": "^4.3.10"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "bcrypt"
+    ]
   }
 }

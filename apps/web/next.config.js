@@ -101,6 +101,69 @@ const nextConfig = {
   },
   // SWC编译器优化已默认启用 (Next.js 15+)
   
+  // 重定向配置 - Sprint 2 迁移策略
+  async redirects() {
+    return [
+      // Admin page consolidation redirects
+      {
+        source: '/admin/users',
+        destination: '/admin/operations?tab=users',
+        statusCode: 307
+      },
+      {
+        source: '/admin/products', 
+        destination: '/admin/operations?tab=products',
+        statusCode: 307
+      },
+      {
+        source: '/admin/orders',
+        destination: '/admin/operations?tab=orders', 
+        statusCode: 307
+      },
+      {
+        source: '/admin/agents',
+        destination: '/admin/operations?tab=agents',
+        statusCode: 307
+      },
+      {
+        source: '/admin/withdrawals',
+        destination: '/admin/operations?tab=withdrawals',
+        statusCode: 307
+      },
+      {
+        source: '/admin/commissions',
+        destination: '/admin/analytics?tab=commissions',
+        statusCode: 307
+      },
+      {
+        source: '/admin/reports',
+        destination: '/admin/analytics?tab=reports',
+        statusCode: 307
+      },
+      {
+        source: '/admin/notifications',
+        destination: '/admin/analytics?tab=notifications',
+        statusCode: 307
+      },
+      // Dashboard page consolidation redirects
+      {
+        source: '/dashboard/profile',
+        destination: '/dashboard#profile',
+        statusCode: 307
+      },
+      {
+        source: '/dashboard/wallets',
+        destination: '/dashboard#wallets', 
+        statusCode: 307
+      },
+      {
+        source: '/dashboard/notifications',
+        destination: '/dashboard#notifications',
+        statusCode: 307
+      }
+    ];
+  },
+
   // 安全头部配置
   async headers() {
     return [
