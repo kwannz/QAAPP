@@ -6,6 +6,12 @@
  * 创建数据库用户、数据库，并运行迁移
  */
 
+// 环境检测：CI 或生产环境下跳过
+if (process.env.CI || process.env.SKIP_DB_SETUP === 'true' || process.env.NODE_ENV === 'production') {
+  console.log('🔇 跳过数据库初始化 (CI/生产环境)');
+  process.exit(0);
+}
+
 const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
