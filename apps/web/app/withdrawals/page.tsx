@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { toast } from 'react-hot-toast'
 import { 
   Wallet, 
   Plus, 
@@ -104,55 +105,69 @@ export default function WithdrawalsPage() {
   const [estimatedFee, setEstimatedFee] = useState(0)
   const [copied, setCopied] = useState(false)
 
-  // 模拟数据
-  const mockBalance: UserBalance = {
-    earnings: 5234.56,
-    principal: 12000.00,
-    commission: 890.25,
+  // API 服务函数
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+  
+  const getAuthHeaders = () => ({
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  })
+
+  const fetchUserBalance = async (): Promise<UserBalance> => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: getAuthHeaders()
+    })
+    if (!response.ok) throw new Error('获取余额失败')
+    const data = await response.json()
+    return {
+      earnings: data.balance?.earnings || 0,
+      principal: data.balance?.principal || 0,
+      commission: data.balance?.commission || 0
+    }
   }
 
-  const mockWithdrawals: Withdrawal[] = [
-    {
-      id: 'wd_001',
-      amount: 1000,
-      withdrawalType: 'EARNINGS',
-      status: 'COMPLETED',
-      walletAddress: '0x742d35Cc662C610E4612345E6A8a9E3DfFfF8c21',
-      chainId: 1,
-      platformFee: 5,
-      actualAmount: 995,
-      riskLevel: 'LOW',
-      createdAt: '2024-03-20T10:30:00Z',
-      txHash: '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456',
-    },
-    {
-      id: 'wd_002',
-      amount: 5000,
-      withdrawalType: 'EARNINGS',
-      status: 'REVIEWING',
-      walletAddress: '0x742d35Cc662C610E4612345E6A8a9E3DfFfF8c21',
-      chainId: 1,
-      platformFee: 25,
-      actualAmount: 4975,
-      riskLevel: 'MEDIUM',
-      createdAt: '2024-03-19T14:20:00Z',
-    },
-    {
-      id: 'wd_003',
-      amount: 500,
-      withdrawalType: 'COMMISSION',
-      status: 'REJECTED',
-      walletAddress: '0x742d35Cc662C610E4612345E6A8a9E3DfFfF8c21',
-      chainId: 1,
-      platformFee: 2.5,
-      actualAmount: 497.5,
-      riskLevel: 'LOW',
-      createdAt: '2024-03-18T09:15:00Z',
-      rejectionReason: '钱包地址验证失败，请重新检查并提交',
-    },
-  ]
+  const fetchWithdrawals = async (): Promise<Withdrawal[]> => {
+    const response = await fetch(`${API_BASE_URL}/finance/payouts`, {
+      headers: getAuthHeaders()
+    })
+    if (!response.ok) throw new Error('获取提现记录失败')
+    const data = await response.json()
+    return data.data || []
+  }
+
+  const createWithdrawal = async (withdrawalData: {
+    amount: number
+    withdrawalType: string
+    walletAddress: string
+    chainId: number
+  }) => {
+    const response = await fetch(`${API_BASE_URL}/finance/payouts`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(withdrawalData)
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || '创建提现申请失败')
+    }
+    return response.json()
+  }
+
+  const cancelWithdrawal = async (withdrawalId: string) => {
+    const response = await fetch(`${API_BASE_URL}/finance/payouts/${withdrawalId}/cancel`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    })
+    if (!response.ok) throw new Error('取消提现失败')
+    return response.json()
+  }
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      toast.error('请先登录')
+      return
+    }
+    
     loadBalance()
     loadWithdrawals()
   }, [])
@@ -180,19 +195,27 @@ export default function WithdrawalsPage() {
   }, [amount, selectedType])
 
   const loadBalance = async () => {
-    // 模拟API调用
-    setTimeout(() => {
-      setBalance(mockBalance)
-    }, 300)
+    try {
+      const balanceData = await fetchUserBalance()
+      setBalance(balanceData)
+    } catch (error: any) {
+      console.error('Failed to load balance:', error)
+      toast.error(error.message || '获取余额失败')
+    }
   }
 
   const loadWithdrawals = async () => {
     setLoading(true)
-    // 模拟API调用
-    setTimeout(() => {
-      setWithdrawals(mockWithdrawals)
+    try {
+      const withdrawalsData = await fetchWithdrawals()
+      setWithdrawals(withdrawalsData)
+    } catch (error: any) {
+      console.error('Failed to load withdrawals:', error)
+      toast.error(error.message || '获取提现记录失败')
+      setWithdrawals([])
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   const handleCreateWithdrawal = async () => {
@@ -215,42 +238,35 @@ export default function WithdrawalsPage() {
     }
 
     try {
-      // 模拟API调用
-      const newWithdrawal: Withdrawal = {
-        id: `wd_${Date.now()}`,
+      await createWithdrawal({
         amount: amountNum,
         withdrawalType: selectedType,
-        status: 'PENDING',
         walletAddress,
-        chainId: parseInt(chainId),
-        platformFee: estimatedFee,
-        actualAmount: amountNum - estimatedFee,
-        riskLevel: 'LOW',
-        createdAt: new Date().toISOString(),
-      }
+        chainId: parseInt(chainId)
+      })
 
-      setWithdrawals([newWithdrawal, ...withdrawals])
+      // 创建成功后重新加载数据
+      await Promise.all([loadBalance(), loadWithdrawals()])
+      
       setCreateDialogOpen(false)
       setAmount('')
       setWalletAddress('')
       
-      alert('提现申请已提交，请等待审核')
-    } catch (error) {
+      toast.success('提现申请已提交，请等待审核')
+    } catch (error: any) {
       console.error('Failed to create withdrawal:', error)
-      alert('提现申请失败，请重试')
+      toast.error(error.message || '提现申请失败，请重试')
     }
   }
 
   const handleCancelWithdrawal = async (withdrawalId: string) => {
     try {
-      // 模拟API调用
-      setWithdrawals(prev => prev.map(w => 
-        w.id === withdrawalId ? { ...w, status: 'CANCELED' } : w
-      ))
-      alert('提现申请已取消')
-    } catch (error) {
+      await cancelWithdrawal(withdrawalId)
+      await loadWithdrawals() // 重新加载数据
+      toast.success('提现申请已取消')
+    } catch (error: any) {
       console.error('Failed to cancel withdrawal:', error)
-      alert('取消失败，请重试')
+      toast.error(error.message || '取消失败，请重试')
     }
   }
 

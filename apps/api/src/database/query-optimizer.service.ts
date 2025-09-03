@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from './database.service';
-import { PerformanceService } from '../performance/performance.service';
+// PerformanceService integrated into monitoring module
 
 @Injectable()
 export class QueryOptimizerService {
@@ -8,7 +8,7 @@ export class QueryOptimizerService {
 
   constructor(
     private readonly db: DatabaseService,
-    private readonly performanceService: PerformanceService
+    // Performance monitoring integrated into monitoring module
   ) {}
 
   // 用户相关查询优化
@@ -51,12 +51,14 @@ export class QueryOptimizerService {
       });
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return user;
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error(`User query failed for ${userId}:`, error);
       throw error;
     }
@@ -89,12 +91,14 @@ export class QueryOptimizerService {
       });
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return orders;
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error(`Orders query failed for user ${userId}:`, error);
       throw error;
     }
@@ -124,12 +128,14 @@ export class QueryOptimizerService {
       });
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return payouts;
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error(`Payouts query failed for user ${userId}:`, error);
       throw error;
     }
@@ -164,7 +170,8 @@ export class QueryOptimizerService {
       ]);
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return {
         totalUsers,
@@ -175,7 +182,8 @@ export class QueryOptimizerService {
       };
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error('Dashboard stats query failed:', error);
       throw error;
     }
@@ -212,12 +220,14 @@ export class QueryOptimizerService {
       });
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return users;
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error(`Batch user query failed for ${userIds.length} users:`, error);
       throw error;
     }
@@ -265,7 +275,8 @@ export class QueryOptimizerService {
       ]);
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return {
         data: orders,
@@ -279,7 +290,8 @@ export class QueryOptimizerService {
       };
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error('Paginated orders query failed:', error);
       throw error;
     }
@@ -330,7 +342,8 @@ export class QueryOptimizerService {
       ]);
 
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       
       return {
         totalInvestment: totalInvestment._sum.usdtAmount || 0,
@@ -343,7 +356,8 @@ export class QueryOptimizerService {
       };
     } catch (error) {
       const queryTime = Date.now() - startTime;
-      this.performanceService.trackDbQuery(queryTime);
+      // Performance tracking integrated into monitoring module
+      this.logger.debug(`Query time: ${queryTime}ms`);
       this.logger.error(`Financial summary query failed for user ${userId}:`, error);
       throw error;
     }

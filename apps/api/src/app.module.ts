@@ -8,10 +8,7 @@ import { MetricsModule } from './common/metrics/metrics.module';
 // import { SecurityModule } from './common/security/security.module';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
-import { ProductsModule } from './products/products.module';
-import { OrdersModule } from './orders/orders.module';
-import { PositionsModule } from './positions/positions.module';
-import { PayoutsModule } from './payouts/payouts.module';
+
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MonitoringInterceptor } from './common/interceptors/monitoring.interceptor';
@@ -61,9 +58,6 @@ import { DatabaseOptimizationModule } from './common/database/database-optimizat
 
     // 核心业务模块
     UsersModule,
-    ProductsModule,
-    OrdersModule,
-    PositionsModule,
 
     // WebSocket 实时通信模块
     WebSocketModule,
@@ -73,11 +67,8 @@ import { DatabaseOptimizationModule } from './common/database/database-optimizat
 
     // 整合模块 (Sprint 2)
     MonitoringModule, // 整合 logs + audit + alerts + performance
-    FinanceModule,    // 整合 payouts + withdrawals + commissions + transactions
+    FinanceModule,    // 整合 orders + positions + products + payouts + withdrawals + commissions + transactions
     DatabaseOptimizationModule, // 数据库查询优化
-    
-    // 其他保留模块
-    PayoutsModule
   ],
   controllers: [],
   providers: [

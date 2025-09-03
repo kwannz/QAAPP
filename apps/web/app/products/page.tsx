@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, TrendingUp, Shield, Clock } from 'lucide-react'
 
-import { FormInput, Button, EnhancedProductCard } from '@/components/ui'
+import { Input, Button, EnhancedProductCard } from '@/components/ui'
 import { Header } from '../../components/layout/Header'
 import { Footer } from '../../components/layout/Footer'
 import { ProductPurchase } from '../../components/products/ProductPurchase'

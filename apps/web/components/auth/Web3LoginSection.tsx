@@ -6,6 +6,13 @@ import { useSafeAccount } from '../../lib/hooks/use-safe-wagmi'
 // import { ConnectButton } from '@rainbow-me/rainbowkit' // 暂时禁用避免WagmiProvider错误
 import toast from 'react-hot-toast'
 
+// 声明 window.ethereum 类型
+declare global {
+  interface Window {
+    ethereum?: any
+  }
+}
+
 import { Button } from '@/components/ui'
 import { authApi } from '../../lib/api-client'
 import { useAuthStore } from '../../lib/auth-context'
@@ -19,7 +26,7 @@ export function Web3LoginSection({ isRegister = false, referralCode }: Web3Login
   // Web3 功能已恢复
   const [isLoading, setIsLoading] = useState(false)
   const { address, isConnected } = useSafeAccount()
-  // 安全的签名函数 - 暂时使用模拟签名
+  // 真实的Web3签名函数
   const signMessageAsync = async (config: any) => {
     try {
       // 检查是否可以访问wagmi
@@ -27,13 +34,19 @@ export function Web3LoginSection({ isRegister = false, referralCode }: Web3Login
         throw new Error('请先连接钱包')
       }
       
-      // 模拟签名功能（在实际环境中，这里应该调用真正的签名）
-      const message = config.message
-      const mockSignature = `0x${Date.now().toString(16).padEnd(130, '0')}`
-      
-      console.log('模拟签名消息:', message)
-      console.log('模拟签名结果:', mockSignature)
-      return mockSignature
+      // 使用 wagmi 的 signMessage 功能
+      // 在实际应用中，这里应该使用 useSignMessage hook
+      // 暂时使用 window.ethereum 直接调用
+      if (typeof window !== 'undefined' && window.ethereum) {
+        const message = config.message
+        const signature = await window.ethereum.request({
+          method: 'personal_sign',
+          params: [message, address],
+        })
+        return signature
+      } else {
+        throw new Error('未找到Web3钱包')
+      }
     } catch (error) {
       throw new Error('钱包签名失败: ' + (error instanceof Error ? error.message : '未知错误'))
     }
