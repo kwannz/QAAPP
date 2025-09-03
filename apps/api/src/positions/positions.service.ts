@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { MockDatabaseService } from '../database/mock-database.service';
+import { DatabaseService } from '../database/database.service';
+import { PositionStatus } from '@qa-app/database';
 
 export interface MockPosition {
   id: string;
@@ -28,7 +29,7 @@ export class PositionsService {
   // 内存存储持仓数据
   private positions: Map<string, MockPosition> = new Map();
 
-  constructor(private mockDatabase: MockDatabaseService) {}
+  constructor(private database: DatabaseService) {}
 
   /**
    * 创建新持仓
@@ -242,7 +243,7 @@ export class PositionsService {
 
       // 计算赎回金额（本金 + 剩余收益）
       const remainingDays = Math.max(0, Math.ceil((position.endDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
-      const product = await this.mockDatabase.findProduct(position.productId);
+      const product = await this.database.product.findUnique({ where: { id: position.productId } });
       
       let redeemAmount = position.principal;
       if (product && remainingDays === 0) {

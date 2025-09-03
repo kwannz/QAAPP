@@ -16,6 +16,7 @@ export function ApiStatus() {
     { name: '产品API', url: '/api/products', status: 'checking' },
     { name: '认证API', url: '/api/auth/health', status: 'checking' },
   ])
+  const [clientUrl, setClientUrl] = useState('http://localhost:3002')
 
   const checkEndpoint = async (endpoint: ApiEndpoint): Promise<ApiEndpoint> => {
     const startTime = Date.now()
@@ -48,6 +49,12 @@ export function ApiStatus() {
     const interval = setInterval(checkAllEndpoints, 30000) // 每30秒检查一次
 
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setClientUrl(window.location.origin)
+    }
   }, [])
 
   const getStatusIcon = (status: ApiEndpoint['status']) => {
@@ -114,7 +121,7 @@ export function ApiStatus() {
       </div>
       
       <div className="text-gray-400 border-l pl-2">
-        API: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'} | Web: {window?.location?.origin || 'http://localhost:3000'}
+        API: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'} | Web: {clientUrl}
       </div>
     </div>
   )

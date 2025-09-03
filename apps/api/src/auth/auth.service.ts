@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { hash, compare } from 'bcryptjs';
 
 import { DatabaseService } from '../database/database.service';
-import { UsersService } from '../users/users.service';
 import { WalletSignatureService } from './services/wallet-signature.service';
 import { LoginDto, RegisterDto, WalletChallengeDto, WalletVerifyDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
 import { UserRole, KycStatus } from '@qa-app/database';
@@ -17,7 +16,6 @@ export class AuthService {
     private database: DatabaseService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    private usersService: UsersService,
     private walletSignatureService: WalletSignatureService,
   ) {}
 
@@ -408,6 +406,32 @@ export class AuthService {
 
     this.logger.log(`User logged in via Google: ${mockGoogleUser.email}`);
     return this.generateTokenResponse(user);
+  }
+
+  /**
+   * 根据ID获取用户信息（JWT策略使用）
+   */
+  async getUserById(userId: string) {
+    const user = await this.database.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallets: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      kycStatus: user.kycStatus,
+      referralCode: user.referralCode,
+      isActive: user.isActive,
+      wallets: user.wallets,
+    };
   }
 
   /**

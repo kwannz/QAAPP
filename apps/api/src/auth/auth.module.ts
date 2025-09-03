@@ -5,7 +5,6 @@ import { PassportModule } from '@nestjs/passport';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { MockAuthService } from '../mock/mock-auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletSignatureService } from './services/wallet-signature.service';
 // import { UsersModule } from '../users/users.module';
@@ -30,12 +29,7 @@ import { WalletSignatureService } from './services/wallet-signature.service';
   ],
   controllers: [AuthController],
   providers: [
-    // AuthService, // Replaced with MockAuthService for testing
-    {
-      provide: AuthService,
-      useClass: MockAuthService,
-    },
-    MockAuthService, // Provide MockAuthService for JwtStrategy
+    AuthService,
     JwtStrategy,
     WalletSignatureService,
   ],
