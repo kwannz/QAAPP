@@ -20,7 +20,8 @@ export function ApiStatus() {
   const checkEndpoint = async (endpoint: ApiEndpoint): Promise<ApiEndpoint> => {
     const startTime = Date.now()
     try {
-      const response = await fetch(`http://localhost:3001${endpoint.url}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      const response = await fetch(`${apiUrl}${endpoint.url}`, {
         method: 'GET',
         timeout: 5000
       } as any)
@@ -113,7 +114,7 @@ export function ApiStatus() {
       </div>
       
       <div className="text-gray-400 border-l pl-2">
-        API: http://localhost:3001 | Web: http://localhost:3000
+        API: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'} | Web: {window?.location?.origin || 'http://localhost:3000'}
       </div>
     </div>
   )

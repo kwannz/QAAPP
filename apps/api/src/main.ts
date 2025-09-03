@@ -1,6 +1,6 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
@@ -12,13 +12,13 @@ async function bootstrap() {
   });
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
-  
+
   // 全局异常过滤器
   app.useGlobalFilters(new GlobalExceptionFilter());
-  
+
   // 全局响应拦截器
   app.useGlobalInterceptors(new ResponseInterceptor());
-  
+
   // 全局验证管道
   app.useGlobalPipes(new CustomValidationPipe());
 
@@ -54,7 +54,7 @@ async function bootstrap() {
 
   const port = configService.get('PORT', 3001);
   const environment = configService.get('NODE_ENV', 'development');
-  
+
   await app.listen(port);
 
   logger.log(`🚀 API Application is running on: http://localhost:${port}`);
