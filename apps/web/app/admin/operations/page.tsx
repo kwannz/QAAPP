@@ -35,7 +35,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout'
 import { AdminGuard } from '@/components/admin/AdminGuard'
 import { TabContainer } from '@/components/common/TabContainer'
 import { FilterPanel } from '@/components/common/FilterPanel'
-import { MetricsCard } from '@/components/common/MetricsCard'
+import { MetricsCard } from '@/components/ui'
 import { 
   Button, 
   Input, 
@@ -57,6 +57,7 @@ import {
   SelectValue
 } from '@/components/ui'
 import Link from 'next/link'
+import apiClient from '@/lib/api-client'
 
 // 类型定义
 interface User {
@@ -137,102 +138,41 @@ interface Withdrawal {
   }
 }
 
-// API 服务函数
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-
+// API 服务（使用统一 apiClient）
 const apiService = {
   async fetchUsers(filters: Record<string, any> = {}) {
-    const params = new URLSearchParams(filters)
-    const response = await fetch(`${API_BASE_URL}/users?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch users')
-    return response.json()
+    const { data } = await apiClient.get('/users', { params: filters })
+    return data
   },
-
   async fetchProducts(filters: Record<string, any> = {}) {
-    const params = new URLSearchParams(filters)
-    const response = await fetch(`${API_BASE_URL}/finance/products?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch products')
-    return response.json()
+    const { data } = await apiClient.get('/finance/products', { params: filters })
+    return data
   },
-
   async fetchOrders(filters: Record<string, any> = {}) {
-    const params = new URLSearchParams(filters)
-    const response = await fetch(`${API_BASE_URL}/finance/orders?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch orders')
-    return response.json()
+    const { data } = await apiClient.get('/finance/orders', { params: filters })
+    return data
   },
-
   async fetchAgents(filters: Record<string, any> = {}) {
-    const params = new URLSearchParams(filters)
-    const response = await fetch(`${API_BASE_URL}/agents/admin/list?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch agents')
-    return response.json()
+    const { data } = await apiClient.get('/agents/admin/list', { params: filters })
+    return data
   },
-
   async fetchWithdrawals(filters: Record<string, any> = {}) {
-    const params = new URLSearchParams(filters)
-    const response = await fetch(`${API_BASE_URL}/finance/payouts?${params}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch withdrawals')
-    return response.json()
+    // 新统一端点建议：/finance/transactions?type=WITHDRAWAL
+    const { data } = await apiClient.get('/finance/transactions', { params: { ...filters, type: 'WITHDRAWAL' } })
+    return data
   },
-
   async fetchUserStats() {
-    const response = await fetch(`${API_BASE_URL}/users/admin/stats`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch user stats')
-    return response.json()
+    const { data } = await apiClient.get('/users/admin/stats')
+    return data
   },
-
   async fetchAgentStats() {
-    const response = await fetch(`${API_BASE_URL}/agents/admin/stats`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch agent stats')
-    return response.json()
+    const { data } = await apiClient.get('/agents/admin/stats')
+    return data
   },
-
   async fetchDashboardStats() {
-    const response = await fetch(`${API_BASE_URL}/monitoring/dashboard`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to fetch dashboard stats')
-    return response.json()
-  }
+    const { data } = await apiClient.get('/monitoring/dashboard')
+    return data
+  },
 }
 
 export default function OperationsCenter() {
@@ -252,14 +192,12 @@ export default function OperationsCenter() {
     users: [],
     products: [],
     orders: [],
-    agents: [],
     withdrawals: []
   })
   const [stats, setStats] = useState({
     users: { total: 0, active: 0, kyc: 0, risk: 0 },
     products: { total: 0, active: 0, totalValue: 0 },
     orders: { total: 0, pending: 0, success: 0, failed: 0, volume: 0 },
-    agents: { total: 0, active: 0, commissions: 0 },
     withdrawals: { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 }
   })
   const [loading, setLoading] = useState(false)
@@ -379,12 +317,6 @@ export default function OperationsCenter() {
       label: '订单管理',
       icon: <ShoppingCart className="w-4 h-4" />,
       badge: stats.orders.pending
-    },
-    {
-      id: 'agents',
-      label: '代理管理',
-      icon: <UserCheck className="w-4 h-4" />,
-      badge: stats.agents.total
     },
     {
       id: 'withdrawals',
@@ -546,39 +478,6 @@ export default function OperationsCenter() {
           </div>
         )
 
-      case 'agents':
-        return (
-          <div key={entity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <UserCheck className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="font-semibold">{entity.email}</h3>
-                  <Badge className={entity.tier === 'PLATINUM' ? 'bg-purple-100 text-purple-800' :
-                                   entity.tier === 'GOLD' ? 'bg-yellow-100 text-yellow-800' :
-                                   entity.tier === 'SILVER' ? 'bg-gray-100 text-gray-800' :
-                                   'bg-orange-100 text-orange-800'}>
-                    {entity.tier}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600">
-                  佣金率: {entity.commissionRate}% • 总佣金: ${entity.totalCommissions.toLocaleString()}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge className={entity.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                {entity.isActive ? '活跃' : '停用'}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={() => setShowDetail({open: true, type: 'agent', item: entity})}>
-                <Eye className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        )
-
       case 'withdrawals':
         return (
           <div key={entity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -651,10 +550,6 @@ export default function OperationsCenter() {
           result = await apiService.fetchOrders({ ...filters, search: searchTerm })
           setData(prev => ({ ...prev, orders: result.data || [] }))
           break
-        case 'agents':
-          result = await apiService.fetchAgents({ ...filters, search: searchTerm })
-          setData(prev => ({ ...prev, agents: result.data || [] }))
-          break
         case 'withdrawals':
           result = await apiService.fetchWithdrawals({ ...filters, search: searchTerm })
           setData(prev => ({ ...prev, withdrawals: result.data || [] }))
@@ -683,7 +578,6 @@ export default function OperationsCenter() {
         users: userStats || { total: 0, active: 0, kyc: 0, risk: 0 },
         products: dashboardStats?.products || { total: 0, active: 0, totalValue: 0 },
         orders: dashboardStats?.orders || { total: 0, pending: 0, success: 0, failed: 0, volume: 0 },
-        agents: agentStats || { total: 0, active: 0, commissions: 0 },
         withdrawals: dashboardStats?.withdrawals || { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 }
       })
     } catch (error) {
@@ -704,7 +598,6 @@ export default function OperationsCenter() {
       case 'users': return data.users
       case 'products': return data.products
       case 'orders': return data.orders
-      case 'agents': return data.agents
       case 'withdrawals': return data.withdrawals
       default: return []
     }
@@ -728,11 +621,6 @@ export default function OperationsCenter() {
         { title: '待处理', value: stats.orders.pending, icon: Clock, color: 'yellow' },
         { title: '成功订单', value: stats.orders.success, icon: CheckCircle, color: 'green' },
         { title: '总成交额', value: `$${(stats.orders.volume / 1000000).toFixed(1)}M`, icon: DollarSign, color: 'green' }
-      ]
-      case 'agents': return [
-        { title: '总代理数', value: stats.agents.total, icon: UserCheck, color: 'blue' },
-        { title: '活跃代理', value: stats.agents.active, icon: TrendingUp, color: 'green' },
-        { title: '总佣金', value: `$${(stats.agents.commissions / 1000).toFixed(0)}K`, icon: DollarSign, color: 'green' }
       ]
       case 'withdrawals': return [
         { title: '总申请', value: stats.withdrawals.total, icon: CreditCard, color: 'blue' },
@@ -843,8 +731,8 @@ export default function OperationsCenter() {
                   '搜索...'
                 }
                 onExport={() => {
-                  // TODO: 实现导出功能
-                  alert(`${activeTab}数据导出功能开发中`)
+                  // Export functionality now available via monitoring API
+                  window.open(`/api/monitoring/export?format=csv&type=${activeTab}`, '_blank')
                 }}
               />
 

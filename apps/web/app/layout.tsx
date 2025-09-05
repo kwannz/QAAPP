@@ -5,7 +5,8 @@ import './globals.css';
 
 import { Providers } from './providers';
 import { cn } from '@/components/ui';
-import { DevBar } from '@/components/dev/DevBar';
+import { DevToolsManager } from '@/components/dev/DevToolsManager';
+import { WebVitalsReporter } from '@/components/performance/WebVitalsReporter';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -118,6 +119,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <div id="tooltip-root" />
           <div id="popover-root" />
           
+          {/* 性能监控 */}
+          <WebVitalsReporter />
+
           {/* 开发环境调试工具 */}
           {process.env.NODE_ENV === 'development' && (
             <>
@@ -134,7 +138,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               </div>
               
               {/* 全局开发工具栏 */}
-              <DevBar />
+              <DevToolsManager />
             </>
           )}
         </Providers>

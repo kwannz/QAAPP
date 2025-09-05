@@ -64,6 +64,189 @@ jest.mock('redis', () => ({
 
 // Mock Prisma client
 jest.mock('@qa-app/database', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
+    user: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+      groupBy: jest.fn(),
+    },
+    product: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    order: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    wallet: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    auditLog: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+    },
+    systemLog: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    alert: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    notification: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    notificationTemplate: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    batchJob: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    systemConfig: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    report: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    payout: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      count: jest.fn(),
+      aggregate: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    withdrawal: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+    },
+    position: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      count: jest.fn(),
+      aggregate: jest.fn(),
+      groupBy: jest.fn(),
+    },
+    commission: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+    },
+    $transaction: jest.fn(),
+    $disconnect: jest.fn().mockResolvedValue(undefined),
+    $connect: jest.fn().mockResolvedValue(undefined),
+    $queryRaw: jest.fn(),
+    $executeRaw: jest.fn(),
+  })),
+  UserRole: {
+    USER: 'USER',
+    ADMIN: 'ADMIN',
+    AGENT: 'AGENT',
+  },
+  KycStatus: {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED', 
+    EXPIRED: 'EXPIRED',
+  },
+  OrderStatus: {
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    CANCELLED: 'CANCELLED',
+    COMPLETED: 'COMPLETED',
+  },
+  PositionStatus: {
+    ACTIVE: 'ACTIVE',
+    INACTIVE: 'INACTIVE',
+    COMPLETED: 'COMPLETED',
+  },
+  CommissionType: {
+    DIRECT: 'DIRECT',
+    INDIRECT: 'INDIRECT',
+    TIER_1: 'TIER_1',
+    TIER_2: 'TIER_2',
+  },
+  CommissionStatus: {
+    PENDING: 'PENDING',
+    PAID: 'PAID',
+    CANCELLED: 'CANCELLED',
+  },
+  WithdrawalStatus: {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    COMPLETED: 'COMPLETED',
+  },
+  WithdrawalType: {
+    MANUAL: 'MANUAL',
+    AUTOMATED: 'AUTOMATED',
+  },
+  RiskLevel: {
+    LOW: 'LOW',
+    MEDIUM: 'MEDIUM',
+    HIGH: 'HIGH',
+    CRITICAL: 'CRITICAL',
+  },
+  Decimal: jest.fn().mockImplementation((value) => ({
+    toNumber: () => Number(value),
+    toString: () => String(value),
+    valueOf: () => Number(value),
+  })),
   prisma: {
     user: {
       create: jest.fn(),
@@ -82,9 +265,12 @@ jest.mock('@qa-app/database', () => ({
     order: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
+      deleteMany: jest.fn(),
     },
     $transaction: jest.fn(),
     $disconnect: jest.fn().mockResolvedValue(undefined),
@@ -123,13 +309,17 @@ jest.mock('bcrypt', () => ({
 
 // Mock LRU Cache for performance optimization
 jest.mock('lru-cache', () => {
-  return jest.fn().mockImplementation(() => ({
-    get: jest.fn(),
-    set: jest.fn(),
-    delete: jest.fn(),
-    clear: jest.fn(),
-    has: jest.fn().mockReturnValue(false),
-  }));
+  return {
+    LRUCache: jest.fn().mockImplementation(() => ({
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      clear: jest.fn(),
+      has: jest.fn().mockReturnValue(false),
+      keys: jest.fn().mockReturnValue([]),
+      size: 0,
+    }))
+  };
 });
 
 // Mock ioredis for Redis caching

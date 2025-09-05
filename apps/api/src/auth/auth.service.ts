@@ -6,6 +6,7 @@ import { hash, compare } from 'bcrypt';
 import { DatabaseService } from '../database/database.service';
 import { WalletSignatureService } from './services/wallet-signature.service';
 import { LoginDto, RegisterDto, WalletChallengeDto, WalletVerifyDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
+import { UserData, CreateAuditLogParams } from './interfaces/user.interface';
 import { UserRole, KycStatus } from '@qa-app/database';
 
 @Injectable()
@@ -254,8 +255,13 @@ export class AuthService {
    */
   async refreshToken(refreshDto: RefreshTokenDto): Promise<AuthResponseDto> {
     try {
+      const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+      if (!refreshSecret) {
+        throw new UnauthorizedException('JWT refresh secret not configured');
+      }
+      
       const payload = this.jwtService.verify(refreshDto.refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET') || 'refresh-secret',
+        secret: refreshSecret,
       });
 
       const user = await this.database.user.findUnique({
@@ -290,7 +296,7 @@ export class AuthService {
   /**
    * 生成令牌响应
    */
-  private async generateTokenResponse(user: any): Promise<AuthResponseDto> {
+  private async generateTokenResponse(user: UserData): Promise<AuthResponseDto> {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -299,10 +305,15 @@ export class AuthService {
     };
 
     const accessToken = this.jwtService.sign(payload);
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    if (!refreshSecret) {
+      throw new Error('JWT refresh secret not configured');
+    }
+    
     const refreshToken = this.jwtService.sign(
       { sub: user.id },
       {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET') || 'refresh-secret',
+        secret: refreshSecret,
         expiresIn: '30d',
       },
     );

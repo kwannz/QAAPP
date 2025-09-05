@@ -25,8 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { OrdersService } from '../services/orders.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Auth } from '../../auth/decorators/auth.decorator';
 import { 
   CreateOrderDto,
   UpdateOrderDto,
@@ -220,8 +219,7 @@ export class OrdersController {
     type: OrderListResponseDto
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/list')
   async getAdminOrderList(
     @Query('status') status?: string,
@@ -255,8 +253,7 @@ export class OrdersController {
     type: OrderStatsResponseDto
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/stats')
   async getOrderStats(): Promise<OrderStatsResponseDto> {
     return this.ordersService.getOrderStats();
@@ -277,8 +274,7 @@ export class OrdersController {
     description: 'Order not found'
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Patch('admin/:id/approve')
   async approveOrder(
@@ -307,8 +303,7 @@ export class OrdersController {
     description: 'Order not found'
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Patch('admin/:id/reject')
   async rejectOrder(
@@ -339,8 +334,7 @@ export class OrdersController {
     }
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Put('admin/batch-update')
   async batchUpdateOrders(
@@ -372,8 +366,7 @@ export class OrdersController {
     }
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/:id/risk-analysis')
   async getOrderRiskAnalysis(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordersService.getOrderRiskAnalysis(id);
@@ -389,8 +382,7 @@ export class OrdersController {
     description: 'Risk re-evaluation completed'
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Post('admin/:id/re-evaluate-risk')
   async reEvaluateOrderRisk(@Param('id', ParseUUIDPipe) id: string) {
@@ -415,8 +407,7 @@ export class OrdersController {
     }
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/export')
   async exportOrders(
     @Query('status') status?: string,
@@ -450,8 +441,7 @@ export class OrdersController {
     }
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/:id/audit-trail')
   async getOrderAuditTrail(@Param('id', ParseUUIDPipe) id: string): Promise<{ orderId: string; auditTrail: any[] }> {
     return this.ordersService.getOrderAuditTrail(id);
