@@ -1,4 +1,5 @@
-import { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
+declare const gtag: any
 
 // 性能指标类型
 interface PerformanceMetrics {
@@ -221,7 +222,7 @@ export function withPerformanceMonitoring<P extends object>(
       return () => monitor.end()
     }, [monitor])
 
-    return <WrappedComponent {...props} />
+    return React.createElement(WrappedComponent as any, { ...(props as any) })
   }
 
   PerformanceMonitoredComponent.displayName = `withPerformanceMonitoring(${displayName})`
@@ -263,14 +264,10 @@ export function ProfilerComponent({
   }, [onRender])
 
   if (process.env.NODE_ENV !== 'development') {
-    return <>{children}</>
+    return React.createElement(React.Fragment, null, children)
   }
 
-  return (
-    <React.Profiler id={id} onRender={handleRender}>
-      {children}
-    </React.Profiler>
-  )
+  return React.createElement(React.Profiler as any, { id, onRender: handleRender }, children)
 }
 
 export default usePerformance

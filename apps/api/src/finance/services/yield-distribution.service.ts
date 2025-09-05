@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PayoutsService, MockPayout } from './payouts.service';
 import { PositionsService, MockPosition } from './positions.service';
+import { DatabaseService } from '../../database/database.service';
 
 // Future blockchain integration planned:
 // - BlockchainService for on-chain yield distribution
@@ -51,8 +52,8 @@ export class YieldDistributionService implements OnModuleInit {
   constructor(
     private payoutsService: PayoutsService,
     private positionsService: PositionsService,
+    private database: DatabaseService,
     // private blockchainService: BlockchainService,
-    // private databaseService: DatabaseService,
   ) {}
 
   async onModuleInit() {
@@ -335,8 +336,12 @@ export class YieldDistributionService implements OnModuleInit {
    * 计算每日收益
    */
   private async calculateDailyYield(position: MockPosition): Promise<number> {
-    // 获取产品信息
-    const product = await this.getProductInfo(position.productId);
+    // 从数据库获取产品信息
+    const product = await this.database.product.findUnique({
+      where: { id: position.productId },
+      select: { aprBps: true, name: true }
+    });
+    
     if (!product) {
       throw new Error(`产品 ${position.productId} 信息不存在`);
     }
@@ -361,24 +366,64 @@ export class YieldDistributionService implements OnModuleInit {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
     
-    const payout: MockPayout = {
-      id: `payout-${task.positionId}-${todayStart.getTime()}`,
-      userId: task.userId,
-      positionId: task.positionId,
-      amount: task.amount,
-      periodStart: todayStart,
-      periodEnd: todayEnd,
+    // 检查是否已存在今日收益记录
+    const existingPayout = await this.database.payout.findFirst({
+      where: {
+        positionId: task.positionId,
+        userId: task.userId,
+        periodStart: {
+          gte: todayStart,
+          lt: todayEnd
+        }
+      }
+    });
+    
+    if (existingPayout) {
+      this.logger.debug(`收益记录已存在: ${existingPayout.id}`);
+      return {
+        id: existingPayout.id,
+        userId: existingPayout.userId,
+        positionId: existingPayout.positionId,
+        amount: Number(existingPayout.amount),
+        periodStart: existingPayout.periodStart,
+        periodEnd: existingPayout.periodEnd,
+        status: existingPayout.claimedAt ? 'CLAIMED' : 'PENDING',
+        isClaimable: existingPayout.isClaimable,
+        claimedAt: existingPayout.claimedAt,
+        txHash: existingPayout.claimTxHash,
+        createdAt: existingPayout.createdAt,
+        updatedAt: existingPayout.updatedAt
+      };
+    }
+    
+    // 创建新的收益记录
+    const createdPayout = await this.database.payout.create({
+      data: {
+        userId: task.userId,
+        positionId: task.positionId,
+        amount: task.amount,
+        periodStart: todayStart,
+        periodEnd: todayEnd,
+        isClaimable: true
+      }
+    });
+    
+    this.logger.debug(`创建收益记录: ${createdPayout.id}`);
+    
+    return {
+      id: createdPayout.id,
+      userId: createdPayout.userId,
+      positionId: createdPayout.positionId,
+      amount: Number(createdPayout.amount),
+      periodStart: createdPayout.periodStart,
+      periodEnd: createdPayout.periodEnd,
       status: 'PENDING',
-      isClaimable: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      isClaimable: createdPayout.isClaimable,
+      claimedAt: createdPayout.claimedAt,
+      txHash: createdPayout.claimTxHash,
+      createdAt: createdPayout.createdAt,
+      updatedAt: createdPayout.updatedAt
     };
-    
-    // 这里应该保存到数据库
-    // await this.databaseService.createPayout(payout);
-    
-    this.logger.debug(`创建收益记录: ${payout.id}`);
-    return payout;
   }
 
   /**
@@ -480,9 +525,9 @@ export class YieldDistributionService implements OnModuleInit {
    */
   private async checkDatabaseHealth(): Promise<boolean> {
     try {
-      // 简单的数据库连接检查
-      // await this.databaseService.healthCheck();
-      return true;
+      // 使用 DatabaseService 的健康检查
+      const healthResult = await this.database.healthCheck();
+      return healthResult.status === 'healthy';
     } catch (error) {
       this.logger.error('数据库健康检查失败:', error);
       return false;
@@ -520,8 +565,25 @@ export class YieldDistributionService implements OnModuleInit {
    * 恢复待处理任务
    */
   private async recoverPendingTasks(): Promise<void> {
-    // 实际实现中应该从数据库加载未完成的任务
-    this.logger.log('检查并恢复待处理任务');
+    try {
+      // 查询未完成的批次作业
+      const pendingBatches = await this.database.batchJob.findMany({
+        where: {
+          type: 'PAYOUT_DISTRIBUTION',
+          status: { in: ['PENDING', 'PROCESSING'] }
+        },
+        orderBy: { createdAt: 'asc' }
+      });
+      
+      if (pendingBatches.length > 0) {
+        this.logger.log(`发现 ${pendingBatches.length} 个未完成的批次作业`);
+        // 可以在这里实现恢复逻辑
+      } else {
+        this.logger.log('没有待恢复的任务');
+      }
+    } catch (error) {
+      this.logger.error('恢复待处理任务失败:', error);
+    }
   }
 
   /**
@@ -548,17 +610,13 @@ export class YieldDistributionService implements OnModuleInit {
   }
 
   /**
-   * 获取产品信息
+   * 获取产品信息 (已移除，直接使用数据库查询)
    */
   private async getProductInfo(productId: string): Promise<any> {
-    // 模拟产品信息
-    const productMap = new Map([
-      ['prod-silver-001', { aprBps: 800, name: '银卡产品' }],
-      ['prod-gold-001', { aprBps: 1200, name: '金卡产品' }],
-      ['prod-diamond-001', { aprBps: 1800, name: '钻石卡产品' }],
-    ]);
-    
-    return productMap.get(productId);
+    return await this.database.product.findUnique({
+      where: { id: productId },
+      select: { aprBps: true, name: true, symbol: true }
+    });
   }
 
   /**

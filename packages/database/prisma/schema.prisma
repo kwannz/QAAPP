@@ -104,6 +104,8 @@ model User {
   commissions     Commission[]
   auditLogs       AuditLog[]
   withdrawals     Withdrawal[]
+  notifications   Notification[]
+  systemLogs      SystemLog[]
 
   @@map("users")
   @@index([email])
@@ -401,4 +403,115 @@ model BatchJob {
   @@map("batch_jobs")
   @@index([type, status])
   @@index([createdAt])
+}
+
+// 系统告警表
+model Alert {
+  id          String    @id @default(cuid())
+  title       String
+  message     String
+  severity    String    // LOW, MEDIUM, HIGH, CRITICAL
+  status      String    @default("TRIGGERED") // TRIGGERED, ACKNOWLEDGED, RESOLVED
+  module      String    // 告警来源模块
+  category    String?   // 告警分类
+  metadata    Json?     // 告警元数据
+  resolvedBy  String?   @map("resolved_by")
+  resolvedAt  DateTime? @map("resolved_at")
+  resolution  String?   // 解决方案
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("alerts")
+  @@index([status, severity])
+  @@index([module, createdAt])
+  @@index([createdAt])
+}
+
+// 通知表
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String?   @map("user_id")
+  type        String    // ORDER_APPROVED, COMMISSION_PAYMENT, SYSTEM_MAINTENANCE等
+  title       String
+  message     String
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status      String    @default("UNREAD") // UNREAD, READ, DELETED
+  channels    Json      // 发送渠道 ['EMAIL', 'PUSH', 'SMS']
+  data        Json?     // 通知相关数据
+  readAt      DateTime? @map("read_at")
+  sentAt      DateTime? @map("sent_at")
+  deliveredAt DateTime? @map("delivered_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // 关系
+  user        User?     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+  @@index([userId, status])
+  @@index([type, createdAt])
+  @@index([priority, createdAt])
+  @@index([createdAt])
+}
+
+// 通知模板表
+model NotificationTemplate {
+  id          String    @id @default(cuid())
+  name        String
+  type        String    // 模板类型
+  title       String
+  content     String    // 模板内容，支持变量替换
+  variables   Json      // 模板变量列表
+  channels    Json      // 支持的发送渠道
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("notification_templates")
+  @@index([type, isActive])
+}
+
+// 系统日志表
+model SystemLog {
+  id          String    @id @default(cuid())
+  level       String    // ERROR, WARN, INFO, DEBUG
+  message     String
+  module      String?   // 日志来源模块
+  userId      String?   @map("user_id")
+  metadata    Json?     // 额外的日志信息
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // 关系
+  user        User?     @relation(fields: [userId], references: [id])
+
+  @@map("system_logs")
+  @@index([level, timestamp])
+  @@index([module, timestamp])
+  @@index([userId, timestamp])
+  @@index([timestamp])
+}
+
+// 报告表
+model Report {
+  id            String    @id @default(cuid())
+  name          String
+  type          String    // financial_overview, commission_report等
+  status        String    @default("PROCESSING") // PROCESSING, COMPLETED, FAILED
+  format        String    // pdf, excel, csv
+  size          String?   // 文件大小
+  parameters    Json?     // 报告参数
+  downloadUrl   String?   @map("download_url")
+  expiresAt     DateTime? @map("expires_at")
+  generatedBy   String    @map("generated_by")
+  generatedAt   DateTime  @default(now()) @map("generated_at")
+  progress      Int       @default(0) // 生成进度 0-100
+  errorMessage  String?   @map("error_message")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("reports")
+  @@index([type, status])
+  @@index([generatedBy, generatedAt])
+  @@index([generatedAt])
 }

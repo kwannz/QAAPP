@@ -17,8 +17,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Auth } from '../auth/decorators/auth.decorator';
 import { 
   UpdateUserProfileDto, 
   AddWalletDto, 
@@ -128,8 +127,7 @@ export class UsersController {
       }
     }
   })
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Auth('ADMIN')
   @Get()
   async getAllUsers(@Query() queryDto: UserQueryDto) {
     return this.usersService.findAll(queryDto);
@@ -138,8 +136,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID (Admin only)' })
   @ApiResponse({ status: 200, description: 'User found', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Auth('ADMIN')
   @Get(':id')
   async getUserById(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
     return this.usersService.findById(id);
@@ -148,8 +145,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user KYC status (Admin only)' })
   @ApiResponse({ status: 200, description: 'KYC status updated successfully', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Auth('ADMIN')
   @Put(':id/kyc')
   async updateKycStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -162,8 +158,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user role (Admin only)' })
   @ApiResponse({ status: 200, description: 'User role updated successfully', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Auth('ADMIN')
   @Put(':id/role')
   async updateUserRole(
     @Param('id', ParseUUIDPipe) id: string,
@@ -176,8 +171,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Toggle user active status (Admin only)' })
   @ApiResponse({ status: 200, description: 'User status toggled successfully', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Post(':id/toggle-status')
   async toggleUserStatus(
@@ -189,8 +183,7 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Get user statistics (Admin only)' })
   @ApiResponse({ status: 200, description: 'User statistics retrieved successfully', type: UserStatsResponseDto })
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Auth('ADMIN')
   @Get('admin/stats')
   async getUserStats(@Query() statsDto: UserStatsDto): Promise<UserStatsResponseDto> {
     return this.usersService.getUserStats(statsDto);

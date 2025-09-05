@@ -41,6 +41,12 @@ export class MonitoringInterceptor implements NestInterceptor {
             duration
           );
 
+          // 如果设置了弃用头，记录弃用端点使用情况
+          const isDeprecated = response.getHeader('Deprecation');
+          if (isDeprecated) {
+            this.metricsService.recordDeprecation(request.path);
+          }
+
           // 记录请求日志
           this.logger.log(
             `${request.method} ${request.path} - ${response.statusCode} - ${duration}ms`
@@ -56,6 +62,11 @@ export class MonitoringInterceptor implements NestInterceptor {
             500,
             duration
           );
+          // 错误情况下也记录弃用端点（若头已设定）
+          const isDeprecated = response.getHeader('Deprecation');
+          if (isDeprecated) {
+            this.metricsService.recordDeprecation(request.path);
+          }
           
           // 记录错误日志
           this.logger.error(

@@ -100,9 +100,17 @@ class DataCacheManager {
         }
       }
 
-      // 3. IndexedDB缓存（暂未实现）
-      if (this.config.enableIndexedDB) {
-        // TODO: 实现IndexedDB缓存逻辑
+      // 3. IndexedDB缓存（浏览器持久化存储）
+      if (this.config.enableIndexedDB && typeof window !== 'undefined') {
+        try {
+          const idbValue = await this.getFromIndexedDB(key)
+          if (idbValue && !this.isExpired(idbValue, ttl)) {
+            this.stats.hitRate = this.calculateHitRate(true)
+            return idbValue.data
+          }
+        } catch (error) {
+          console.warn('IndexedDB cache error:', error)
+        }
       }
 
       this.stats.missRate = this.calculateHitRate(false)
