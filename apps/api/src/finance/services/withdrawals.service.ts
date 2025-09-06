@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WithdrawalStatus, WithdrawalType, RiskLevel, Prisma } from '@qa-app/database';
 // AuditService functionality integrated into monitoring module
@@ -31,6 +31,7 @@ export interface WithdrawalQueryDto {
 
 @Injectable()
 export class WithdrawalsService {
+  private readonly logger = new Logger(WithdrawalsService.name);
   constructor(
     private prisma: PrismaService,
     private riskEngine: RiskEngineService,
@@ -102,7 +103,7 @@ export class WithdrawalsService {
 
     // 记录审计日志
     // 审计日志功能已整合到监控模块
-    console.log('Audit log:', {
+    this.logger.debug('Audit log created:', {
       actorId,
       action: 'WITHDRAWAL_CREATED',
       resourceType: 'WITHDRAWAL',
@@ -242,7 +243,7 @@ export class WithdrawalsService {
 
     // 记录审计日志
     // 审计日志功能已整合到监控模块
-    console.log('Audit log:', {
+    this.logger.debug('Audit log created:', {
       actorId,
       action: 'WITHDRAWAL_UPDATED',
       resourceType: 'WITHDRAWAL',
@@ -276,7 +277,7 @@ export class WithdrawalsService {
 
     // 记录批次审计日志
     // 审计日志功能已整合到监控模块
-    console.log('Audit log:', {
+    this.logger.debug('Audit log created:', {
       actorId,
       action: 'WITHDRAWAL_BATCH_UPDATE',
       resourceType: 'WITHDRAWAL',

@@ -8,9 +8,11 @@ const nextConfig = {
   },
   serverExternalPackages: ['@prisma/client'],
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query', 'framer-motion'],
+    optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query', 'framer-motion', 'recharts'],
     // 启用部分预渲染（Beta）
     ppr: false,
+    // 启用CSS优化
+    optimizeCss: true,
   },
   turbopack: {
     rules: {
@@ -18,8 +20,18 @@ const nextConfig = {
     }
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production'
+    removeConsole: process.env.NODE_ENV === 'production',
+    // 启用SWC minification
+    styledComponents: true,
+    // React optimizations
+    reactRemoveProperties: process.env.NODE_ENV === 'production' ? true : false,
   },
+  // 启用压缩
+  compress: true,
+  // 启用静态优化
+  trailingSlash: false,
+  // PoweredBy header
+  poweredByHeader: false,
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // 支持Web3相关的Node.js模块
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
@@ -46,44 +58,79 @@ const nextConfig = {
         ...config.optimization.splitChunks,
         chunks: 'all',
         cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
+          // 分离React生态系统 - 最高优先级，最常用
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            name: 'react',
             chunks: 'all',
-            priority: 10,
+            priority: 40,
+            reuseExistingChunk: true,
+          },
+          // Next.js 核心
+          nextjs: {
+            test: /[\\/]node_modules[\\/](@next|next)[\\/]/,
+            name: 'nextjs',
+            chunks: 'all',
+            priority: 35,
+            reuseExistingChunk: true,
           },
           // 将大型UI库分离
           ui: {
-            test: /[\\/]node_modules[\\/](@headlessui|@heroicons|lucide-react)[\\/]/,
-            name: 'ui',
+            test: /[\\/]node_modules[\\/](@headlessui|@heroicons|lucide-react|@radix-ui)[\\/]/,
+            name: 'ui-icons',
             chunks: 'all',
-            priority: 20,
+            priority: 30,
+            reuseExistingChunk: true,
           },
-          // 将动画库分离
+          // 将Web3相关库分离 - 用于钱包页面
+          web3: {
+            test: /[\\/]node_modules[\\/](wagmi|viem|@wagmi|@rainbow-me|@walletconnect|@reown)[\\/]/,
+            name: 'web3',
+            chunks: 'all',
+            priority: 25,
+            reuseExistingChunk: true,
+          },
+          // 将动画库分离 - 用于动效
           animations: {
             test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
             name: 'animations',
             chunks: 'all',
-            priority: 20,
+            priority: 25,
+            reuseExistingChunk: true,
           },
-          // 将Web3相关库分离
-          web3: {
-            test: /[\\/]node_modules[\\/](wagmi|viem|@wagmi|@rainbow-me)[\\/]/,
-            name: 'web3',
+          // 工具库
+          utils: {
+            test: /[\\/]node_modules[\\/](lodash|date-fns|clsx|class-variance-authority)[\\/]/,
+            name: 'utils',
             chunks: 'all',
             priority: 20,
+            reuseExistingChunk: true,
+          },
+          // 图表库分离 - 仅管理页面使用
+          charts: {
+            test: /[\\/]node_modules[\\/](recharts|d3)[\\/]/,
+            name: 'charts',
+            chunks: 'all',
+            priority: 15,
+            reuseExistingChunk: true,
+          },
+          // 其他第三方库
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendor',
+            chunks: 'all',
+            priority: 10,
+            reuseExistingChunk: true,
           },
         },
       }
     }
     
-    // Bundle 分析
-    if (process.env.ANALYZE === 'true') {
-      const BundleAnalyzerPlugin = require('@next/bundle-analyzer')({
-        enabled: true,
-      })
-      config.plugins.push(new BundleAnalyzerPlugin())
-    }
+    // Bundle 分析 (disabled for now - using built-in analysis)
+    // if (process.env.ANALYZE === 'true') {
+    //   const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+    //   config.plugins.push(new BundleAnalyzerPlugin())
+    // }
     
     return config;
   },

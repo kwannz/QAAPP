@@ -2,16 +2,28 @@
 
 import React, { useState, useEffect } from 'react'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Input, 
+  Alert, 
+  AlertDescription, 
+  Badge, 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger, 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui'
 import { Wallet, Info, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
 import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses'
-import { WalletConnectionManager } from '@/components/wallet/WalletConnectionManager'
+import { WalletConnectionManager } from '@/components/ui'
 import { ETHPaymentFlow } from '@/components/payments/ETHPaymentFlow'
 import { contractManager, useContractManager } from '@/lib/contracts/contract-manager'
 import { useTreasury, useUSDT } from '@/lib/hooks/use-contracts'

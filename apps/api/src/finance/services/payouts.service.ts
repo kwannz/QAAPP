@@ -110,43 +110,122 @@ export class PayoutsService {
    * 获取所有活跃持仓
    */
   private async getActivePositions(): Promise<MockPosition[]> {
-    // 这里模拟从数据库获取活跃持仓
-    // 实际应该从Position表查询status='ACTIVE'的记录
-    const activePositions: MockPosition[] = [
-      {
-        id: 'pos-001',
-        userId: 'user-test-001',
-        productId: 'prod-silver-001',
-        orderId: 'order-001',
-        principal: 1000,
-        startDate: new Date('2024-08-20'),
-        endDate: new Date('2024-09-20'),
+    const positions = await this.database.position.findMany({
+      where: {
         status: 'ACTIVE',
-        createdAt: new Date('2024-08-20'),
-        updatedAt: new Date('2024-08-20'),
+        endDate: {
+          gte: new Date() // 确保持仓还没到期
+        }
       },
-      // 可以添加更多测试数据
-    ];
+      include: {
+        product: {
+          select: {
+            id: true,
+            aprBps: true,
+            name: true,
+            symbol: true,
+            lockDays: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true
+          }
+        }
+      }
+    });
 
-    return activePositions;
+    return positions.map(pos => ({
+      id: pos.id,
+      userId: pos.userId,
+      productId: pos.productId,
+      orderId: pos.orderId,
+      principal: Number(pos.principal),
+      startDate: pos.startDate,
+      endDate: pos.endDate,
+      nextPayoutAt: pos.nextPayoutAt,
+      nftTokenId: pos.nftTokenId,
+      nftTokenUri: pos.nftTokenUri,
+      status: pos.status as 'ACTIVE' | 'REDEEMING' | 'CLOSED' | 'DEFAULTED',
+      metadata: pos.metadata,
+      createdAt: pos.createdAt,
+      updatedAt: pos.updatedAt
+    }));
   }
 
   /**
    * 根据持仓和日期查找收益记录
    */
   private async findPayoutByPositionAndDate(positionId: string, date: Date): Promise<MockPayout | null> {
-    // 模拟数据库查询
-    // 实际应该查询Payout表中positionId和periodStart匹配的记录
-    return null; // 暂时返回null，表示没有找到现有记录
+    const payout = await this.database.payout.findFirst({
+      where: {
+        positionId,
+        periodStart: {
+          gte: date,
+          lt: new Date(date.getTime() + 24 * 60 * 60 * 1000) // 同一天
+        }
+      },
+      include: {
+        user: {
+          select: { id: true, email: true }
+        }
+      }
+    });
+
+    if (!payout) return null;
+
+    return {
+      id: payout.id,
+      userId: payout.userId,
+      positionId: payout.positionId,
+      amount: Number(payout.amount),
+      periodStart: payout.periodStart,
+      periodEnd: payout.periodEnd,
+      status: payout.claimedAt ? 'CLAIMED' : 'PENDING',
+      isClaimable: payout.isClaimable,
+      claimedAt: payout.claimedAt,
+      txHash: payout.claimTxHash,
+      createdAt: payout.createdAt,
+      updatedAt: payout.updatedAt
+    };
   }
 
   /**
    * 创建收益记录
    */
   private async createPayout(payout: MockPayout): Promise<MockPayout> {
-    // 这里应该保存到数据库
-    // 暂时只记录日志
-    return payout;
+    const createdPayout = await this.database.payout.create({
+      data: {
+        id: payout.id,
+        userId: payout.userId,
+        positionId: payout.positionId,
+        amount: payout.amount,
+        periodStart: payout.periodStart,
+        periodEnd: payout.periodEnd,
+        isClaimable: payout.isClaimable
+      },
+      include: {
+        user: {
+          select: { id: true, email: true }
+        }
+      }
+    });
+
+    return {
+      id: createdPayout.id,
+      userId: createdPayout.userId,
+      positionId: createdPayout.positionId,
+      amount: Number(createdPayout.amount),
+      periodStart: createdPayout.periodStart,
+      periodEnd: createdPayout.periodEnd,
+      status: createdPayout.claimedAt ? 'CLAIMED' : 'PENDING',
+      isClaimable: createdPayout.isClaimable,
+      claimedAt: createdPayout.claimedAt,
+      txHash: createdPayout.claimTxHash,
+      createdAt: createdPayout.createdAt,
+      updatedAt: createdPayout.updatedAt
+    };
   }
 
   /**
@@ -157,33 +236,39 @@ export class PayoutsService {
     totalAmount: number;
   }> {
     try {
-      // 模拟获取用户的可领取收益
-      const mockPayouts: MockPayout[] = [
-        {
-          id: 'payout-001',
-          userId: userId,
-          positionId: 'pos-001',
-          amount: 2.74,
-          periodStart: new Date('2024-08-24'),
-          periodEnd: new Date('2024-08-25'),
-          status: 'PENDING',
+      const payouts = await this.database.payout.findMany({
+        where: {
+          userId,
           isClaimable: true,
-          createdAt: new Date('2024-08-25'),
-          updatedAt: new Date('2024-08-25'),
+          claimedAt: null
         },
-        {
-          id: 'payout-002',
-          userId: userId,
-          positionId: 'pos-001',
-          amount: 2.74,
-          periodStart: new Date('2024-08-23'),
-          periodEnd: new Date('2024-08-24'),
-          status: 'PENDING',
-          isClaimable: true,
-          createdAt: new Date('2024-08-24'),
-          updatedAt: new Date('2024-08-24'),
+        include: {
+          user: {
+            select: { id: true, email: true }
+          },
+          position: {
+            select: { id: true, principal: true }
+          }
         },
-      ];
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      const mockPayouts: MockPayout[] = payouts.map(payout => ({
+        id: payout.id,
+        userId: payout.userId,
+        positionId: payout.positionId,
+        amount: Number(payout.amount),
+        periodStart: payout.periodStart,
+        periodEnd: payout.periodEnd,
+        status: 'PENDING',
+        isClaimable: payout.isClaimable,
+        claimedAt: payout.claimedAt,
+        txHash: payout.claimTxHash,
+        createdAt: payout.createdAt,
+        updatedAt: payout.updatedAt
+      }));
 
       const totalAmount = mockPayouts.reduce((sum, payout) => sum + payout.amount, 0);
 
@@ -233,6 +318,20 @@ export class PayoutsService {
       const claimTime = new Date();
 
       // 更新收益记录状态
+      await this.database.payout.updateMany({
+        where: {
+          id: { in: payoutIds },
+          userId,
+          isClaimable: true
+        },
+        data: {
+          claimedAt: claimTime,
+          claimTxHash: mockTxHash,
+          isClaimable: false,
+          updatedAt: claimTime
+        }
+      });
+
       const claimedPayouts = validPayouts.map(payout => ({
         ...payout,
         claimedAt: claimTime,
@@ -264,49 +363,71 @@ export class PayoutsService {
     totalPending: number;
   }> {
     try {
-      // 模拟收益历史数据
-      const allPayouts: MockPayout[] = [
-        {
-          id: 'payout-001',
-          userId: userId,
-          positionId: 'pos-001',
-          amount: 2.74,
-          periodStart: new Date('2024-08-24'),
-          periodEnd: new Date('2024-08-25'),
-          status: 'PENDING',
-          isClaimable: true,
-          createdAt: new Date('2024-08-25'),
-          updatedAt: new Date('2024-08-25'),
-        },
-        {
-          id: 'payout-003',
-          userId: userId,
-          positionId: 'pos-001',
-          amount: 2.74,
-          periodStart: new Date('2024-08-22'),
-          periodEnd: new Date('2024-08-23'),
-          status: 'CLAIMED',
-          isClaimable: false,
-          claimedAt: new Date('2024-08-23T10:30:00Z'),
-          txHash: '0xabcd1234...',
-          createdAt: new Date('2024-08-23'),
-          updatedAt: new Date('2024-08-23T10:30:00Z'),
-        },
-      ];
+      const { page = 1, limit = 20 } = queryDto;
+      const skip = (page - 1) * limit;
 
-      const totalClaimed = allPayouts
-        .filter(p => !p.isClaimable && p.claimedAt)
-        .reduce((sum, p) => sum + p.amount, 0);
+      const [payouts, total] = await Promise.all([
+        this.database.payout.findMany({
+          where: { userId },
+          include: {
+            user: {
+              select: { id: true, email: true }
+            },
+            position: {
+              select: { id: true, principal: true }
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit
+        }),
+        this.database.payout.count({ where: { userId } })
+      ]);
 
-      const totalPending = allPayouts
-        .filter(p => p.isClaimable)
-        .reduce((sum, p) => sum + p.amount, 0);
+      const allPayouts: MockPayout[] = payouts.map(payout => ({
+        id: payout.id,
+        userId: payout.userId,
+        positionId: payout.positionId,
+        amount: Number(payout.amount),
+        periodStart: payout.periodStart,
+        periodEnd: payout.periodEnd,
+        status: payout.claimedAt ? 'CLAIMED' : 'PENDING',
+        isClaimable: payout.isClaimable,
+        claimedAt: payout.claimedAt,
+        txHash: payout.claimTxHash,
+        createdAt: payout.createdAt,
+        updatedAt: payout.updatedAt
+      }));
 
-      this.logger.log(`Payout history for user ${userId}: ${allPayouts.length} records, claimed: $${totalClaimed.toFixed(2)}, pending: $${totalPending.toFixed(2)}`);
+      // 获取统计数据
+      const [claimedStats, pendingStats] = await Promise.all([
+        this.database.payout.aggregate({
+          where: {
+            userId,
+            claimedAt: { not: null }
+          },
+          _sum: { amount: true },
+          _count: true
+        }),
+        this.database.payout.aggregate({
+          where: {
+            userId,
+            isClaimable: true,
+            claimedAt: null
+          },
+          _sum: { amount: true },
+          _count: true
+        })
+      ]);
+
+      const totalClaimed = Number(claimedStats._sum.amount || 0);
+      const totalPending = Number(pendingStats._sum.amount || 0);
+
+      this.logger.log(`Payout history for user ${userId}: ${total} records, claimed: $${totalClaimed.toFixed(2)}, pending: $${totalPending.toFixed(2)}`);
 
       return {
         payouts: allPayouts,
-        total: allPayouts.length,
+        total,
         totalClaimed,
         totalPending,
       };
@@ -326,12 +447,40 @@ export class PayoutsService {
     totalUsers: number;
   }> {
     try {
-      // 模拟系统统计数据
+      const [distributedStats, pendingStats, activePositionCount, totalUserCount] = await Promise.all([
+        // 已分发收益
+        this.database.payout.aggregate({
+          where: {
+            claimedAt: { not: null }
+          },
+          _sum: { amount: true }
+        }),
+        // 待领取收益
+        this.database.payout.aggregate({
+          where: {
+            isClaimable: true,
+            claimedAt: null
+          },
+          _sum: { amount: true }
+        }),
+        // 活跃持仓数
+        this.database.position.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // 用户总数（有收益记录的用户）
+        this.database.payout.findMany({
+          select: { userId: true },
+          distinct: ['userId']
+        }).then(users => users.length)
+      ]);
+
       const stats = {
-        totalDistributed: 15420.50,
-        totalPending: 842.30,
-        activePositions: 156,
-        totalUsers: 89,
+        totalDistributed: Number(distributedStats._sum.amount || 0),
+        totalPending: Number(pendingStats._sum.amount || 0),
+        activePositions: activePositionCount,
+        totalUsers: totalUserCount,
       };
 
       this.logger.log(`System payout stats: distributed: $${stats.totalDistributed}, pending: $${stats.totalPending}`);
@@ -347,36 +496,40 @@ export class PayoutsService {
    */
   async generateClaimablePayouts(positionId: string, userId: string): Promise<MockPayout[]> {
     try {
-      // 模拟生成可领取收益
-      const now = new Date();
-      const claimablePayouts: MockPayout[] = [
-        {
-          id: `payout-${positionId}-${now.getTime()}-1`,
-          userId: userId,
-          positionId: positionId,
-          amount: 2.74,
-          periodStart: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-          periodEnd: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          status: 'PENDING',
+      const payouts = await this.database.payout.findMany({
+        where: {
+          positionId,
+          userId,
           isClaimable: true,
-          createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+          claimedAt: null
         },
-        {
-          id: `payout-${positionId}-${now.getTime()}-2`,
-          userId: userId,
-          positionId: positionId,
-          amount: 2.74,
-          periodStart: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          periodEnd: new Date(),
-          status: 'PENDING',
-          isClaimable: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+        include: {
+          user: {
+            select: { id: true, email: true }
+          },
+          position: {
+            select: { id: true, principal: true }
+          }
         },
-      ];
+        orderBy: {
+          periodStart: 'desc'
+        }
+      });
 
-      return claimablePayouts;
+      return payouts.map(payout => ({
+        id: payout.id,
+        userId: payout.userId,
+        positionId: payout.positionId,
+        amount: Number(payout.amount),
+        periodStart: payout.periodStart,
+        periodEnd: payout.periodEnd,
+        status: 'PENDING',
+        isClaimable: payout.isClaimable,
+        claimedAt: payout.claimedAt,
+        txHash: payout.claimTxHash,
+        createdAt: payout.createdAt,
+        updatedAt: payout.updatedAt
+      }));
     } catch (error) {
       this.logger.error(`Failed to generate claimable payouts for position ${positionId}:`, error);
       throw error;
@@ -388,66 +541,37 @@ export class PayoutsService {
    */
   async getPositionPayouts(positionId: string): Promise<MockPayout[]> {
     try {
-      // 模拟持仓收益历史
-      const now = new Date();
-      const payouts: MockPayout[] = [
-        // 已领取的收益
-        {
-          id: `payout-${positionId}-claimed-1`,
-          userId: 'user-test-001',
-          positionId: positionId,
-          amount: 2.74,
-          periodStart: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-          periodEnd: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-          status: 'CLAIMED',
-          isClaimable: false,
-          claimedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-          txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
-          createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-          updatedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      const payouts = await this.database.payout.findMany({
+        where: {
+          positionId
         },
-        {
-          id: `payout-${positionId}-claimed-2`,
-          userId: 'user-test-001',
-          positionId: positionId,
-          amount: 2.74,
-          periodStart: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-          periodEnd: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-          status: 'CLAIMED',
-          isClaimable: false,
-          claimedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-          txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
-          createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-          updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        include: {
+          user: {
+            select: { id: true, email: true }
+          },
+          position: {
+            select: { id: true, userId: true, principal: true }
+          }
         },
-        // 待领取的收益
-        {
-          id: `payout-${positionId}-pending-1`,
-          userId: 'user-test-001',
-          positionId: positionId,
-          amount: 2.74,
-          periodStart: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-          periodEnd: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          status: 'PENDING',
-          isClaimable: true,
-          createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-        },
-        {
-          id: `payout-${positionId}-pending-2`,
-          userId: 'user-test-001',
-          positionId: positionId,
-          amount: 2.74,
-          periodStart: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          periodEnd: new Date(),
-          status: 'PENDING',
-          isClaimable: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
 
-      return payouts;
+      return payouts.map(payout => ({
+        id: payout.id,
+        userId: payout.userId,
+        positionId: payout.positionId,
+        amount: Number(payout.amount),
+        periodStart: payout.periodStart,
+        periodEnd: payout.periodEnd,
+        status: payout.claimedAt ? 'CLAIMED' : 'PENDING',
+        isClaimable: payout.isClaimable,
+        claimedAt: payout.claimedAt,
+        txHash: payout.claimTxHash,
+        createdAt: payout.createdAt,
+        updatedAt: payout.updatedAt
+      }));
     } catch (error) {
       this.logger.error(`Failed to get payouts for position ${positionId}:`, error);
       throw error;
@@ -459,25 +583,36 @@ export class PayoutsService {
    */
   async findPayoutById(payoutId: string): Promise<MockPayout | null> {
     try {
-      // 模拟数据库查询
-      if (payoutId.includes('not-found')) {
+      const payout = await this.database.payout.findUnique({
+        where: { id: payoutId },
+        include: {
+          user: {
+            select: { id: true, email: true }
+          },
+          position: {
+            select: { id: true, userId: true, principal: true }
+          }
+        }
+      });
+
+      if (!payout) {
         return null;
       }
 
-      const mockPayout: MockPayout = {
-        id: payoutId,
-        userId: 'user-test-001',
-        positionId: 'pos-test-001',
-        amount: 2.74,
-        periodStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        periodEnd: new Date(),
-        status: 'PENDING',
-        isClaimable: true,
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        updatedAt: new Date(),
+      return {
+        id: payout.id,
+        userId: payout.userId,
+        positionId: payout.positionId,
+        amount: Number(payout.amount),
+        periodStart: payout.periodStart,
+        periodEnd: payout.periodEnd,
+        status: payout.claimedAt ? 'CLAIMED' : 'PENDING',
+        isClaimable: payout.isClaimable,
+        claimedAt: payout.claimedAt,
+        txHash: payout.claimTxHash,
+        createdAt: payout.createdAt,
+        updatedAt: payout.updatedAt
       };
-
-      return mockPayout;
     } catch (error) {
       this.logger.error(`Failed to find payout ${payoutId}:`, error);
       throw error;
@@ -496,14 +631,17 @@ export class PayoutsService {
     try {
       this.logger.log(`Processing claim for ${payoutIds.length} payouts by user ${userId}`);
 
-      // 模拟验证和计算
-      let totalAmount = 0;
-      for (const payoutId of payoutIds) {
-        const payout = await this.findPayoutById(payoutId);
-        if (payout && payout.status === 'PENDING') {
-          totalAmount += payout.amount;
+      // 验证收益记录并计算总金额
+      const payoutsToUpdate = await this.database.payout.findMany({
+        where: {
+          id: { in: payoutIds },
+          userId,
+          isClaimable: true,
+          claimedAt: null
         }
-      }
+      });
+
+      const totalAmount = payoutsToUpdate.reduce((sum, payout) => sum + Number(payout.amount), 0);
 
       if (totalAmount === 0) {
         return {
@@ -514,29 +652,32 @@ export class PayoutsService {
         };
       }
 
-      // 模拟区块链交易
+      // 生成模拟交易哈希
       const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
+      const claimTime = new Date();
       
-      // 模拟90%的成功率
-      const simulatedSuccess = Math.random() > 0.1;
+      // 更新数据库中的收益记录
+      await this.database.payout.updateMany({
+        where: {
+          id: { in: payoutIds },
+          userId,
+          isClaimable: true
+        },
+        data: {
+          claimedAt: claimTime,
+          claimTxHash: mockTxHash,
+          isClaimable: false,
+          updatedAt: claimTime
+        }
+      });
       
-      if (simulatedSuccess) {
-        this.logger.log(`Successfully claimed ${payoutIds.length} payouts, total: $${totalAmount.toFixed(6)}, tx: ${mockTxHash}`);
-        
-        return {
-          success: true,
-          totalAmount,
-          txHash: mockTxHash,
-        };
-      } else {
-        this.logger.error('Simulated blockchain transaction failure');
-        return {
-          success: false,
-          totalAmount: 0,
-          txHash: '',
-          message: '区块链交易失败，请重试',
-        };
-      }
+      this.logger.log(`Successfully claimed ${payoutsToUpdate.length} payouts, total: $${totalAmount.toFixed(6)}, tx: ${mockTxHash}`);
+      
+      return {
+        success: true,
+        totalAmount,
+        txHash: mockTxHash,
+      };
     } catch (error) {
       this.logger.error(`Failed to claim multiple payouts:`, error);
       return {

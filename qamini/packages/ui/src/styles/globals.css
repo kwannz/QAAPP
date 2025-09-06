@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 主色调 - 活力橙 */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 24.6 95.0% 53.1%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 34 100% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 34 100% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 34 100% 94%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 20 5.9% 90.0%;
+    --input: 20 5.9% 90.0%;
+    --ring: 24.6 95.0% 53.1%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 20.5 90.2% 48.2%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 12 6.5% 15.1%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 12 6.5% 15.1%;
+    --input: 12 6.5% 15.1%;
+    --ring: 20.5 90.2% 48.2%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* QA App 特定组件样式 */
+  .qa-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .qa-section {
+    @apply py-12 md:py-16 lg:py-20;
+  }
+
+  .qa-heading {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight;
+  }
+
+  .qa-subheading {
+    @apply text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl;
+  }
+
+  .qa-card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .qa-gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+  }
+
+  .qa-glass {
+    @apply bg-background/80 backdrop-blur-sm border border-white/20;
+  }
+
+  /* NFT 卡片特效 */
+  .nft-card-glow {
+    @apply relative before:absolute before:-inset-1 before:bg-gradient-to-r before:from-primary/20 before:to-primary/10 before:blur-lg before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500;
+  }
+
+  /* 投资仪表板样式 */
+  .investment-metric {
+    @apply p-4 rounded-lg border bg-card text-card-foreground;
+  }
+
+  .investment-metric-positive {
+    @apply text-green-600 bg-green-50 border-green-200;
+  }
+
+  .investment-metric-negative {
+    @apply text-red-600 bg-red-50 border-red-200;
+  }
+
+  .investment-metric-neutral {
+    @apply text-blue-600 bg-blue-50 border-blue-200;
+  }
+
+  /* 钱包连接状态 */
+  .wallet-connected {
+    @apply border-green-200 bg-green-50/50;
+  }
+
+  .wallet-disconnected {
+    @apply border-dashed border-primary/20;
+  }
+
+  .wallet-wrong-network {
+    @apply border-yellow-200 bg-yellow-50/50;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* 中文字体优化 */
+  .font-chinese {
+    font-family: "PingFang SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  }
+
+  /* 数字字体优化 */
+  .font-numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* 滚动条样式 */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(203 213 225) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(203 213 225);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184);
+  }
+
+  /* 安全区域适配 */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* 动画增强 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

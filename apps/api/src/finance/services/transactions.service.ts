@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DatabaseService } from '../../database/database.service'
+import { TransactionQueryWhere, TransactionStatusFilter, UnifiedTransaction, PaginatedTransactionResult } from '../interfaces/transaction.interface'
 
 export interface TransactionQuery {
   userId?: string
@@ -12,21 +13,6 @@ export interface TransactionQuery {
   offset?: number
 }
 
-export interface UnifiedTransaction {
-  id: string
-  type: 'PAYOUT' | 'WITHDRAWAL'
-  userId: string
-  userEmail: string
-  amount: number
-  currency: string
-  method: string
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
-  metadata?: any
-  createdAt: Date
-  updatedAt: Date
-  completedAt?: Date
-  failureReason?: string
-}
 
 @Injectable()
 export class TransactionsService {
@@ -41,18 +27,13 @@ export class TransactionsService {
    * 获取统一的交易记录
    * Phase 1: 基础实现，提供接口标准
    */
-  async findAll(query: TransactionQuery = {}): Promise<{
-    data: UnifiedTransaction[]
-    total: number
-    page: number
-    pageSize: number
-  }> {
+  async findAll(query: TransactionQuery = {}): Promise<PaginatedTransactionResult> {
     try {
       const limit = query.limit || 50
       const offset = query.offset || 0
       
       // 构建查询条件
-      const where: any = {}
+      const where: TransactionQueryWhere = {}
       
       if (query.userId) {
         where.userId = query.userId
@@ -69,7 +50,7 @@ export class TransactionsService {
       }
 
       // 构建状态筛选
-      const statusFilter: any = {}
+      const statusFilter: TransactionStatusFilter = {}
       if (query.status) {
         statusFilter.status = query.status
       }
@@ -328,9 +309,11 @@ export class TransactionsService {
           method: 'SYSTEM',
           status: updatedPayout.claimedAt ? 'COMPLETED' : 'PENDING',
           metadata: {
-            ...updatedPayout.metadata,
             ...metadata,
             positionId: updatedPayout.positionId,
+            periodStart: updatedPayout.periodStart,
+            periodEnd: updatedPayout.periodEnd,
+            claimTxHash: updatedPayout.claimTxHash,
             originalType: 'PAYOUT'
           },
           createdAt: updatedPayout.createdAt,
@@ -343,7 +326,7 @@ export class TransactionsService {
       // 尝试更新 withdrawal 记录
       const withdrawal = await this.database.withdrawal.findUnique({ where: { id } })
       if (withdrawal) {
-        const mappedStatus = this.mapStatusToWithdrawal(status)
+        const mappedStatus = this.mapStatusToWithdrawal(status) as any
         const updatedWithdrawal = await this.database.withdrawal.update({
           where: { id },
           data: {
@@ -369,7 +352,7 @@ export class TransactionsService {
           method: this.getWithdrawalMethod(updatedWithdrawal.chainId),
           status: this.mapWithdrawalStatus(updatedWithdrawal.status),
           metadata: {
-            ...updatedWithdrawal.metadata,
+            ...(typeof updatedWithdrawal.metadata === 'object' && updatedWithdrawal.metadata !== null ? updatedWithdrawal.metadata : {}),
             ...metadata,
             walletAddress: updatedWithdrawal.walletAddress,
             originalType: 'WITHDRAWAL'

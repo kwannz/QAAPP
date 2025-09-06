@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BlockchainService } from './blockchain.service';
 import { ethers } from 'ethers';
@@ -18,6 +18,7 @@ const QA_CARD_ABI = [
 
 @Injectable()
 export class ContractService {
+  private readonly logger = new Logger(ContractService.name);
   private provider: ethers.Provider;
   private treasuryContract: ethers.Contract;
   private qaCardContract: ethers.Contract;
@@ -48,7 +49,7 @@ export class ContractService {
       const balance = await this.treasuryContract.getBalance();
       return ethers.formatUnits(balance, 6); // USDT 6位小数
     } catch (error) {
-      console.error('获取Treasury余额失败:', error);
+      this.logger.error('获取Treasury余额失败', { error: error.message, stack: error.stack });
       return '0';
     }
   }
@@ -65,7 +66,7 @@ export class ContractService {
         isActive: productInfo.isActive
       };
     } catch (error) {
-      console.error('获取产品信息失败:', error);
+      this.logger.error('获取产品信息失败', { error: error.message, stack: error.stack });
       // 返回默认值
       const products = [
         { name: 'QA Silver Card', apr: '1200', minInvestment: '100', maxInvestment: '10000', duration: '30', isActive: true },
@@ -82,7 +83,7 @@ export class ContractService {
       const balance = await this.qaCardContract.balanceOf(userAddress, tokenId);
       return balance.toString();
     } catch (error) {
-      console.error('获取NFT余额失败:', error);
+      this.logger.error('获取NFT余额失败', { error: error.message, stack: error.stack });
       return '0';
     }
   }
@@ -104,7 +105,7 @@ export class ContractService {
       }
       return nfts;
     } catch (error) {
-      console.error('获取用户NFT失败:', error);
+      this.logger.error('获取用户NFT失败', { error: error.message, stack: error.stack });
       return [];
     }
   }
@@ -123,7 +124,7 @@ export class ContractService {
         });
       });
     } catch (error) {
-      console.error('监听合约事件失败:', error);
+      this.logger.error('监听合约事件失败', { error: error.message, stack: error.stack });
     }
   }
 }

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Gift, Users, TrendingUp } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui'
 
 export function CTASection() {
   return (

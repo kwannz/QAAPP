@@ -1,0 +1,39 @@
+{
+  "name": "@qa-app/database",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:postgresql": "psql -U qa_user -d postgres -f ../../scripts/migrate-to-postgresql.sql",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:init": "bash scripts/init-db.sh",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset",
+    "db:backup": "pg_dump -U qa_user qa_database > backup.sql",
+    "db:restore": "psql -U qa_user qa_database < backup.sql"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "bcryptjs": "^2.4.3",
+    "pg": "^8.12.0",
+    "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "prisma": "^6.15.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

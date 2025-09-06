@@ -33,6 +33,8 @@ export class PerformanceOptimizerService implements OnModuleInit {
   private metrics: OptimizationMetrics
   private queryCache = new Map<string, { result: any; timestamp: number; ttl: number }>()
   private responseCache = new Map<string, { data: any; timestamp: number; ttl: number }>()
+  private readonly maxCacheSize = 1000
+  private readonly cacheCleanupInterval = 300000 // 5 minutes
 
   constructor(private configService: ConfigService) {
     this.config = {
@@ -65,6 +67,11 @@ export class PerformanceOptimizerService implements OnModuleInit {
     this.logger.log('Performance Optimizer initialized')
     this.startPerformanceMonitoring()
     await this.initializeCacheWarmup()
+    
+    // Start cache cleanup interval
+    setInterval(() => {
+      this.cleanupCaches()
+    }, this.cacheCleanupInterval)
   }
 
   /**
@@ -518,6 +525,7 @@ export class PerformanceOptimizerService implements OnModuleInit {
     }
     return totalSize
   }
+
 
   /**
    * 清理和重置

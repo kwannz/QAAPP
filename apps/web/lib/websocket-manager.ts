@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events'
 import logger from './logger'
+import apiClient from './api-client'
 
 export interface WebSocketMessage {
   type: 'audit_log' | 'system_event' | 'alert' | 'notification' | 'metrics'
@@ -111,7 +112,10 @@ export class WebSocketManager extends EventEmitter {
     
     // 检查后端服务是否运行
     if (typeof window !== 'undefined') {
-      fetch('http://localhost:3001/health')
+      // 计算根服务健康检查URL（去掉 /api 前缀）
+      const baseURL = (apiClient.defaults.baseURL || '') as string
+      const rootURL = baseURL.replace(/\/?api\/?$/, '') || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
+      fetch(`${rootURL}/health`)
         .then(() => {
           setTimeout(() => {
             this.connect()
@@ -119,8 +123,6 @@ export class WebSocketManager extends EventEmitter {
         })
         .catch(() => {
           console.warn('Backend service not available, skipping WebSocket reconnection')
-          // 可选：在后端不可用时停止重连尝试
-          // this.reconnectAttempts = this.maxReconnectAttempts
         })
     }
   }

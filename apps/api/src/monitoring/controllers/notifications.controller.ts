@@ -7,20 +7,17 @@ import {
   Body, 
   Param, 
   Query,
-  UseGuards,
   HttpCode,
   HttpStatus
 } from '@nestjs/common';
 import { NotificationsService } from '../services/notifications.service';
-import { Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Auth } from '../../auth/decorators/auth.decorator';
 
 @ApiTags('notifications')
 @Controller('notifications')
 export class NotificationsController {
-  constructor(@Inject('NotificationsService') private readonly notificationsService: any) {}
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   // ==================== 用户端点 ====================
 
@@ -111,8 +108,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get all notifications for admin' })
   @ApiResponse({ status: 200, description: 'Notifications retrieved successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/list')
   async getAdminNotifications(
     @Query('type') type?: string,
@@ -137,8 +133,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Send notification to user' })
   @ApiResponse({ status: 201, description: 'Notification sent successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('admin/send')
   async sendNotification(
     @Body() notificationData: {
@@ -159,8 +154,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Send bulk notifications' })
   @ApiResponse({ status: 200, description: 'Bulk notifications sent successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('admin/send-bulk')
   async sendBulkNotifications(
     @Body() bulkData: {
@@ -179,8 +173,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get notification templates' })
   @ApiResponse({ status: 200, description: 'Notification templates retrieved successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/templates')
   async getNotificationTemplates() {
     return this.notificationsService.getNotificationTemplates();
@@ -189,8 +182,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Create notification template' })
   @ApiResponse({ status: 201, description: 'Notification template created successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('admin/templates')
   async createNotificationTemplate(
     @Body() templateData: {
@@ -208,8 +200,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Update notification template' })
   @ApiResponse({ status: 200, description: 'Notification template updated successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Put('admin/templates/:templateId')
   async updateNotificationTemplate(
@@ -229,8 +220,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Delete notification template' })
   @ApiResponse({ status: 200, description: 'Notification template deleted successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Delete('admin/templates/:templateId')
   async deleteNotificationTemplate(@Param('templateId') templateId: string) {
     return this.notificationsService.deleteNotificationTemplate(templateId);
@@ -239,8 +229,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get notification statistics for admin' })
   @ApiResponse({ status: 200, description: 'Notification statistics retrieved successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/stats')
   async getAdminNotificationStats(
     @Query('period') period?: string,
@@ -252,8 +241,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get notification delivery report' })
   @ApiResponse({ status: 200, description: 'Notification delivery report retrieved successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/delivery-report')
   async getDeliveryReport(
     @Query('notificationId') notificationId?: string,
@@ -272,8 +260,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Retry failed notifications' })
   @ApiResponse({ status: 200, description: 'Failed notifications retry initiated' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Post('admin/retry-failed')
   async retryFailedNotifications(
@@ -289,8 +276,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Schedule notification campaign' })
   @ApiResponse({ status: 201, description: 'Notification campaign scheduled successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('admin/campaigns')
   async scheduleCampaign(
     @Body() campaignData: {
@@ -309,8 +295,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get notification campaigns' })
   @ApiResponse({ status: 200, description: 'Notification campaigns retrieved successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('admin/campaigns')
   async getCampaigns(
     @Query('status') status?: string,
@@ -323,8 +308,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Cancel scheduled campaign' })
   @ApiResponse({ status: 200, description: 'Campaign cancelled successfully' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Delete('admin/campaigns/:campaignId')
   async cancelCampaign(@Param('campaignId') campaignId: string) {

@@ -1,26 +1,33 @@
-'use client'
+'use client';
 
-import { ReactNode, useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  Eye, 
-  EyeOff, 
-  Calendar, 
+import { motion } from 'framer-motion';
+import {
+  Eye,
+  EyeOff,
+  Calendar,
   Upload,
   X,
   Plus,
   AlertCircle,
-  CheckCircle
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+  CheckCircle,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useState, useEffect } from 'react';
+
+import { 
+  Badge, 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Checkbox, 
+  Input, 
+  Label, 
+  Select, 
+  Textarea 
+} from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 export interface FormField {
   key: string
@@ -52,7 +59,7 @@ export interface FormField {
   className?: string
 }
 
-interface FormBuilderProps {
+interface FormBuilderProperties {
   fields: FormField[]
   onSubmit: (data: Record<string, any>) => void | Promise<void>
   onCancel?: () => void
@@ -85,198 +92,199 @@ export function FormBuilder({
   layout = 'vertical',
   gridCols = 2,
   validateOnChange = true,
-  resetOnSubmit = false
-}: FormBuilderProps) {
-  const [formData, setFormData] = useState<Record<string, any>>({})
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({})
-  const [isDirty, setIsDirty] = useState(false)
+  resetOnSubmit = false,
+}: FormBuilderProperties) {
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+  const [isDirty, setIsDirty] = useState(false);
 
   // 初始化表单数据
   useEffect(() => {
-    const initialData: Record<string, any> = {}
-    fields.forEach(field => {
+    const initialData: Record<string, any> = {};
+    for (const field of fields) {
       if (field.defaultValue !== undefined) {
-        initialData[field.key] = field.defaultValue
+        initialData[field.key] = field.defaultValue;
       } else if (field.type === 'checkbox') {
-        initialData[field.key] = false
+        initialData[field.key] = false;
       } else if (field.type === 'number') {
-        initialData[field.key] = 0
+        initialData[field.key] = 0;
       } else {
-        initialData[field.key] = ''
+        initialData[field.key] = '';
       }
-    })
-    setFormData(initialData)
-  }, [fields])
+    }
+    setFormData(initialData);
+  }, [fields]);
 
   // 字段验证
   const validateField = (field: FormField, value: any): string | null => {
     // 必填验证
     if (field.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
-      return `${field.label}是必填项`
+      return `${field.label}是必填项`;
     }
 
     if (!value || (typeof value === 'string' && value.trim() === '')) {
-      return null
+      return null;
     }
 
-    const validation = field.validation
-    if (!validation) return null
+    const { validation } = field;
+    if (!validation) return null;
 
     // 长度验证
     if (validation.minLength && String(value).length < validation.minLength) {
-      return `${field.label}至少需要 ${validation.minLength} 个字符`
+      return `${field.label}至少需要 ${validation.minLength} 个字符`;
     }
     if (validation.maxLength && String(value).length > validation.maxLength) {
-      return `${field.label}不能超过 ${validation.maxLength} 个字符`
+      return `${field.label}不能超过 ${validation.maxLength} 个字符`;
     }
 
     // 数值验证
     if (field.type === 'number') {
-      const numValue = Number(value)
-      if (validation.min !== undefined && numValue < validation.min) {
-        return `${field.label}不能小于 ${validation.min}`
+      const numberValue = Number(value);
+      if (validation.min !== undefined && numberValue < validation.min) {
+        return `${field.label}不能小于 ${validation.min}`;
       }
-      if (validation.max !== undefined && numValue > validation.max) {
-        return `${field.label}不能大于 ${validation.max}`
+      if (validation.max !== undefined && numberValue > validation.max) {
+        return `${field.label}不能大于 ${validation.max}`;
       }
     }
 
     // 正则验证
     if (validation.pattern && !validation.pattern.test(String(value))) {
-      return `${field.label}格式不正确`
+      return `${field.label}格式不正确`;
     }
 
     // 自定义验证
     if (validation.custom) {
-      return validation.custom(value)
+      return validation.custom(value);
     }
 
-    return null
-  }
+    return null;
+  };
 
   // 处理字段值变化
   const handleFieldChange = (field: FormField, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field.key]: value
-    }))
-    setIsDirty(true)
+    setFormData(previous => ({
+      ...previous,
+      [field.key]: value,
+    }));
+    setIsDirty(true);
 
     if (validateOnChange) {
-      const error = validateField(field, value)
-      setErrors(prev => ({
-        ...prev,
-        [field.key]: error || ''
-      }))
+      const error = validateField(field, value);
+      setErrors(previous => ({
+        ...previous,
+        [field.key]: error || '',
+      }));
     }
-  }
+  };
 
   // 检查字段是否应该显示
   const shouldShowField = (field: FormField): boolean => {
-    if (!field.dependencies) return true
-    
+    if (!field.dependencies) return true;
+
     return field.dependencies.every(dep => {
-      const depValue = formData[dep.field]
-      const conditionMet = dep.condition(depValue)
-      return dep.action === 'show' ? conditionMet : !conditionMet
-    })
-  }
+      const depValue = formData[dep.field];
+      const conditionMet = dep.condition(depValue);
+      return dep.action === 'show' ? conditionMet : !conditionMet;
+    });
+  };
 
   // 检查字段是否应该启用
   const shouldEnableField = (field: FormField): boolean => {
-    if (field.disabled) return false
-    if (!field.dependencies) return true
-    
+    if (field.disabled) return false;
+    if (!field.dependencies) return true;
+
     return field.dependencies.every(dep => {
-      const depValue = formData[dep.field]
-      const conditionMet = dep.condition(depValue)
-      if (dep.action === 'enable') return conditionMet
-      if (dep.action === 'disable') return !conditionMet
-      return true
-    })
-  }
+      const depValue = formData[dep.field];
+      const conditionMet = dep.condition(depValue);
+      if (dep.action === 'enable') return conditionMet;
+      if (dep.action === 'disable') return !conditionMet;
+      return true;
+    });
+  };
 
   // 表单验证
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-    let hasErrors = false
+    const newErrors: FormErrors = {};
+    let hasErrors = false;
 
-    fields.forEach(field => {
-      if (!shouldShowField(field)) return
-      
-      const error = validateField(field, formData[field.key])
+    for (const field of fields) {
+      if (!shouldShowField(field)) continue;
+
+      const error = validateField(field, formData[field.key]);
       if (error) {
-        newErrors[field.key] = error
-        hasErrors = true
+        newErrors[field.key] = error;
+        hasErrors = true;
       }
-    })
+    }
 
-    setErrors(newErrors)
-    return !hasErrors
-  }
+    setErrors(newErrors);
+    return !hasErrors;
+  };
 
   // 处理提交
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
+    e.preventDefault();
+
+    if (!validateForm()) return;
 
     try {
-      await onSubmit(formData)
+      await onSubmit(formData);
       if (resetOnSubmit) {
-        setFormData({})
-        setIsDirty(false)
+        setFormData({});
+        setIsDirty(false);
       }
     } catch (error) {
-      console.error('Form submission error:', error)
+      console.error('Form submission error:', error);
     }
-  }
+  };
 
   // 渲染字段
   const renderField = (field: FormField) => {
-    if (!shouldShowField(field)) return null
-    
-    const value = formData[field.key]
-    const error = errors[field.key]
-    const disabled = !shouldEnableField(field) || loading
-    
-    const fieldId = `field-${field.key}`
-    const commonProps = {
+    if (!shouldShowField(field)) return null;
+
+    const value = formData[field.key];
+    const error = errors[field.key];
+    const disabled = !shouldEnableField(field) || loading;
+
+    const fieldId = `field-${field.key}`;
+    const commonProperties = {
       id: fieldId,
       name: field.key,
       disabled,
       className: cn(
         'w-full',
         error && 'border-red-500',
-        field.className
-      )
-    }
+        field.className,
+      ),
+    };
 
-    let fieldElement: ReactNode
+    let fieldElement: ReactNode;
 
     switch (field.type) {
       case 'text':
       case 'email':
-      case 'number':
+      case 'number': {
         fieldElement = (
           <Input
-            {...commonProps}
+            {...commonProperties}
             type={field.type}
             placeholder={field.placeholder}
             value={value || ''}
-            onChange={(e) => handleFieldChange(field, 
-              field.type === 'number' ? Number(e.target.value) : e.target.value
+            onChange={(e) => handleFieldChange(field,
+              field.type === 'number' ? Number(e.target.value) : e.target.value,
             )}
           />
-        )
-        break
+        );
+        break;
+      }
 
-      case 'password':
+      case 'password': {
         fieldElement = (
           <div className="relative">
             <Input
-              {...commonProps}
+              {...commonProperties}
               type={showPasswords[field.key] ? 'text' : 'password'}
               placeholder={field.placeholder}
               value={value || ''}
@@ -287,37 +295,41 @@ export function FormBuilder({
               variant="ghost"
               size="sm"
               className="absolute right-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
-              onClick={() => setShowPasswords(prev => ({
-                ...prev,
-                [field.key]: !prev[field.key]
+              onClick={() => setShowPasswords(previous => ({
+                ...previous,
+                [field.key]: !previous[field.key],
               }))}
             >
-              {showPasswords[field.key] ? (
+              {showPasswords[field.key]
+? (
                 <EyeOff className="h-4 w-4" />
-              ) : (
+              )
+: (
                 <Eye className="h-4 w-4" />
               )}
             </Button>
           </div>
-        )
-        break
+        );
+        break;
+      }
 
-      case 'textarea':
+      case 'textarea': {
         fieldElement = (
           <Textarea
-            {...commonProps}
+            {...commonProperties}
             placeholder={field.placeholder}
             value={value || ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
             rows={3}
           />
-        )
-        break
+        );
+        break;
+      }
 
-      case 'select':
+      case 'select': {
         fieldElement = (
           <select
-            {...commonProps}
+            {...commonProperties}
             value={value || ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
             className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -333,10 +345,11 @@ export function FormBuilder({
               </option>
             ))}
           </select>
-        )
-        break
+        );
+        break;
+      }
 
-      case 'checkbox':
+      case 'checkbox': {
         fieldElement = (
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -352,10 +365,11 @@ export function FormBuilder({
               {field.label}
             </label>
           </div>
-        )
-        break
+        );
+        break;
+      }
 
-      case 'radio':
+      case 'radio': {
         fieldElement = (
           <div className="space-y-2">
             {field.options?.map((option) => (
@@ -379,32 +393,34 @@ export function FormBuilder({
               </div>
             ))}
           </div>
-        )
-        break
+        );
+        break;
+      }
 
-      case 'date':
+      case 'date': {
         fieldElement = (
           <div className="relative">
             <Input
-              {...commonProps}
+              {...commonProperties}
               type="date"
               value={value || ''}
               onChange={(e) => handleFieldChange(field, e.target.value)}
             />
             <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
           </div>
-        )
-        break
+        );
+        break;
+      }
 
-      case 'file':
+      case 'file': {
         fieldElement = (
           <div className="space-y-2">
             <Input
-              {...commonProps}
+              {...commonProperties}
               type="file"
               onChange={(e) => {
-                const file = e.target.files?.[0]
-                handleFieldChange(field, file)
+                const file = e.target.files?.[0];
+                handleFieldChange(field, file);
               }}
             />
             {value && (
@@ -422,18 +438,20 @@ export function FormBuilder({
               </div>
             )}
           </div>
-        )
-        break
+        );
+        break;
+      }
 
-      default:
+      default: {
         fieldElement = (
           <Input
-            {...commonProps}
+            {...commonProperties}
             placeholder={field.placeholder}
             value={value || ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
           />
-        )
+        );
+      }
     }
 
     return (
@@ -445,7 +463,7 @@ export function FormBuilder({
         className={cn(
           'space-y-2',
           field.grid?.span && `col-span-${field.grid.span}`,
-          field.grid?.order && `order-${field.grid.order}`
+          field.grid?.order && `order-${field.grid.order}`,
         )}
       >
         {field.type !== 'checkbox' && (
@@ -464,9 +482,9 @@ export function FormBuilder({
             )}
           </div>
         )}
-        
+
         {fieldElement}
-        
+
         {error && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -478,11 +496,11 @@ export function FormBuilder({
           </motion.div>
         )}
       </motion.div>
-    )
-  }
+    );
+  };
 
-  const visibleFields = fields.filter(field => shouldShowField(field))
-  const hasErrors = Object.values(errors).some(error => error)
+  const visibleFields = fields.filter(field => shouldShowField(field));
+  const hasErrors = Object.values(errors).some(Boolean);
 
   return (
     <Card className={cn('w-full', className)}>
@@ -494,14 +512,15 @@ export function FormBuilder({
           )}
         </CardHeader>
       )}
-      
+
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className={cn(
             layout === 'grid' && `grid gap-4 grid-cols-1 md:grid-cols-${gridCols}`,
             layout === 'horizontal' && 'space-y-4',
-            layout === 'vertical' && 'space-y-4'
-          )}>
+            layout === 'vertical' && 'space-y-4',
+          )}
+          >
             {visibleFields.map(field => renderField(field))}
           </div>
 
@@ -521,7 +540,7 @@ export function FormBuilder({
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center space-x-3">
               {onCancel && (
                 <Button
@@ -539,7 +558,7 @@ export function FormBuilder({
                 className="flex items-center gap-2"
               >
                 {loading && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                 )}
                 {submitLabel}
               </Button>
@@ -548,23 +567,23 @@ export function FormBuilder({
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // 预定义字段类型
 export const FieldTypes = {
-  email: (key: string, label: string = '邮箱', required: boolean = true): FormField => ({
+  email: (key: string, label = '邮箱', required = true): FormField => ({
     key,
     label,
     type: 'email',
     required,
     placeholder: '请输入邮箱地址',
     validation: {
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    }
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    },
   }),
 
-  password: (key: string, label: string = '密码', required: boolean = true): FormField => ({
+  password: (key: string, label = '密码', required = true): FormField => ({
     key,
     label,
     type: 'password',
@@ -572,38 +591,38 @@ export const FieldTypes = {
     placeholder: '请输入密码',
     validation: {
       minLength: 6,
-      maxLength: 50
-    }
+      maxLength: 50,
+    },
   }),
 
-  phone: (key: string, label: string = '手机号', required: boolean = true): FormField => ({
+  phone: (key: string, label = '手机号', required = true): FormField => ({
     key,
     label,
     type: 'text',
     required,
     placeholder: '请输入手机号',
     validation: {
-      pattern: /^1[3-9]\d{9}$/
-    }
+      pattern: /^1[3-9]\d{9}$/,
+    },
   }),
 
-  money: (key: string, label: string, required: boolean = true): FormField => ({
+  money: (key: string, label: string, required = true): FormField => ({
     key,
     label,
     type: 'number',
     required,
     placeholder: '请输入金额',
     validation: {
-      min: 0
-    }
+      min: 0,
+    },
   }),
 
-  select: (key: string, label: string, options: { label: string; value: any }[], required: boolean = true): FormField => ({
+  select: (key: string, label: string, options: { label: string; value: any }[], required = true): FormField => ({
     key,
     label,
     type: 'select',
     required,
-    options
+    options,
   }),
 
   multiSelect: (key: string, label: string, options: { label: string; value: any }[]): FormField => ({
@@ -611,9 +630,9 @@ export const FieldTypes = {
     label,
     type: 'checkbox',
     options,
-    defaultValue: []
-  })
-}
+    defaultValue: [],
+  }),
+};
 
 // 表单模板
 export const FormTemplates = {
@@ -624,7 +643,7 @@ export const FormTemplates = {
       label: '姓名',
       type: 'text',
       required: true,
-      placeholder: '请输入姓名'
+      placeholder: '请输入姓名',
     },
     FieldTypes.phone('phone'),
     {
@@ -635,9 +654,9 @@ export const FormTemplates = {
       options: [
         { label: '用户', value: 'USER' },
         { label: '代理', value: 'AGENT' },
-        { label: '管理员', value: 'ADMIN' }
-      ]
-    }
+        { label: '管理员', value: 'ADMIN' },
+      ],
+    },
   ],
 
   product: (): FormField[] => [
@@ -646,13 +665,13 @@ export const FormTemplates = {
       label: '产品名称',
       type: 'text',
       required: true,
-      placeholder: '请输入产品名称'
+      placeholder: '请输入产品名称',
     },
     {
       key: 'description',
       label: '产品描述',
       type: 'textarea',
-      placeholder: '请输入产品描述'
+      placeholder: '请输入产品描述',
     },
     FieldTypes.money('price', '价格'),
     {
@@ -663,15 +682,15 @@ export const FormTemplates = {
       options: [
         { label: '基础产品', value: 'BASIC' },
         { label: '高级产品', value: 'PREMIUM' },
-        { label: '企业产品', value: 'ENTERPRISE' }
-      ]
+        { label: '企业产品', value: 'ENTERPRISE' },
+      ],
     },
     {
       key: 'isActive',
       label: '启用状态',
       type: 'checkbox',
-      defaultValue: true
-    }
+      defaultValue: true,
+    },
   ],
 
   commission: (): FormField[] => [
@@ -684,8 +703,8 @@ export const FormTemplates = {
       placeholder: '请输入佣金比例',
       validation: {
         min: 0,
-        max: 100
-      }
+        max: 100,
+      },
     },
     {
       key: 'type',
@@ -695,8 +714,8 @@ export const FormTemplates = {
       options: [
         { label: '直接销售', value: 'DIRECT_SALE' },
         { label: '推荐奖励', value: 'REFERRAL_BONUS' },
-        { label: '绩效奖金', value: 'PERFORMANCE_BONUS' }
-      ]
-    }
-  ]
-}
+        { label: '绩效奖金', value: 'PERFORMANCE_BONUS' },
+      ],
+    },
+  ],
+};

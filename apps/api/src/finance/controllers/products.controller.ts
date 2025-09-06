@@ -25,8 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { ProductsService } from '../services/products.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Auth } from '../../auth/decorators/auth.decorator';
 import { 
   CreateProductDto, 
   UpdateProductDto, 
@@ -116,8 +115,7 @@ export class ProductsController {
     status: 409, 
     description: 'Product with this symbol already exists'
   })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiBearerAuth()
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -155,8 +153,7 @@ export class ProductsController {
     status: 404, 
     description: 'Product not found'
   })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiBearerAuth()
   @Patch(':id')
   async update(
@@ -192,8 +189,7 @@ export class ProductsController {
     status: 404, 
     description: 'Product not found'
   })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiBearerAuth()
   @Delete(':id')
   async remove(

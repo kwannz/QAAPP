@@ -99,8 +99,8 @@ const FEATURE_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   },
 
   performanceOptimization: {
-    enabled: false,
-    rolloutPercentage: 0,
+    enabled: true,
+    rolloutPercentage: 100,
     description: '性能优化 - 代码分割、懒加载、图片优化',
     environments: ['development', 'staging', 'production']
   }

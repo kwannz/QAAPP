@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "@qa-app/shared": ["./packages/shared/src"],
+      "@qa-app/ui": ["./packages/ui/src"],
+      "@qa-app/database": ["./packages/database/src"],
+      "@qa-app/contracts": ["./packages/contracts/src"]
+    }
+  },
+  "references": [
+    { "path": "./apps/api" },
+    { "path": "./apps/web" },
+    { "path": "./packages/shared" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/database" },
+    { "path": "./packages/contracts" }
+  ],
+  "files": [],
+  "include": [
+    "packages/*/src/**/*",
+    "apps/*/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    "coverage",
+    ".turbo",
+    "*.min.js"
+  ]
+}

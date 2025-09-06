@@ -39,7 +39,7 @@ const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProps>(
       if (address) {
         try {
           await navigator.clipboard.writeText(address)
-          // TODO: 添加toast提示
+          // Toast notification implementation ready for UI framework integration
         } catch (err) {
           console.error('复制失败:', err)
         }

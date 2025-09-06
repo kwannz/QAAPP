@@ -3,12 +3,21 @@
 import React, { useState, useEffect } from 'react'
 import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits, formatEther, formatUnits } from 'viem'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Button, 
+  Badge, 
+  Alert, 
+  AlertDescription, 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger, 
+  Separator 
+} from '@/components/ui'
 import { 
   Loader2, 
   CheckCircle, 
@@ -26,6 +35,7 @@ import {
   History
 } from 'lucide-react'
 import { useTreasury } from '@/lib/hooks/use-contracts'
+import apiClient from '@/lib/api-client'
 import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses'
 import { toast } from 'react-hot-toast'
 
@@ -98,12 +108,8 @@ export function TransactionFlow({
   const fetchPayouts = async () => {
     if (!localStorage.getItem('token')) return []
     try {
-      const response = await fetch(`${API_BASE_URL}/finance/payouts`, {
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) throw new Error('获取分红记录失败')
-      const data = await response.json()
-      return data.data || []
+      const { data } = await apiClient.get('/finance/transactions', { params: { type: 'PAYOUT' } })
+      return (data as any)?.data || []
     } catch (error) {
       console.error('Failed to fetch payouts:', error)
       return []
@@ -113,12 +119,8 @@ export function TransactionFlow({
   const fetchTransactions = async () => {
     if (!localStorage.getItem('token')) return []
     try {
-      const response = await fetch(`${API_BASE_URL}/finance/orders`, {
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) throw new Error('获取交易历史失败')
-      const data = await response.json()
-      return data.data || []
+      const { data } = await apiClient.get('/finance/orders')
+      return (data as any)?.data || []
     } catch (error) {
       console.error('Failed to fetch transactions:', error)
       return []

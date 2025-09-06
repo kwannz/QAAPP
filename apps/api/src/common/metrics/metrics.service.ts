@@ -15,6 +15,7 @@ export class MetricsService {
   private metrics = new Map<string, SimpleMetric>();
   private requests: number = 0;
   private errors: number = 0;
+  private deprecations: Map<string, number> = new Map();
 
   constructor() {
     this.logger.log('Simple metrics service initialized');
@@ -89,6 +90,24 @@ export class MetricsService {
   getAllMetrics(): SimpleMetric[] {
     return Array.from(this.metrics.values())
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  /**
+   * Record deprecation usage for legacy endpoints
+   */
+  recordDeprecation(path: string): void {
+    const current = this.deprecations.get(path) || 0;
+    this.deprecations.set(path, current + 1);
+    this.setMetric('deprecated_endpoint_hit', current + 1, { path });
+  }
+
+  /**
+   * Get deprecation stats (sorted desc by count)
+   */
+  getDeprecationStats(): { path: string; count: number }[] {
+    return Array.from(this.deprecations.entries())
+      .map(([path, count]) => ({ path, count }))
+      .sort((a, b) => b.count - a.count);
   }
 
   private buildKey(name: string, labels?: Record<string, string>): string {

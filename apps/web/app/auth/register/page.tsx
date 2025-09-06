@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 
-import { Button, FormInput, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { authApi } from '../../../lib/api-client'
 import { useAuthStore } from '../../../lib/auth-context'
 import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
@@ -136,7 +136,7 @@ export default function RegisterPage() {
             <CardContent className="space-y-6">
               {/* 邮箱注册表单 */}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <FormInput
+                <Input
                   {...register('email')}
                   type="email"
                   label="邮箱地址"
@@ -146,7 +146,7 @@ export default function RegisterPage() {
                   loading={isLoading}
                 />
 
-                <FormInput
+                <Input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   label="密码"
@@ -166,7 +166,7 @@ export default function RegisterPage() {
                   loading={isLoading}
                 />
 
-                <FormInput
+                <Input
                   {...register('confirmPassword')}
                   type={showConfirmPassword ? 'text' : 'password'}
                   label="确认密码"
@@ -185,7 +185,7 @@ export default function RegisterPage() {
                   loading={isLoading}
                 />
 
-                <FormInput
+                <Input
                   {...register('referralCode')}
                   type="text"
                   label="推荐码（可选）"

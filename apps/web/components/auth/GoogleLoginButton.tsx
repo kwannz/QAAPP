@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui'
 import { useAuthStore } from '@/lib/auth-context'
 import { toast } from 'sonner'
 

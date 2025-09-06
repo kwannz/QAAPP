@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis, { Cluster } from 'ioredis';
-import { LRUCache } from 'lru-cache';
+import * as LRU from 'lru-cache';
 // msgpack-lite not available - using JSON serialization
 import {
   CacheLayer,
@@ -21,7 +21,7 @@ interface CacheItem<T = any> {
 @Injectable()
 export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MultiLayerCacheService.name);
-  private l1Cache: LRUCache<string, CacheItem>;
+  private l1Cache: any;
   private l2Cache: Redis | Cluster;
   private config: MultiLayerCacheConfig;
   private stats: Map<CacheLayer, CacheStats> = new Map();
@@ -74,7 +74,8 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
       (this.config.l1.maxMemoryMB * 1024 * 1024) / 1024 // Average item size 1KB
     );
 
-    this.l1Cache = new LRUCache<string, CacheItem>({
+    const LruCtor: any = (LRU as any).LRUCache || (LRU as any).default || (LRU as any);
+    this.l1Cache = new LruCtor({
       max: maxItems,
       ttl: this.config.l1.ttl,
       allowStale: false,
@@ -296,9 +297,8 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
 
   private async getKeysByPattern(pattern: string): Promise<string[]> {
     // L1缓存模式匹配
-    const l1Keys = Array.from(this.l1Cache.keys()).filter(key => 
-      this.matchPattern(key, pattern)
-    );
+    const l1Keys = Array.from(this.l1Cache.keys() as IterableIterator<string>)
+      .filter((key) => this.matchPattern(key, pattern));
 
     // L2缓存模式匹配
     const l2Keys = await this.l2Cache.keys(pattern);

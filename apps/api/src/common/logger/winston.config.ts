@@ -1,3 +1,7 @@
+/**
+ * Authoritative Winston logger configuration for API.
+ * All modules should import from this file; do not reintroduce parallel configs.
+ */
 import { WinstonModuleOptions } from 'nest-winston';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';

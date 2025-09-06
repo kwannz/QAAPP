@@ -8,7 +8,6 @@ import { StatsSection } from '../components/home/StatsSection'
 import { CTASection } from '../components/home/CTASection'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
-import { DevNavigation } from '../components/dev/DevNavigation'
 
 export const metadata: Metadata = {
   title: 'QA App - Web3固定收益投资平台',
@@ -21,8 +20,6 @@ export default function HomePage() {
       <Header />
       
       <main className="flex-1">
-        {/* 开发导航区域 */}
-        <DevNavigation />
 
         {/* 英雄区域 */}
         <Suspense fallback={<div className="h-screen animate-pulse bg-gradient-to-br from-blue-50 to-indigo-100" />}>

@@ -1,3 +1,8 @@
+/**
+ * DEPRECATED: Prefer using `common/database/optimized-queries.service` as the authoritative
+ * query optimization entry. This service remains for backward compatibility and
+ * will be gradually phased out. Do not add new dependencies to this file.
+ */
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from './database.service';
 // PerformanceService integrated into monitoring module

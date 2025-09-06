@@ -26,14 +26,11 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Card, Button, Badge, Separator } from '@/components/ui'
 import { Header } from '../../../components/layout/Header'
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'
 import { TabContainer } from '../../../components/common/TabContainer'
-import { MetricsCard } from '../../../components/common/MetricsCard'
+import { MetricsCard } from '@/components/ui'
 import { FilterPanel } from '../../../components/common/FilterPanel'
 import { useFeatureFlag } from '../../../lib/feature-flags'
 import { motion } from 'framer-motion'
@@ -89,16 +86,9 @@ export default function AnalyticsPage() {
   const fetchAnalyticsData = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/monitoring/dashboard', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setAnalyticsData(data)
-      }
+      const { monitoringApi } = await import('@/lib/api-client')
+      const { data } = await monitoringApi.getDashboard('24h')
+      setAnalyticsData(data)
     } catch (error) {
       console.error('获取分析数据失败:', error)
     } finally {

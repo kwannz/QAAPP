@@ -6,17 +6,16 @@ import {
   Body, 
   Param, 
   Query, 
-  UseGuards,
   HttpCode,
   HttpStatus,
   Headers,
   Res,
+  UseGuards,
   BadRequestException
 } from '@nestjs/common'
 import { Response } from 'express'
+import { Auth } from '../../auth/decorators/auth.decorator'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
-import { RolesGuard } from '../../auth/guards/roles.guard'
-import { Roles } from '../../auth/decorators/roles.decorator'
 import { TransactionsService, TransactionQuery } from '../services/transactions.service'
 import { 
   GetTransactionsDto,
@@ -26,7 +25,7 @@ import {
 } from '../dto'
 
 @Controller('finance/transactions')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@Auth()
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
@@ -35,7 +34,7 @@ export class TransactionsController {
    * 新端点 - 整合 payouts + withdrawals
    */
   @Get()
-  @Roles('ADMIN', 'AGENT')
+  @Auth('ADMIN', 'AGENT')
   async getTransactions(@Query() query: GetTransactionsDto) {
     const transactionQuery: TransactionQuery = {
       userId: query.userId,
@@ -54,7 +53,7 @@ export class TransactionsController {
    * 获取单个交易详情
    */
   @Get(':id')
-  @Roles('ADMIN', 'AGENT')
+  @Auth('ADMIN', 'AGENT')
   async getTransaction(@Param('id') id: string) {
     return this.transactionsService.findOne(id)
   }
@@ -63,7 +62,7 @@ export class TransactionsController {
    * 更新交易状态
    */
   @Patch(':id/status')
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   async updateTransactionStatus(
     @Param('id') id: string,
     @Body() updateDto: UpdateTransactionStatusDto
@@ -80,7 +79,7 @@ export class TransactionsController {
    */
   @Post(':id/process')
   @HttpCode(HttpStatus.OK)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   async processTransaction(
     @Param('id') id: string,
     @Body() processDto: ProcessTransactionDto
@@ -96,7 +95,7 @@ export class TransactionsController {
    * 批量更新交易状态
    */
   @Patch('bulk/status')
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   async bulkUpdateStatus(@Body() body: {
     ids: string[]
     status: string
@@ -117,7 +116,7 @@ export class TransactionsController {
    * 获取交易统计
    */
   @Get('stats/overview')
-  @Roles('ADMIN', 'AGENT')
+  @Auth('ADMIN', 'AGENT')
   async getStatistics(@Query() query: GetTransactionsDto) {
     const transactionQuery: TransactionQuery = {
       userId: query.userId,
@@ -134,7 +133,7 @@ export class TransactionsController {
    * 获取交易概览（仪表板用）
    */
   @Get('overview/:timeRange')
-  @Roles('ADMIN', 'AGENT')
+  @Auth('ADMIN', 'AGENT')
   async getOverview(@Param('timeRange') timeRange: '24h' | '7d' | '30d') {
     return this.transactionsService.getOverview(timeRange)
   }
@@ -143,7 +142,7 @@ export class TransactionsController {
    * 导出交易数据
    */
   @Post('export')
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   async exportTransactions(
     @Body() exportDto: ExportTransactionsDto,
     @Res() res: Response
@@ -189,8 +188,7 @@ export class LegacyTransactionsController {
    * 代理旧的 payouts 路由
    */
   @Get('payouts')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   async getLegacyPayouts(
     @Query() query: any,
     @Headers() headers: Record<string, string>,
@@ -242,8 +240,7 @@ export class LegacyTransactionsController {
    * 代理旧的 withdrawals 路由
    */
   @Get('withdrawals')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   async getLegacyWithdrawals(
     @Query() query: any,
     @Headers() headers: Record<string, string>,

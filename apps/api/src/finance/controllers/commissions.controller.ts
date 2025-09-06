@@ -1,8 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Auth } from '../../auth/decorators/auth.decorator';
 import { CommissionsService } from '../services/commissions.service';
 
 @ApiTags('Finance - Commissions')
@@ -30,8 +29,7 @@ export class CommissionsController {
   }
 
   @Get('admin/list')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Get admin commission list with filters' })
   @ApiResponse({ status: 200, description: 'Admin commission list retrieved' })
   async getAdminCommissionList(@Query() filters: any) {
@@ -39,8 +37,7 @@ export class CommissionsController {
   }
 
   @Get('stats')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Get commission statistics' })
   @ApiResponse({ status: 200, description: 'Commission statistics retrieved' })
   async getCommissionStats(@Query('period') period?: string) {
@@ -48,8 +45,7 @@ export class CommissionsController {
   }
 
   @Post('calculate')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Calculate commissions for period' })
   @ApiResponse({ status: 200, description: 'Commission calculation completed' })
   async calculateCommissions(@Body() calculationData: any) {
@@ -57,8 +53,7 @@ export class CommissionsController {
   }
 
   @Post('process-payments')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Process commission payments' })
   @ApiResponse({ status: 200, description: 'Commission payments processed' })
   async processCommissionPayments(@Body() paymentData: any) {
@@ -66,8 +61,7 @@ export class CommissionsController {
   }
 
   @Get('breakdown')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Get commission breakdown' })
   @ApiResponse({ status: 200, description: 'Commission breakdown retrieved' })
   async getCommissionBreakdown(
@@ -78,8 +72,7 @@ export class CommissionsController {
   }
 
   @Put('structure')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Update commission structure' })
   @ApiResponse({ status: 200, description: 'Commission structure updated' })
   async updateCommissionStructure(@Body() structureData: any) {
@@ -87,8 +80,7 @@ export class CommissionsController {
   }
 
   @Get('rules')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Get commission rules' })
   @ApiResponse({ status: 200, description: 'Commission rules retrieved' })
   async getCommissionRules() {
@@ -96,8 +88,7 @@ export class CommissionsController {
   }
 
   @Put('rules')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Update commission rules' })
   @ApiResponse({ status: 200, description: 'Commission rules updated' })
   async updateCommissionRules(@Body() rulesData: any) {
@@ -105,8 +96,7 @@ export class CommissionsController {
   }
 
   @Post('reports/generate')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Generate commission report' })
   @ApiResponse({ status: 200, description: 'Commission report generated' })
   async generateCommissionReport(@Body() reportData: any) {
@@ -114,8 +104,7 @@ export class CommissionsController {
   }
 
   @Post('export')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Export commission data' })
   @ApiResponse({ status: 200, description: 'Commission data exported' })
   async exportCommissions(@Body() exportData: any) {
@@ -123,8 +112,7 @@ export class CommissionsController {
   }
 
   @Post('validate')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Validate commission calculations' })
   @ApiResponse({ status: 200, description: 'Commission validation completed' })
   async validateCommissions(@Body() validationData: any) {
@@ -132,8 +120,7 @@ export class CommissionsController {
   }
 
   @Post('retry-failed-payments')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @ApiOperation({ summary: 'Retry failed commission payments' })
   @ApiResponse({ status: 200, description: 'Failed payments retry completed' })
   async retryFailedPayments(@Body() retryData: any) {

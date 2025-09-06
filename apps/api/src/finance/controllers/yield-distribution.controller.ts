@@ -11,8 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Auth } from '../../auth/decorators/auth.decorator';
 import { YieldDistributionService, DistributionBatch, YieldDistributionTask } from '../services/yield-distribution.service';
 
 class TriggerDistributionDto {
@@ -59,8 +58,7 @@ export class YieldDistributionController {
   @ApiResponse({ status: 400, description: '请求参数无效' })
   @ApiResponse({ status: 403, description: '权限不足' })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @HttpCode(HttpStatus.OK)
   @Post('trigger')
   async triggerDistribution(
@@ -201,8 +199,7 @@ export class YieldDistributionController {
     description: '系统健康状态获取成功'
   })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('health')
   async getSystemHealth(): Promise<{
     healthy: boolean;
@@ -232,8 +229,7 @@ export class YieldDistributionController {
     description: '配置信息获取成功'
   })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('config')
   async getDistributionConfig(): Promise<{
     scheduleCron: string;
@@ -259,8 +255,7 @@ export class YieldDistributionController {
     description: '自动分发已暂停'
   })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('pause')
   async pauseAutomaticDistribution(): Promise<{
     success: boolean;
@@ -281,8 +276,7 @@ export class YieldDistributionController {
     description: '自动分发已恢复'
   })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('resume')
   async resumeAutomaticDistribution(): Promise<{
     success: boolean;
@@ -304,8 +298,7 @@ export class YieldDistributionController {
   @ApiQuery({ name: 'batchId', required: false, description: '批次ID过滤' })
   @ApiQuery({ name: 'limit', required: false, description: '返回数量限制', example: 50 })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('failed-tasks')
   async getFailedTasks(
     @Query('batchId') batchId?: string,
@@ -328,8 +321,7 @@ export class YieldDistributionController {
     description: '重试任务已提交'
   })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Post('retry-failed/:batchId')
   async retryFailedTasks(
     @Param('batchId') batchId: string
@@ -364,8 +356,7 @@ export class YieldDistributionController {
   @ApiQuery({ name: 'endDate', required: false, description: '结束日期 YYYY-MM-DD' })
   @ApiQuery({ name: 'format', required: false, description: '导出格式', enum: ['json', 'csv'] })
   @ApiBearerAuth()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Auth('ADMIN')
   @Get('export')
   async exportDistributionReport(
     @Query('startDate') startDate?: string,

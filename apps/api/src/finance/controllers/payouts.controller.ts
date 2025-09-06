@@ -12,10 +12,13 @@ import {
   NotFoundException,
   Logger
 } from '@nestjs/common';
+import { Res } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PayoutsService } from '../services/payouts.service';
 import { PositionsService } from '../services/positions.service';
+import { Deprecated } from '../../common/decorators/deprecated.decorator';
 
 // DTO定义
 class ClaimPayoutsDto {
@@ -60,6 +63,12 @@ class ClaimResponseDto {
 @Controller('payouts')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
+@Deprecated({
+  since: 'v2.1.0',
+  until: 'v3.0.0', 
+  replacement: '/api/finance/transactions',
+  reason: 'Payouts integrated into unified transactions API'
+})
 export class PayoutsController {
   private readonly logger = new Logger(PayoutsController.name);
 
@@ -77,8 +86,13 @@ export class PayoutsController {
   @ApiResponse({ status: 404, description: '用户不存在' })
   @Get('user/:userId/claimable')
   async getUserClaimablePayouts(
-    @Param('userId') userId: string
+    @Param('userId') userId: string,
+    @Res({ passthrough: true }) res: Response
   ): Promise<ClaimablePayoutsResponseDto> {
+    // Deprecation notice: migrate to unified transactions endpoint
+    res.setHeader('Deprecation', 'true');
+    res.setHeader('X-API-Deprecation-Info', 'Use /finance/transactions?type=PAYOUT instead. This endpoint will be removed in v2.0');
+    this.logger.warn('Deprecated API called: GET /payouts/user/:userId/claimable');
     try {
       // 获取用户的所有持仓（包括活跃和可赎回状态）
       const userPositions = await this.positionsService.getUserPositions(userId);
@@ -142,8 +156,12 @@ export class PayoutsController {
   async getUserPayoutHistory(
     @Param('userId') userId: string,
     @Query('page') page: string = '1',
-    @Query('limit') limit: string = '20'
+    @Query('limit') limit: string = '20',
+    @Res({ passthrough: true }) res: Response
   ): Promise<PayoutHistoryResponseDto> {
+    res.setHeader('Deprecation', 'true');
+    res.setHeader('X-API-Deprecation-Info', 'Use /finance/transactions?type=PAYOUT instead. This endpoint will be removed in v2.0');
+    this.logger.warn('Deprecated API called: GET /payouts/user/:userId/history');
     try {
       const pageNum = parseInt(page, 10) || 1;
       const limitNum = parseInt(limit, 10) || 20;
@@ -224,8 +242,12 @@ export class PayoutsController {
   @HttpCode(HttpStatus.OK)
   @Post('claim')
   async claimPayouts(
-    @Body() claimDto: ClaimPayoutsDto
+    @Body() claimDto: ClaimPayoutsDto,
+    @Res({ passthrough: true }) res: Response
   ): Promise<ClaimResponseDto> {
+    res.setHeader('Deprecation', 'true');
+    res.setHeader('X-API-Deprecation-Info', 'Use /finance/transactions for payout processing instead. This endpoint will be removed in v2.0');
+    this.logger.warn('Deprecated API called: POST /payouts/claim');
     try {
       const { userId, payoutIds } = claimDto;
 

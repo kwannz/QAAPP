@@ -1,0 +1,47 @@
+{
+  "name": "@qa-app/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "hardhat compile",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:coverage": "hardhat coverage",
+    "clean": "hardhat clean",
+    "size": "hardhat size-contracts",
+    "flatten": "hardhat flatten",
+    
+    "node": "hardhat node",
+    "node:fork": "FORK_MAINNET=true hardhat node",
+    "start-local": "node ../../scripts/start-local-blockchain.js",
+    
+    "deploy": "hardhat deploy",
+    "deploy:local": "hardhat deploy --network localhost",
+    "deploy:sepolia": "hardhat deploy --network sepolia",
+    
+    "verify:sepolia": "hardhat verify --network sepolia",
+    
+    "test:local": "hardhat test --network localhost",
+    "test:sepolia": "hardhat test --network sepolia",
+    "test:integration": "npm run deploy:local && hardhat test --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.4",
+    "@openzeppelin/hardhat-upgrades": "^3.2.3",
+    "@types/node": "^22.10.2",
+    "hardhat": "^2.22.15",
+    "hardhat-contract-sizer": "^2.10.1",
+    "hardhat-deploy": "^0.12.4",
+    "hardhat-gas-reporter": "^1.0.10",
+    "solidity-coverage": "^0.8.7",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0",
+    "@openzeppelin/contracts-upgradeable": "^5.2.0",
+    "axios": "^1.11.0",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.4"
+  }
+}

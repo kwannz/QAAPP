@@ -1,15 +1,12 @@
 import { Controller, Get, Query, Post, UseGuards, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Auth } from '../../auth/decorators/auth.decorator';
 import { OptimizedQueriesService } from './optimized-queries.service';
 import { UserRole } from '@qa-app/database';
 
 @ApiTags('Database Optimization')
 @Controller('admin/database-optimization')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Auth('ADMIN')
 @ApiBearerAuth()
 export class DatabaseOptimizationController {
   private readonly logger = new Logger(DatabaseOptimizationController.name);

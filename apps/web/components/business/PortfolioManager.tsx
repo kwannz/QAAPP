@@ -1,13 +1,22 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Badge, 
+  Button, 
+  Alert, 
+  AlertDescription, 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger, 
+  Input 
+} from '@/components/ui'
 import { toast } from 'react-hot-toast'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
 import { 
   TrendingUp, 
   Clock, 
@@ -27,6 +36,7 @@ import {
   Eye
 } from 'lucide-react'
 import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses'
+import apiClient from '@/lib/api-client'
 
 // 类型定义 (整合自 positions 和 products)
 interface Position {
@@ -88,55 +98,28 @@ export function PortfolioManager({
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
-  // API 服务函数
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-  
-  const getAuthHeaders = () => ({
-    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    'Content-Type': 'application/json'
-  })
-
+  // API 服务（使用统一 apiClient）
   const fetchUserPositions = async () => {
-    const response = await fetch(`${API_BASE_URL}/finance/positions`, {
-      headers: getAuthHeaders()
-    })
-    if (!response.ok) throw new Error('获取持仓信息失败')
-    const data = await response.json()
-    return data.data || []
+    const { data } = await apiClient.get('/finance/positions')
+    return (data as any)?.data || []
   }
 
   const fetchProducts = async () => {
-    const response = await fetch(`${API_BASE_URL}/finance/products`, {
-      headers: getAuthHeaders()
-    })
-    if (!response.ok) throw new Error('获取产品信息失败')
-    const data = await response.json()
-    return data.data || []
+    const { data } = await apiClient.get('/finance/products')
+    return (data as any)?.data || []
   }
 
   const fetchPortfolioSummary = async () => {
-    const response = await fetch(`${API_BASE_URL}/users/me/portfolio`, {
-      headers: getAuthHeaders()
-    })
-    if (!response.ok) throw new Error('获取投资组合摘要失败')
-    const data = await response.json()
+    const { data } = await apiClient.get('/users/me/portfolio')
     return data
   }
 
   const createOrder = async (productId: string, amount: number) => {
-    const response = await fetch(`${API_BASE_URL}/finance/orders`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        productId,
-        usdtAmount: amount
-      })
+    const { data } = await apiClient.post('/finance/orders', {
+      productId,
+      usdtAmount: amount
     })
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || '创建订单失败')
-    }
-    return response.json()
+    return data
   }
 
   const loadData = async () => {

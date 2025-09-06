@@ -1,12 +1,11 @@
-'use client'
+'use client';
 
-import { ReactNode, useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ArrowUpDown, 
-  ArrowUp, 
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
   ArrowDown,
   Search,
   Filter,
@@ -16,13 +15,40 @@ import {
   Trash2,
   MoreHorizontal,
   CheckSquare,
-  Square
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+  Square,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+} from 'lucide-react';
+import { useState, useMemo } from 'react';
+import type { ReactNode } from 'react';
+
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, cn } from '@/components/ui';
+
+// Audit-specific types and configurations
+interface AuditLog {
+  id: string
+  timestamp: string
+  user?: string
+  action: string
+  resource: string
+  result: 'success' | 'failure' | 'warning'
+  ip?: string
+  userAgent?: string
+  details?: any
+}
+
+const auditResultIcons = {
+  success: CheckCircle,
+  failure: XCircle,
+  warning: AlertTriangle,
+};
+
+const auditResultColors = {
+  success: 'text-green-600',
+  failure: 'text-red-600',
+  warning: 'text-yellow-600',
+};
 
 export interface TableColumn<T = any> {
   key: keyof T
@@ -59,7 +85,7 @@ interface TableFilter {
   value?: string
 }
 
-interface DataTableProps<T = any> {
+interface DataTableProperties<T = any> {
   data: T[]
   columns: TableColumn<T>[]
   loading?: boolean
@@ -77,6 +103,7 @@ interface DataTableProps<T = any> {
   selectable?: boolean
   exportable?: boolean
   title?: string
+  preset?: 'default' | 'audit' | 'monitoring'
   description?: string
   className?: string
   emptyMessage?: string
@@ -96,127 +123,129 @@ export function DataTable<T extends Record<string, any>>({
   searchable = true,
   selectable = false,
   exportable = false,
+  preset = 'default',
   title,
   description,
   className,
   emptyMessage = '暂无数据',
-  onExport
-}: DataTableProps<T>) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortColumn, setSortColumn] = useState<keyof T | null>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
-  const [selectedRows, setSelectedRows] = useState<Set<T>>(new Set())
-  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({})
-  const [showFilters, setShowFilters] = useState(false)
+  onExport,
+}: DataTableProperties<T>) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortColumn, setSortColumn] = useState<keyof T | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [selectedRows, setSelectedRows] = useState<Set<T>>(new Set());
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [showFilters, setShowFilters] = useState(false);
 
   // 处理排序
   const handleSort = (column: keyof T) => {
-    if (!columns.find(col => col.key === column)?.sortable) return
-    
+    if (!columns.find(col => col.key === column)?.sortable) return;
+
     if (sortColumn === column) {
-      setSortDirection(prev => 
-        prev === 'asc' ? 'desc' : prev === 'desc' ? null : 'asc'
-      )
+      setSortDirection(previous =>
+        previous === 'asc' ? 'desc' : (previous === 'desc' ? null : 'asc'),
+      );
     } else {
-      setSortColumn(column)
-      setSortDirection('asc')
+      setSortColumn(column);
+      setSortDirection('asc');
     }
-  }
+  };
 
   // 处理行选择
   const handleRowSelect = (row: T) => {
-    const newSelected = new Set(selectedRows)
+    const newSelected = new Set(selectedRows);
     if (newSelected.has(row)) {
-      newSelected.delete(row)
+      newSelected.delete(row);
     } else {
-      newSelected.add(row)
+      newSelected.add(row);
     }
-    setSelectedRows(newSelected)
-  }
+    setSelectedRows(newSelected);
+  };
 
   const handleSelectAll = () => {
     if (selectedRows.size === filteredAndSortedData.length) {
-      setSelectedRows(new Set())
+      setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(filteredAndSortedData))
+      setSelectedRows(new Set(filteredAndSortedData));
     }
-  }
+  };
 
   // 数据处理
   const filteredAndSortedData = useMemo(() => {
-    let result = [...data]
+    let result = [...data];
 
     // 搜索过滤
     if (searchTerm && searchable) {
-      const searchableColumns = columns.filter(col => col.searchable !== false)
+      const searchableColumns = columns.filter(col => col.searchable !== false);
       result = result.filter(row =>
         searchableColumns.some(col =>
           String(row[col.key])
             .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-        )
-      )
+            .includes(searchTerm.toLowerCase()),
+        ),
+      );
     }
 
     // 筛选器过滤
-    Object.entries(activeFilters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(activeFilters)) {
       if (value && value !== 'all') {
-        result = result.filter(row => String(row[key]) === value)
+        result = result.filter(row => String(row[key]) === value);
       }
-    })
+    }
 
     // 排序
     if (sortColumn && sortDirection) {
       result.sort((a, b) => {
-        const aValue = a[sortColumn]
-        const bValue = b[sortColumn]
-        
+        const aValue = a[sortColumn];
+        const bValue = b[sortColumn];
+
         if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
+          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
         }
-        
-        const aString = String(aValue).toLowerCase()
-        const bString = String(bValue).toLowerCase()
-        
+
+        const aString = String(aValue).toLowerCase();
+        const bString = String(bValue).toLowerCase();
+
         if (sortDirection === 'asc') {
-          return aString.localeCompare(bString, 'zh-CN')
-        } else {
-          return bString.localeCompare(aString, 'zh-CN')
+          return aString.localeCompare(bString, 'zh-CN');
         }
-      })
+          return bString.localeCompare(aString, 'zh-CN');
+      });
     }
 
-    return result
-  }, [data, searchTerm, sortColumn, sortDirection, activeFilters, columns, searchable])
+    return result;
+  }, [data, searchTerm, sortColumn, sortDirection, activeFilters, columns, searchable]);
 
   const getSortIcon = (column: keyof T) => {
-    if (!columns.find(col => col.key === column)?.sortable) return null
-    
-    if (sortColumn !== column) return <ArrowUpDown className="h-4 w-4" />
-    if (sortDirection === 'asc') return <ArrowUp className="h-4 w-4" />
-    if (sortDirection === 'desc') return <ArrowDown className="h-4 w-4" />
-    return <ArrowUpDown className="h-4 w-4" />
-  }
+    if (!columns.find(col => col.key === column)?.sortable) return null;
 
-  const formatValue = (value: any, column: TableColumn<T>, row: T) => {
+    if (sortColumn !== column) return <ArrowUpDown className="h-4 w-4" />;
+    if (sortDirection === 'asc') return <ArrowUp className="h-4 w-4" />;
+    if (sortDirection === 'desc') return <ArrowDown className="h-4 w-4" />;
+    return <ArrowUpDown className="h-4 w-4" />;
+  };
+
+  const formatValue = async (value: any, column: TableColumn<T>, row: T) => {
     if (column.render) {
-      return column.render(value, row)
+      return column.render(value, row);
     }
-    
+
     if (typeof value === 'boolean') {
-      return value ? (
+      return value
+? (
         <CheckSquare className="h-4 w-4 text-green-600" />
-      ) : (
-        <Square className="h-4 w-4 text-gray-400" />
       )
+: (
+        <Square className="h-4 w-4 text-gray-400" />
+      );
     }
-    
+
     if (typeof value === 'number' && value > 1000) {
-      return value.toLocaleString('zh-CN')
+      return value.toLocaleString('zh-CN');
     }
-    
-    return String(value)
-  }
+
+    return String(value);
+  };
 
   return (
     <Card className={cn('w-full', className)}>
@@ -226,7 +255,7 @@ export function DataTable<T extends Record<string, any>>({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
       )}
-      
+
       <CardContent className="space-y-4">
         {/* 工具栏 */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -243,7 +272,7 @@ export function DataTable<T extends Record<string, any>>({
                 />
               </div>
             )}
-            
+
             {/* 筛选器 */}
             {filters.length > 0 && (
               <Button
@@ -253,8 +282,8 @@ export function DataTable<T extends Record<string, any>>({
                 className="flex items-center gap-2"
               >
                 <Filter className="h-4 w-4" />
-                筛选 {Object.values(activeFilters).filter(v => v && v !== 'all').length > 0 && 
-                  `(${Object.values(activeFilters).filter(v => v && v !== 'all').length})`}
+                筛选 {Object.values(activeFilters).some(v => v && v !== 'all')
+                  && `(${Object.values(activeFilters).filter(v => v && v !== 'all').length})`}
               </Button>
             )}
           </div>
@@ -271,7 +300,7 @@ export function DataTable<T extends Record<string, any>>({
                     key={index}
                     variant={action.variant || 'outline'}
                     size="sm"
-                    onClick={() => action.onClick(Array.from(selectedRows))}
+                    onClick={() => action.onClick([...selectedRows])}
                     disabled={action.disabled || action.loading}
                     className="flex items-center gap-2"
                   >
@@ -281,7 +310,7 @@ export function DataTable<T extends Record<string, any>>({
                 ))}
               </div>
             )}
-            
+
             {/* 导出 */}
             {exportable && (
               <Button
@@ -314,10 +343,10 @@ export function DataTable<T extends Record<string, any>>({
                     </label>
                     <select
                       value={activeFilters[filter.key] || 'all'}
-                      onChange={(e) => 
-                        setActiveFilters(prev => ({
-                          ...prev,
-                          [filter.key]: e.target.value
+                      onChange={(e) =>
+                        setActiveFilters(previous => ({
+                          ...previous,
+                          [filter.key]: e.target.value,
                         }))
                       }
                       className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
@@ -359,7 +388,7 @@ export function DataTable<T extends Record<string, any>>({
                         'px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider',
                         column.sortable && 'cursor-pointer hover:bg-gray-100',
                         column.width && { width: column.width },
-                        column.className
+                        column.className,
                       )}
                       style={column.width ? { width: column.width } : undefined}
                       onClick={() => column.sortable && handleSort(column.key)}
@@ -378,24 +407,32 @@ export function DataTable<T extends Record<string, any>>({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
+                {loading
+? (
                   <tr>
-                    <td colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} 
-                        className="px-4 py-12 text-center text-gray-500">
+                    <td
+colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
+                        className="px-4 py-12 text-center text-gray-500"
+                    >
                       <div className="flex items-center justify-center space-x-2">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
                         <span>加载中...</span>
                       </div>
                     </td>
                   </tr>
-                ) : filteredAndSortedData.length === 0 ? (
+                )
+: (filteredAndSortedData.length === 0
+? (
                   <tr>
-                    <td colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} 
-                        className="px-4 py-12 text-center text-gray-500">
+                    <td
+colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
+                        className="px-4 py-12 text-center text-gray-500"
+                    >
                       {emptyMessage}
                     </td>
                   </tr>
-                ) : (
+                )
+: (
                   filteredAndSortedData.map((row, index) => (
                     <motion.tr
                       key={index}
@@ -403,7 +440,7 @@ export function DataTable<T extends Record<string, any>>({
                       animate={{ opacity: 1 }}
                       className={cn(
                         'hover:bg-gray-50 transition-colors',
-                        selectedRows.has(row) && 'bg-blue-50'
+                        selectedRows.has(row) && 'bg-blue-50',
                       )}
                     >
                       {selectable && (
@@ -453,7 +490,7 @@ export function DataTable<T extends Record<string, any>>({
                       )}
                     </motion.tr>
                   ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
@@ -479,7 +516,7 @@ export function DataTable<T extends Record<string, any>>({
                 共 {pagination.total} 条
               </span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -490,15 +527,15 @@ export function DataTable<T extends Record<string, any>>({
                 <ChevronLeft className="h-4 w-4" />
                 上一页
               </Button>
-              
+
               <div className="flex items-center space-x-1">
                 {Array.from({ length: Math.min(5, Math.ceil(pagination.total / pagination.pageSize)) })
-                  .map((_, i) => {
-                    const pageNumber = pagination.page + i - 2
+                  .map((_, index) => {
+                    const pageNumber = pagination.page + index - 2;
                     if (pageNumber < 1 || pageNumber > Math.ceil(pagination.total / pagination.pageSize)) {
-                      return null
+                      return null;
                     }
-                    
+
                     return (
                       <Button
                         key={pageNumber}
@@ -509,10 +546,10 @@ export function DataTable<T extends Record<string, any>>({
                       >
                         {pageNumber}
                       </Button>
-                    )
+                    );
                   })}
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -527,27 +564,27 @@ export function DataTable<T extends Record<string, any>>({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // 预定义的常用列类型
 export const ColumnTypes = {
-  id: (key: string = 'id'): TableColumn => ({
+  id: (key = 'id'): TableColumn => ({
     key: key as any,
     label: 'ID',
     width: '80px',
-    className: 'font-mono text-xs'
+    className: 'font-mono text-xs',
   }),
-  
-  email: (key: string = 'email'): TableColumn => ({
+
+  email: (key = 'email'): TableColumn => ({
     key: key as any,
     label: '邮箱',
     sortable: true,
     searchable: true,
-    className: 'font-mono'
+    className: 'font-mono',
   }),
-  
-  money: (key: string, label: string = '金额'): TableColumn => ({
+
+  money: (key: string, label = '金额'): TableColumn => ({
     key: key as any,
     label,
     sortable: true,
@@ -555,40 +592,40 @@ export const ColumnTypes = {
       <span className="font-mono text-green-600">
         ¥{Number(value).toLocaleString('zh-CN')}
       </span>
-    )
+    ),
   }),
-  
-  status: (key: string = 'status', statusMap?: Record<string, { label: string; color: string }>): TableColumn => ({
+
+  status: (key = 'status', statusMap?: Record<string, { label: string; color: string }>): TableColumn => ({
     key: key as any,
     label: '状态',
     render: (value) => {
-      const config = statusMap?.[value] || { 
-        label: value, 
-        color: 'gray' 
-      }
-      
+      const config = statusMap?.[value] || {
+        label: value,
+        color: 'gray',
+      };
+
       return (
         <Badge variant="secondary" className={`bg-${config.color}-100 text-${config.color}-800`}>
           {config.label}
         </Badge>
-      )
-    }
+      );
+    },
   }),
-  
-  date: (key: string, label: string = '日期'): TableColumn => ({
+
+  date: (key: string, label = '日期'): TableColumn => ({
     key: key as any,
     label,
     sortable: true,
-    render: (value) => new Date(value).toLocaleDateString('zh-CN')
+    render: (value) => new Date(value).toLocaleDateString('zh-CN'),
   }),
-  
-  dateTime: (key: string, label: string = '时间'): TableColumn => ({
+
+  dateTime: (key: string, label = '时间'): TableColumn => ({
     key: key as any,
     label,
     sortable: true,
-    render: (value) => new Date(value).toLocaleString('zh-CN')
-  })
-}
+    render: (value) => new Date(value).toLocaleString('zh-CN'),
+  }),
+};
 
 // 常用操作
 export const CommonActions = {
@@ -596,20 +633,123 @@ export const CommonActions = {
     label: '查看',
     icon: <Eye className="h-4 w-4" />,
     onClick,
-    variant: 'outline'
+    variant: 'outline',
   }),
-  
+
   edit: (onClick: (row: any) => void): TableAction => ({
     label: '编辑',
     icon: <Edit className="h-4 w-4" />,
     onClick,
-    variant: 'outline'
+    variant: 'outline',
   }),
-  
+
   delete: (onClick: (row: any) => void): TableAction => ({
     label: '删除',
     icon: <Trash2 className="h-4 w-4" />,
     onClick,
-    variant: 'destructive'
-  })
+    variant: 'destructive',
+  }),
+};
+
+// Specialized AuditTable wrapper for backward compatibility
+interface AuditTableProperties {
+  logs: AuditLog[]
+  type: 'security' | 'finance' | 'system' | 'all'
+  onViewDetails?: (log: AuditLog) => void
+  onMarkAbnormal?: (logIds: string[]) => void
+  className?: string
+  showActions?: boolean
+}
+
+export function AuditTable({
+  logs,
+  type,
+  onViewDetails,
+  onMarkAbnormal,
+  className,
+  showActions = true,
+}: AuditTableProperties) {
+  const columns: TableColumn<AuditLog>[] = [
+    ColumnTypes.dateTime('timestamp', '时间'),
+    {
+      key: 'user',
+      label: '用户',
+      render: (value) => value || '系统',
+    },
+    {
+      key: 'action',
+      label: '操作',
+      render: (value) => <Badge variant="outline">{value}</Badge>,
+    },
+    {
+      key: 'resource',
+      label: '资源',
+    },
+    {
+      key: 'result',
+      label: '结果',
+      render: (value: 'success' | 'failure' | 'warning') => {
+        const Icon = auditResultIcons[value];
+        const color = auditResultColors[value];
+        return (
+          <div className="flex items-center gap-2">
+            <Icon className={cn('w-4 h-4', color)} />
+            <span className={cn('capitalize', color)}>
+              {value === 'success' ? '成功' : (value === 'failure' ? '失败' : '警告')}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'ip',
+      label: 'IP地址',
+      render: (value) => value ? <Badge variant="secondary">{value}</Badge> : '-',
+    },
+  ];
+
+  const actions: TableAction<AuditLog>[] = [];
+
+  if (onViewDetails && showActions) {
+    actions.push({
+      label: '详情',
+      icon: <Eye className="h-4 w-4" />,
+      onClick: onViewDetails,
+      variant: 'outline',
+    });
+  }
+
+  const batchActions: BatchAction<AuditLog>[] = [];
+
+  if (onMarkAbnormal && showActions) {
+    batchActions.push({
+      label: '标记异常',
+      icon: <AlertTriangle className="h-4 w-4" />,
+      onClick: (rows) => onMarkAbnormal(rows.map(r => r.id)),
+      variant: 'destructive',
+    });
+  }
+
+  return (
+    <DataTable<AuditLog>
+      data={logs}
+      columns={columns}
+      preset="audit"
+      actions={actions}
+      batchActions={batchActions}
+      selectable={showActions}
+      searchable
+      exportable
+      title={`${type === 'all' ? '全部' : type === 'security' ? '安全' : type === 'finance' ? '金融' : '系统'}审计日志`}
+      emptyMessage="暂无审计记录"
+      className={className}
+      pagination={{
+        page: 1,
+        pageSize: 20,
+        total: logs.length,
+        onPageChange: () => {},
+        onPageSizeChange: () => {},
+      }}
+    />
+  );
 }

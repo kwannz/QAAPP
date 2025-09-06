@@ -3,11 +3,17 @@
 import React, { useState, useEffect } from 'react'
 import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits, formatEther, formatUnits } from 'viem'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Alert, 
+  AlertDescription, 
+  Badge, 
+  Separator 
+} from '@/components/ui'
 import { 
   Loader2, 
   CheckCircle, 

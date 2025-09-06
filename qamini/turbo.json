@@ -1,0 +1,62 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NODE_ENV", "NEXT_PUBLIC_*"],
+      "inputs": ["src/**/*.{ts,tsx,js,jsx}", "package.json", "tsconfig.json", "next.config.js", "tailwind.config.js"]
+    },
+    "build:fast": {
+      "dependsOn": [],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NODE_ENV", "NEXT_PUBLIC_*"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": [],
+      "inputs": ["src/**/*.{ts,tsx,js,jsx}", "package.json", ".eslintrc.json", ".eslintignore"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**/*.{ts,tsx,js,jsx}", "test/**/*.{ts,tsx,js,jsx}", "jest.config.js"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "outputs": ["test-results/**"]
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    },
+    "db:seed": {
+      "cache": false
+    },
+    "contracts:compile": {
+      "outputs": ["artifacts/**", "cache/**"],
+      "inputs": ["contracts/**/*.sol"]
+    },
+    "contracts:deploy": {
+      "dependsOn": ["contracts:compile"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
