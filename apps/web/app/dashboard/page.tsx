@@ -63,7 +63,12 @@ import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHead
 import { Header } from '../../components/layout/Header'
 import { useAuthStore } from '../../lib/auth-context'
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute'
-import { UserNFTs } from '../../components/dashboard/UserNFTs'
+import dynamic from 'next/dynamic'
+
+const LazyUserNFTs = dynamic(() => import('../../components/dashboard/UserNFTs').then(mod => ({ default: mod.UserNFTs })), {
+  loading: () => <div className="animate-pulse bg-gray-200 rounded h-64" />,
+  ssr: false
+})
 import { TabContainer } from '../../components/common/TabContainer'
 import { useFeatureFlag } from '../../lib/feature-flags'
 import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../lib/hooks/use-safe-wagmi'
@@ -771,7 +776,7 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        <UserNFTs />
+        <LazyUserNFTs />
       </motion.div>
 
       {/* 投资仪表板 */}

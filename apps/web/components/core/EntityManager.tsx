@@ -1,8 +1,7 @@
-'use client'
+'use client';
 
-import { ReactNode, useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import { motion, AnimatePresence } from 'framer-motion';
+import {
   Plus,
   Search,
   Filter,
@@ -15,15 +14,26 @@ import {
   Save,
   X,
   CheckCircle,
-  AlertTriangle
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Dialog } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { DataTable, TableColumn, TableAction, BatchAction } from './DataTable'
-import { FormBuilder, FormField } from './FormBuilder'
-import { cn } from '@/lib/utils'
+  AlertTriangle,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+
+import type { TableColumn, TableAction, BatchAction } from './DataTable';
+import { DataTable } from './DataTable';
+import type { FormField } from './FormBuilder';
+import { FormBuilder } from './FormBuilder';
+
+import { 
+  Badge, 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Dialog 
+} from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 export interface EntityPermissions {
   canView?: boolean
@@ -53,7 +63,7 @@ export interface EntityActions<T = any> {
   }[]
 }
 
-interface EntityManagerProps<T = any> {
+interface EntityManagerProperties<T = any> {
   entityType: string
   entityName: string
   entityNamePlural: string
@@ -100,152 +110,152 @@ export function EntityManager<T extends Record<string, any>>({
   emptyMessage,
   className,
   title,
-  description
-}: EntityManagerProps<T>) {
-  const [modalType, setModalType] = useState<ModalType>(null)
-  const [selectedItem, setSelectedItem] = useState<T | null>(null)
-  const [selectedItems, setSelectedItems] = useState<T[]>([])
-  const [formData, setFormData] = useState<any>({})
-  const [submitting, setSubmitting] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
+  description,
+}: EntityManagerProperties<T>) {
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [selectedItem, setSelectedItem] = useState<T | null>(null);
+  const [selectedItems, setSelectedItems] = useState<T[]>([]);
+  const [formData, setFormData] = useState<any>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // 关闭弹窗
   const closeModal = () => {
-    setModalType(null)
-    setSelectedItem(null)
-    setSelectedItems([])
-    setFormData({})
-  }
+    setModalType(null);
+    setSelectedItem(null);
+    setSelectedItems([]);
+    setFormData({});
+  };
 
   // 处理创建
   const handleCreate = () => {
-    setModalType('create')
-    setFormData({})
-  }
+    setModalType('create');
+    setFormData({});
+  };
 
   // 处理编辑
   const handleEdit = (item: T) => {
-    setSelectedItem(item)
-    setFormData({ ...item })
-    setModalType('edit')
-  }
+    setSelectedItem(item);
+    setFormData({ ...item });
+    setModalType('edit');
+  };
 
   // 处理查看
   const handleView = (item: T) => {
-    setSelectedItem(item)
-    setModalType('view')
-  }
+    setSelectedItem(item);
+    setModalType('view');
+  };
 
   // 处理删除
   const handleDelete = (item: T) => {
-    setSelectedItem(item)
-    setModalType('delete')
-  }
+    setSelectedItem(item);
+    setModalType('delete');
+  };
 
   // 处理批量删除
   const handleBulkDelete = (items: T[]) => {
-    setSelectedItems(items)
-    setModalType('bulkDelete')
-  }
+    setSelectedItems(items);
+    setModalType('bulkDelete');
+  };
 
   // 处理表单提交
   const handleFormSubmit = async (data: any) => {
-    setSubmitting(true)
+    setSubmitting(true);
     try {
       if (modalType === 'create') {
-        await actions.onCreate?.(data)
+        await actions.onCreate?.(data);
       } else if (modalType === 'edit' && selectedItem) {
-        await actions.onUpdate?.(selectedItem.id, data)
+        await actions.onUpdate?.(selectedItem.id, data);
       }
-      closeModal()
-      await actions.onRefresh?.()
+      closeModal();
+      await actions.onRefresh?.();
     } catch (error) {
-      console.error('Form submission error:', error)
+      console.error('Form submission error:', error);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   // 确认删除
   const confirmDelete = async () => {
-    setSubmitting(true)
+    setSubmitting(true);
     try {
       if (modalType === 'delete' && selectedItem) {
-        await actions.onDelete?.(selectedItem.id)
+        await actions.onDelete?.(selectedItem.id);
       } else if (modalType === 'bulkDelete' && selectedItems.length > 0) {
-        await actions.onBulkDelete?.(selectedItems.map(item => item.id))
+        await actions.onBulkDelete?.(selectedItems.map(item => item.id));
       }
-      closeModal()
-      await actions.onRefresh?.()
+      closeModal();
+      await actions.onRefresh?.();
     } catch (error) {
-      console.error('Delete error:', error)
+      console.error('Delete error:', error);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   // 处理刷新
   const handleRefresh = async () => {
-    setRefreshing(true)
+    setRefreshing(true);
     try {
-      await actions.onRefresh?.()
+      await actions.onRefresh?.();
     } catch (error) {
-      console.error('Refresh error:', error)
+      console.error('Refresh error:', error);
     } finally {
-      setRefreshing(false)
+      setRefreshing(false);
     }
-  }
+  };
 
   // 构建表格操作
-  const tableActions: TableAction<T>[] = []
-  
+  const tableActions: TableAction<T>[] = [];
+
   if (permissions.canView) {
     tableActions.push({
       label: '查看',
       icon: <Eye className="h-4 w-4" />,
       onClick: handleView,
-      variant: 'outline'
-    })
+      variant: 'outline',
+    });
   }
-  
+
   if (permissions.canEdit) {
     tableActions.push({
       label: '编辑',
       icon: <Edit className="h-4 w-4" />,
       onClick: handleEdit,
-      variant: 'outline'
-    })
+      variant: 'outline',
+    });
   }
-  
+
   if (permissions.canDelete) {
     tableActions.push({
       label: '删除',
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
-      variant: 'destructive'
-    })
+      variant: 'destructive',
+    });
   }
 
   // 添加自定义操作
   if (actions.customActions) {
-    tableActions.push(...actions.customActions.filter(action => !action.bulk))
+    tableActions.push(...actions.customActions.filter(action => !action.bulk));
   }
 
   // 构建批量操作
-  const batchActions: BatchAction<T>[] = []
-  
+  const batchActions: BatchAction<T>[] = [];
+
   if (permissions.canBulkDelete) {
     batchActions.push({
       label: '批量删除',
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleBulkDelete,
-      variant: 'destructive'
-    })
+      variant: 'destructive',
+    });
   }
 
   // 添加自定义批量操作
   if (actions.customActions) {
-    batchActions.push(...actions.customActions.filter(action => action.bulk))
+    batchActions.push(...actions.customActions.filter(action => action.bulk));
   }
 
   return (
@@ -264,7 +274,7 @@ export function EntityManager<T extends Record<string, any>>({
             </Badge>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {/* 导入 */}
           {actions.onImport && (
@@ -274,8 +284,8 @@ export function EntityManager<T extends Record<string, any>>({
               className="hidden"
               accept=".csv,.xlsx,.json"
               onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) actions.onImport?.(file)
+                const file = e.target.files?.[0];
+                if (file) actions.onImport?.(file);
               }}
             />
           )}
@@ -283,14 +293,14 @@ export function EntityManager<T extends Record<string, any>>({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => document.getElementById('import-file')?.click()}
+              onClick={() => document.querySelector('#import-file')?.click()}
               className="flex items-center gap-2"
             >
               <Upload className="h-4 w-4" />
               导入
             </Button>
           )}
-          
+
           {/* 导出 */}
           {permissions.canExport && actions.onExport && (
             <Button
@@ -303,7 +313,7 @@ export function EntityManager<T extends Record<string, any>>({
               导出
             </Button>
           )}
-          
+
           {/* 刷新 */}
           {actions.onRefresh && (
             <Button
@@ -317,7 +327,7 @@ export function EntityManager<T extends Record<string, any>>({
               刷新
             </Button>
           )}
-          
+
           {/* 创建新项目 */}
           {permissions.canCreate && actions.onCreate && (
             <Button
@@ -371,7 +381,7 @@ export function EntityManager<T extends Record<string, any>>({
                 title={modalType === 'create' ? `新建${entityName}` : `编辑${entityName}`}
                 submitLabel={modalType === 'create' ? '创建' : '保存'}
                 cancelLabel="取消"
-                validateOnChange={true}
+                validateOnChange
                 resetOnSubmit={modalType === 'create'}
               />
             </motion.div>
@@ -416,7 +426,7 @@ export function EntityManager<T extends Record<string, any>>({
                         {field.label}
                       </Label>
                       <div className="p-3 bg-gray-50 rounded-md text-sm">
-                        {selectedItem[field.key] !== null && selectedItem[field.key] !== undefined 
+                        {selectedItem[field.key] !== null && selectedItem[field.key] !== undefined
                           ? String(selectedItem[field.key])
                           : '-'
                         }
@@ -433,8 +443,8 @@ export function EntityManager<T extends Record<string, any>>({
                     {permissions.canEdit && (
                       <Button
                         onClick={() => {
-                          setModalType('edit')
-                          setFormData({ ...selectedItem })
+                          setModalType('edit');
+                          setFormData({ ...selectedItem });
                         }}
                       >
                         编辑
@@ -476,7 +486,7 @@ export function EntityManager<T extends Record<string, any>>({
                         {modalType === 'delete' ? '确认删除' : '确认批量删除'}
                       </CardTitle>
                       <p className="text-sm text-gray-600 mt-1">
-                        {modalType === 'delete' 
+                        {modalType === 'delete'
                           ? '此操作无法撤销'
                           : `将删除 ${selectedItems.length} 项，此操作无法撤销`
                         }
@@ -486,17 +496,19 @@ export function EntityManager<T extends Record<string, any>>({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-3 bg-red-50 rounded-md border border-red-200">
-                    {modalType === 'delete' && selectedItem ? (
+                    {modalType === 'delete' && selectedItem
+? (
                       <p className="text-sm text-red-800">
                         确定要删除{entityName} <strong>{selectedItem.name || selectedItem.email || selectedItem.id}</strong> 吗？
                       </p>
-                    ) : (
+                    )
+: (
                       <p className="text-sm text-red-800">
                         确定要删除选中的 <strong>{selectedItems.length}</strong> 个{entityName}吗？
                       </p>
                     )}
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2">
                     <Button
                       variant="outline"
@@ -512,7 +524,7 @@ export function EntityManager<T extends Record<string, any>>({
                       className="flex items-center gap-2"
                     >
                       {submitting && (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                       )}
                       确认删除
                     </Button>
@@ -524,7 +536,7 @@ export function EntityManager<T extends Record<string, any>>({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 // 预定义的实体管理器配置
@@ -539,8 +551,8 @@ export const EntityConfigs = {
       canEdit: true,
       canDelete: true,
       canExport: true,
-      canBulkDelete: true
-    }
+      canBulkDelete: true,
+    },
   },
 
   product: {
@@ -553,8 +565,8 @@ export const EntityConfigs = {
       canEdit: true,
       canDelete: true,
       canExport: true,
-      canBulkDelete: true
-    }
+      canBulkDelete: true,
+    },
   },
 
   order: {
@@ -567,8 +579,8 @@ export const EntityConfigs = {
       canEdit: true,
       canDelete: false,
       canExport: true,
-      canBulkDelete: false
-    }
+      canBulkDelete: false,
+    },
   },
 
   commission: {
@@ -581,8 +593,8 @@ export const EntityConfigs = {
       canEdit: true,
       canDelete: true,
       canExport: true,
-      canBulkDelete: true
-    }
+      canBulkDelete: true,
+    },
   },
 
   agent: {
@@ -595,8 +607,8 @@ export const EntityConfigs = {
       canEdit: true,
       canDelete: true,
       canExport: true,
-      canBulkDelete: true
-    }
+      canBulkDelete: true,
+    },
   },
 
   withdrawal: {
@@ -609,29 +621,29 @@ export const EntityConfigs = {
       canEdit: true, // 用于审批
       canDelete: false,
       canExport: true,
-      canBulkDelete: false
-    }
-  }
-}
+      canBulkDelete: false,
+    },
+  },
+};
 
 // 实体管理器工厂函数
 export function createEntityManager<T>(
   config: typeof EntityConfigs[keyof typeof EntityConfigs],
   columns: TableColumn<T>[],
   formFields: FormField[],
-  actions: EntityActions<T>
+  actions: EntityActions<T>,
 ) {
-  return function EntityManagerComponent(props: Omit<EntityManagerProps<T>, 
+  return function EntityManagerComponent(properties: Omit<EntityManagerProperties<T>,
     'entityType' | 'entityName' | 'entityNamePlural' | 'columns' | 'formFields' | 'permissions' | 'actions'
   >) {
     return (
       <EntityManager
         {...config}
-        {...props}
+        {...properties}
         columns={columns}
         formFields={formFields}
         actions={actions}
       />
-    )
-  }
+    );
+  };
 }

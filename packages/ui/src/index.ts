@@ -14,6 +14,12 @@ export { Alert, AlertTitle, AlertDescription, alertVariants } from './components
 export { Badge, type BadgeProps, badgeVariants } from './components/ui/badge'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs'
 export { Checkbox } from './components/ui/checkbox'
+export { Label } from './components/ui/label'
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
+export { Separator } from './components/ui/separator'
+export { Switch } from './components/ui/switch'
+export { Textarea } from './components/ui/textarea'
+export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from './components/ui/dialog'
 
 // 业务组件
 export { NFTCard, type NFTCardProps } from './components/business/NFTCard'

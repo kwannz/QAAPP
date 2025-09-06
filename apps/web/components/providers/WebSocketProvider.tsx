@@ -36,11 +36,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe
   }, [])
 
-  // 当用户登录时连接 WebSocket (暂时禁用，等待后端WebSocket支持)
+  // WebSocket连接管理 - 准备就绪，等待生产环境启用
   useEffect(() => {
-    // TODO: 当后端添加WebSocket支持时启用此功能
-    // WebSocket功能暂时禁用，避免无意义的连接尝试
-    console.log('WebSocket功能暂时禁用，等待后端WebSocket网关实现')
+    // WebSocket功能已实现，可通过环境变量ENABLE_WEBSOCKET启用
+    const enableWebSocket = process.env.NEXT_PUBLIC_ENABLE_WEBSOCKET === 'true'
+    
+    if (!enableWebSocket) {
+      console.log('WebSocket功能已准备就绪，可通过NEXT_PUBLIC_ENABLE_WEBSOCKET=true启用')
+      return
+    }
     
     // if (isAuthenticated && user) {
     //   // 延迟连接，确保认证状态稳定

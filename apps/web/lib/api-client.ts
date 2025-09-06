@@ -155,6 +155,24 @@ export const authApi = {
     apiClient.post('/auth/change-password', data),
 }
 
+// 监控中心 API
+export const monitoringApi = {
+  getMetrics: (params?: {
+    startDate?: string;
+    endDate?: string;
+    level?: string;
+    module?: string;
+    userId?: string;
+    limit?: number;
+    offset?: number;
+  }) => apiClient.get('/monitoring/metrics', { params }),
+
+  getDashboard: (timeRange: '1h' | '24h' | '7d' | '30d' = '24h') =>
+    apiClient.get('/monitoring/dashboard', { params: { timeRange } }),
+
+  getDeprecations: () => apiClient.get('/monitoring/deprecations'),
+}
+
 export const userApi = {
   // 获取当前用户详细信息
   getCurrentUser: () =>

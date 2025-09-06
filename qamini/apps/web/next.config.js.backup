@@ -1,0 +1,336 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  serverExternalPackages: [
+    '@prisma/client', 
+    'canvas', 
+    'jsdom',
+    '@rainbow-me/rainbowkit',
+    'wagmi', 
+    'viem',
+    '@wagmi/core',
+    '@walletconnect/core'
+  ],
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns', '@tanstack/react-query', 'framer-motion', 'recharts'],
+    // 禁用部分预渲染以避免 React 19 兼容性问题
+    ppr: false,
+    // 启用CSS优化
+    optimizeCss: true,
+    // 禁用 Next.js 开发工具以避免 React Client Manifest 错误
+    nextScriptWorkers: false,
+  },
+  // turbopack: {
+  //   rules: {
+  //     '*.svg': ['@svgr/webpack']
+  //   }
+  // },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+    // 启用SWC minification
+    styledComponents: true,
+    // React optimizations
+    reactRemoveProperties: process.env.NODE_ENV === 'production' ? true : false,
+  },
+  // 启用压缩
+  compress: true,
+  // 启用静态优化
+  trailingSlash: false,
+  // PoweredBy header
+  poweredByHeader: false,
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // 支持Web3相关的Node.js模块
+    config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    
+    // 优化bundle大小和修复indexedDB等浏览器API问题
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      crypto: false,
+      // IndexedDB 相关 polyfills
+      'idb-keyval': false,
+      'keyv': false,
+      'localforage': false,
+    };
+    
+    // 服务器端构建时，将浏览器专用 APIs 映射到我们的 polyfills
+    if (isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        // 将任何 IndexedDB 访问重定向到我们的 polyfill
+        '@/lib/browser-apis': require.resolve('./lib/browser-polyfills.ts'),
+      };
+      
+      // 确保浏览器专用模块不会在服务器端执行
+      config.externals = [...config.externals, 'canvas', 'jsdom'];
+      
+      // 完全排除所有 Next.js devtools 组件以避免 React Client Manifest 错误
+      config.externals.push({
+        'next/dist/next-devtools/userspace/app/segment-explorer-node.js': 'commonjs2 next/dist/next-devtools/userspace/app/segment-explorer-node.js',
+        './segment-explorer-node.js': 'commonjs2 ./segment-explorer-node.js',
+        'next/dist/next-devtools': 'commonjs2 next/dist/next-devtools',
+        '@next/react-dev-overlay': 'commonjs2 @next/react-dev-overlay',
+      });
+      
+      // 为服务器端构建提供安全的浏览器 API mocks
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          'typeof window': JSON.stringify('undefined'),
+          'typeof document': JSON.stringify('undefined'),
+          'typeof navigator': JSON.stringify('undefined'),
+          'typeof indexedDB': JSON.stringify('undefined'),
+          'typeof localStorage': JSON.stringify('undefined'),
+          'typeof sessionStorage': JSON.stringify('undefined'),
+          'typeof MutationObserver': JSON.stringify('undefined'),
+          'typeof PerformanceObserver': JSON.stringify('undefined'),
+          'typeof ResizeObserver': JSON.stringify('undefined'),
+        })
+      );
+      
+      // 添加多个 NormalModuleReplacementPlugin 来完全替换所有 devtools 模块
+      config.plugins.push(
+        // 替换 segment-explorer-node 模块
+        new webpack.NormalModuleReplacementPlugin(
+          /next\/dist\/next-devtools\/userspace\/app\/segment-explorer-node\.js/,
+          require.resolve('./lib/browser-polyfills.ts')
+        ),
+        // 替换整个 devtools 目录
+        new webpack.NormalModuleReplacementPlugin(
+          /next\/dist\/next-devtools/,
+          require.resolve('./lib/browser-polyfills.ts')
+        ),
+        // 替换 React dev overlay
+        new webpack.NormalModuleReplacementPlugin(
+          /@next\/react-dev-overlay/,
+          require.resolve('./lib/browser-polyfills.ts')
+        )
+      );
+    } else {
+      // 客户端构建 - 也要排除 devtools 模块以避免 React Client Manifest 错误
+      config.externals = config.externals || [];
+      config.externals.push({
+        'next/dist/next-devtools': 'next/dist/next-devtools',
+        '@next/react-dev-overlay': '@next/react-dev-overlay',
+      });
+      
+      // 客户端也添加模块替换规则
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /next\/dist\/next-devtools/,
+          require.resolve('./lib/browser-polyfills.ts')
+        )
+      );
+    }
+    
+    // 通用环境变量 - 禁用开发工具
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.env.NEXT_DISABLE_DEVTOOLS': JSON.stringify('true'),
+      })
+    );
+
+    // 修复模块导入问题
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@tanstack/react-query': require.resolve('@tanstack/react-query'),
+      // 完全禁用 devtools 模块
+      'next/dist/next-devtools': false,
+      '@next/react-dev-overlay': false,
+    };
+    
+    // 生产环境优化
+    if (!dev && !isServer) {
+      // 代码分割优化
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        chunks: 'all',
+        cacheGroups: {
+          // 分离React生态系统 - 最高优先级，最常用
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            name: 'react',
+            chunks: 'all',
+            priority: 40,
+            reuseExistingChunk: true,
+          },
+          // Next.js 核心
+          nextjs: {
+            test: /[\\/]node_modules[\\/](@next|next)[\\/]/,
+            name: 'nextjs',
+            chunks: 'all',
+            priority: 35,
+            reuseExistingChunk: true,
+          },
+          // 将大型UI库分离
+          ui: {
+            test: /[\\/]node_modules[\\/](@headlessui|@heroicons|lucide-react|@radix-ui)[\\/]/,
+            name: 'ui-icons',
+            chunks: 'all',
+            priority: 30,
+            reuseExistingChunk: true,
+          },
+          // 将Web3相关库分离 - 用于钱包页面
+          web3: {
+            test: /[\\/]node_modules[\\/](wagmi|viem|@wagmi|@rainbow-me|@walletconnect|@reown)[\\/]/,
+            name: 'web3',
+            chunks: 'all',
+            priority: 25,
+            reuseExistingChunk: true,
+          },
+          // 将动画库分离 - 用于动效
+          animations: {
+            test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
+            name: 'animations',
+            chunks: 'all',
+            priority: 25,
+            reuseExistingChunk: true,
+          },
+          // 工具库
+          utils: {
+            test: /[\\/]node_modules[\\/](lodash|date-fns|clsx|class-variance-authority)[\\/]/,
+            name: 'utils',
+            chunks: 'all',
+            priority: 20,
+            reuseExistingChunk: true,
+          },
+          // 图表库分离 - 仅管理页面使用
+          charts: {
+            test: /[\\/]node_modules[\\/](recharts|d3)[\\/]/,
+            name: 'charts',
+            chunks: 'all',
+            priority: 15,
+            reuseExistingChunk: true,
+          },
+          // 其他第三方库
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendor',
+            chunks: 'all',
+            priority: 10,
+            reuseExistingChunk: true,
+          },
+        },
+      }
+    }
+    
+    // Bundle 分析 (disabled for now - using built-in analysis)
+    // if (process.env.ANALYZE === 'true') {
+    //   const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+    //   config.plugins.push(new BundleAnalyzerPlugin())
+    // }
+    
+    return config;
+  },
+  images: {
+    domains: [
+      'ipfs.io',
+      'gateway.pinata.cloud', 
+      'qa-app.s3.amazonaws.com',
+      'avatars.githubusercontent.com'
+    ],
+    formats: ['image/webp', 'image/avif']
+  },
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY
+  },
+  // SWC编译器优化已默认启用 (Next.js 15+)
+  
+  // 重定向配置 - Sprint 2 迁移策略
+  async redirects() {
+    return [
+      // Admin page consolidation redirects
+      {
+        source: '/admin/users',
+        destination: '/admin/operations?tab=users',
+        statusCode: 307
+      },
+      {
+        source: '/admin/products', 
+        destination: '/admin/operations?tab=products',
+        statusCode: 307
+      },
+      {
+        source: '/admin/orders',
+        destination: '/admin/operations?tab=orders', 
+        statusCode: 307
+      },
+      {
+        source: '/admin/agents',
+        destination: '/admin/operations?tab=agents',
+        statusCode: 307
+      },
+      {
+        source: '/admin/withdrawals',
+        destination: '/admin/operations?tab=withdrawals',
+        statusCode: 307
+      },
+      {
+        source: '/admin/commissions',
+        destination: '/admin/analytics?tab=commissions',
+        statusCode: 307
+      },
+      {
+        source: '/admin/reports',
+        destination: '/admin/analytics?tab=reports',
+        statusCode: 307
+      },
+      {
+        source: '/admin/notifications',
+        destination: '/admin/analytics?tab=notifications',
+        statusCode: 307
+      },
+      // Dashboard page consolidation redirects
+      {
+        source: '/dashboard/profile',
+        destination: '/dashboard#profile',
+        statusCode: 307
+      },
+      {
+        source: '/dashboard/wallets',
+        destination: '/dashboard#wallets', 
+        statusCode: 307
+      },
+      {
+        source: '/dashboard/notifications',
+        destination: '/dashboard#notifications',
+        statusCode: 307
+      }
+    ];
+  },
+
+  // 安全头部配置
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options', 
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://api.qa-app.com wss://api.qa-app.com https://*.infura.io https://*.alchemy.com https://*.quicknode.com wss://*.walletconnect.org https://*.walletconnect.org https://*.web3modal.org https://pulse.walletconnect.org wss://relay.walletconnect.org https://*.reown.com;"
+          }
+        ]
+      }
+    ];
+  }
+};
+
+module.exports = nextConfig;

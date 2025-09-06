@@ -1,10 +1,20 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import apiClient from '@/lib/api-client'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Button, 
+  Alert, 
+  AlertDescription, 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui'
 import { UserPositions } from '@/components/positions/UserPositions'
 import { PayoutDashboard } from '@/components/payouts/PayoutDashboard'
 import { 
@@ -48,18 +58,9 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
     
     try {
       // 并行获取持仓和收益数据
-      const [positionsRes, payoutsRes] = await Promise.all([
-        fetch(`/api/positions/user/${userId}`),
-        fetch(`/api/payouts/user/${userId}/claimable`)
-      ])
-
-      if (!positionsRes.ok || !payoutsRes.ok) {
-        throw new Error('获取统计数据失败')
-      }
-
-      const [positionsData, payoutsData] = await Promise.all([
-        positionsRes.json(),
-        payoutsRes.json()
+      const [{ data: positionsData }, { data: payoutsData }] = await Promise.all([
+        apiClient.get(`/positions/user/${userId}`),
+        apiClient.get(`/payouts/user/${userId}/claimable`)
       ])
 
       // 计算汇总统计

@@ -3,14 +3,23 @@
 import { useState, useEffect } from 'react'
 import { Header } from '@/components/layout/Header'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Button, 
+  Input, 
+  Label, 
+  Badge, 
+  Alert, 
+  AlertDescription, 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger, 
+  Separator 
+} from '@/components/ui'
 import { 
   Users, 
   Gift, 
@@ -28,7 +37,7 @@ import {
   AlertTriangle,
   Zap
 } from 'lucide-react'
-import { WalletConnectionManager } from '@/components/wallet/WalletConnectionManager'
+import { WalletConnectionManager } from '@/components/ui'
 import { useTreasuryContract } from '@/lib/hooks/useTreasuryContract'
 import { useWalletStatus } from '@/lib/hooks/useWalletConnection'
 import { Address } from 'viem'

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
@@ -79,8 +79,10 @@ import { DatabaseOptimizationModule } from './common/database/database-optimizat
   ],
 })
 export class AppModule {
+  private readonly logger = new Logger(AppModule.name);
+  
   constructor(private configService: ConfigService) {
-    console.log('🏗️  API App Module initialized');
-    console.log(`🌍 Environment: ${this.configService.get('NODE_ENV')}`);
+    this.logger.log('🏗️  API App Module initialized');
+    this.logger.log('🌍 Environment configured', { environment: this.configService.get('NODE_ENV') });
   }
 }

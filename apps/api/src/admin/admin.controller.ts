@@ -7,13 +7,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Auth } from '../auth/decorators/auth.decorator';
 
 @ApiTags('admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@Auth('ADMIN')
 @ApiBearerAuth()
 export class AdminController {
   constructor() {}
@@ -21,7 +19,6 @@ export class AdminController {
   // User Audit Endpoints
   @Get('user-audit')
   @ApiOperation({ summary: 'Get user audit records' })
-  @Roles('ADMIN')
   async getUserAuditRecords(@Query('userId') userId?: string) {
     // Mock user audit data
     const mockUserAudits = [
@@ -52,7 +49,6 @@ export class AdminController {
   // System Audit Endpoints
   @Get('system-audit')
   @ApiOperation({ summary: 'Get system audit events' })
-  @Roles('ADMIN')
   async getSystemAuditEvents(@Query('type') type?: string) {
     const mockSystemEvents = [
       {
@@ -82,7 +78,6 @@ export class AdminController {
 
   @Get('system-audit/metrics')
   @ApiOperation({ summary: 'Get system metrics' })
-  @Roles('ADMIN')
   async getSystemMetrics() {
     return {
       performance: {
@@ -115,7 +110,6 @@ export class AdminController {
   // Permissions Management Endpoints
   @Get('permissions')
   @ApiOperation({ summary: 'Get permissions' })
-  @Roles('ADMIN')
   async getPermissions() {
     const mockPermissions = [
       {
@@ -141,7 +135,6 @@ export class AdminController {
 
   @Get('roles')
   @ApiOperation({ summary: 'Get roles' })
-  @Roles('ADMIN')
   async getRoles() {
     const mockRoles = [
       {
@@ -159,7 +152,6 @@ export class AdminController {
 
   @Get('user-roles')
   @ApiOperation({ summary: 'Get user role assignments' })
-  @Roles('ADMIN')
   async getUserRoles() {
     const mockUserRoles = [
       {
@@ -181,7 +173,6 @@ export class AdminController {
   // Performance Evaluation Endpoints
   @Get('performance/metrics')
   @ApiOperation({ summary: 'Get performance metrics' })
-  @Roles('ADMIN')
   async getPerformanceMetrics() {
     const mockMetrics = [
       {
@@ -207,7 +198,6 @@ export class AdminController {
 
   @Get('performance/tests')
   @ApiOperation({ summary: 'Get performance tests' })
-  @Roles('ADMIN')
   async getPerformanceTests() {
     const mockTests = [
       {
@@ -232,7 +222,6 @@ export class AdminController {
   // Compliance Management Endpoints
   @Get('compliance/standards')
   @ApiOperation({ summary: 'Get compliance standards' })
-  @Roles('ADMIN')
   async getComplianceStandards() {
     const mockStandards = [
       {
@@ -257,7 +246,6 @@ export class AdminController {
 
   @Get('compliance/checks')
   @ApiOperation({ summary: 'Get compliance checks' })
-  @Roles('ADMIN')
   async getComplianceChecks() {
     const mockChecks = [
       {
@@ -283,7 +271,6 @@ export class AdminController {
   // Business Metrics Endpoints
   @Get('business/kpis')
   @ApiOperation({ summary: 'Get business KPIs' })
-  @Roles('ADMIN')
   async getBusinessKPIs() {
     const mockKPIs = [
       {
@@ -306,7 +293,6 @@ export class AdminController {
 
   @Get('business/health')
   @ApiOperation({ summary: 'Get business health metrics' })
-  @Roles('ADMIN')
   async getBusinessHealth() {
     return {
       overallScore: 78.5,
@@ -336,7 +322,6 @@ export class AdminController {
   // Alert Rules Management
   @Post('alert-rules')
   @ApiOperation({ summary: 'Create alert rule' })
-  @Roles('ADMIN')
   async createAlertRule(@Body() ruleData: any) {
     return {
       id: `rule-${Date.now()}`,
@@ -348,7 +333,6 @@ export class AdminController {
 
   @Get('alert-rules')
   @ApiOperation({ summary: 'Get alert rules' })
-  @Roles('ADMIN')
   async getAlertRules() {
     const mockRules = [
       {
@@ -368,7 +352,6 @@ export class AdminController {
   // Data Cleanup
   @Post('data-cleanup')
   @ApiOperation({ summary: 'Execute data cleanup' })
-  @Roles('ADMIN')
   async executeDataCleanup(@Body() cleanupConfig: any) {
     return {
       taskId: `cleanup-${Date.now()}`,

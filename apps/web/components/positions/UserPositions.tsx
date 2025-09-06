@@ -1,11 +1,21 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react'
+import apiClient from '@/lib/api-client'
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  Badge, 
+  Button, 
+  Alert, 
+  AlertDescription, 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui'
 import { 
   TrendingUp, 
   Clock, 
@@ -75,17 +85,9 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
     setError(null)
     
     try {
-      const params = new URLSearchParams()
-      if (status && status !== 'all') {
-        params.append('status', status.toUpperCase())
-      }
-      
-      const response = await fetch(`/api/positions/user/${userId}?${params}`)
-      if (!response.ok) {
-        throw new Error(`获取持仓数据失败: ${response.status}`)
-      }
-      
-      const data = await response.json()
+      const params: Record<string, any> = {}
+      if (status && status !== 'all') params.status = status.toUpperCase()
+      const { data } = await apiClient.get(`/positions/user/${userId}`, { params })
       setPositionsData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
@@ -103,19 +105,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
   // 持仓赎回
   const handleRedeem = async (positionId: string) => {
     try {
-      const response = await fetch(`/api/positions/${positionId}/redeem`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
-      })
-
-      if (!response.ok) {
-        throw new Error('赎回请求失败')
-      }
-
-      const result = await response.json()
+      const { data: result } = await apiClient.post(`/positions/${positionId}/redeem`, { userId })
       alert(`赎回成功！赎回金额: $${result.redeemAmount.toFixed(2)}`)
       
       // 刷新数据
