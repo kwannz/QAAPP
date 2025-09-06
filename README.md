@@ -1,184 +1,253 @@
-# 🚀 QA App - Web3固定收益平台
+# QAMini - Minimal Web3 Fixed-Income Platform
 
-[![CI/CD](https://github.com/qa-app/qa-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/qa-app/qa-app/actions/workflows/ci-cd.yml)
-[![codecov](https://codecov.io/gh/qa-app/qa-app/branch/main/graph/badge.svg)](https://codecov.io/gh/qa-app/qa-app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+QAMini is a streamlined version of the QAAPP, containing only the core features necessary for a functional Web3 fixed-income platform. This minimal version focuses on essential business logic while maintaining production readiness.
 
-> 🌟 **安全可靠的Web3投资平台，提供稳定的固定收益产品**
+## 🏗️ Architecture
 
-## 📋 项目概览
+**Monorepo Structure:**
+- `apps/api/` - NestJS backend with core business logic
+- `apps/web/` - Next.js frontend application
+- `packages/database/` - Prisma ORM with PostgreSQL schema
+- `packages/contracts/` - Smart contracts and blockchain integration
+- `packages/shared/` - Shared types and utilities
+- `packages/ui/` - Shared UI components
 
-**项目状态**: ✅ **生产就绪**  
-**完成度**: **98%**  
-**最后更新**: 2025-08-30  
+## 🚀 Quick Start
 
-QA App是一个创新的Web3金融平台，将传统固定收益产品与区块链技术完美结合：
-
-- 💎 **NFT权益凭证** - 投资产品以ERC-1155 NFT形式持有
-- 💰 **稳定固定收益** - 年化收益率高达18%，按月分发
-- 🤝 **社交化推荐** - C2C分享奖励1%，代理奖励3%
-- 🛡️ **企业级安全** - 多重签名、智能合约审计、资金托管
-- 🔄 **实时数据同步** - WebSocket推送，链上链下数据一致性
-
-## 🏗️ 技术架构
-
-### 核心技术栈
-- **前端**: Next.js 15.5.0 + React 19.1.0 + TypeScript 5.7.2 + Tailwind CSS 3.4.15 + shadcn/ui
-- **后端**: NestJS 11.0.0 + Prisma 6.15.0 + PostgreSQL + Redis 4.7.0
-- **区块链**: Solidity + Hardhat 2.22.15 + OpenZeppelin 5.2.0
-- **Web3集成**: wagmi 2.16.4 + viem 2.34.0 + RainbowKit 2.2.0
-- **开发工具**: pnpm 10.15.0 + Turbo + ESLint 9.34.0 + Playwright 1.55.0
-- **部署**: nginx + PM2
-
-### 项目结构
-```
-qa-app/
-├── apps/                     # 应用程序
-│   ├── web/                  # Next.js 前端应用
-│   └── api/                  # NestJS 后端API
-├── packages/                 # 共享包
-│   ├── ui/                   # UI组件库
-│   ├── shared/               # 共享类型和工具
-│   ├── database/             # Prisma数据库层
-│   └── contracts/            # 智能合约
-├── nginx/                    # nginx配置
-└── scripts/                  # 部署和工具脚本
-```
-
-## 🚀 快速开始
-
-### 环境要求
+### Prerequisites
 - Node.js >= 18.17.0
 - pnpm >= 10.0.0
-- PostgreSQL >= 14
-- Redis >= 6
+- PostgreSQL database
+- Redis (optional, for caching)
+- Hardhat (for blockchain development)
 
-### 本地开发
+### Installation
 
-1. **克隆项目**
+1. **Clone and setup:**
 ```bash
-git clone https://github.com/kwannz/QAAPP.git
-cd QAAPP
-```
-
-2. **安装依赖**
-```bash
+cd qamini
 pnpm install
 ```
 
-3. **环境配置**
+2. **Environment setup:**
 ```bash
-# 复制环境变量模板
-cp .env.example .env
-
-# 编辑配置文件
-vim .env
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+# Configure your database URL and other environment variables
 ```
 
-4. **启动开发环境**
+3. **Database setup:**
 ```bash
-# 启动开发服务
-pnpm run dev
+pnpm db:generate
+pnpm db:push
+pnpm db:seed
 ```
 
-5. **初始化数据库**
+4. **Blockchain setup (optional):**
 ```bash
-# 运行数据库迁移
-pnpm run db:migrate
+# Start local blockchain
+pnpm blockchain:start
 
-# 种子数据
-pnpm run db:seed
+# In another terminal, deploy contracts
+pnpm blockchain:deploy:local
 ```
 
-6. **访问应用**
-- 🌐 前端应用: http://localhost:3000
-- 🔌 API文档: http://localhost:3001/api/docs
-
-## 🛠️ 开发指南
-
-### 常用命令
+5. **Build dependencies:**
 ```bash
-# 开发模式
-pnpm run dev              # 启动所有服务
-pnpm run dev:web          # 仅启动前端
-pnpm run dev:api          # 仅启动后端
-
-# 构建
-pnpm run build            # 构建所有应用
-pnpm run build:web        # 构建前端
-pnpm run build:api        # 构建后端
-
-# 测试
-pnpm run test             # 运行所有测试
-pnpm run test:contracts   # 智能合约测试
-pnpm run test:e2e         # 端到端测试
-
-# 数据库
-pnpm run db:migrate       # 数据库迁移
-pnpm run db:seed          # 种子数据
-pnpm run db:studio        # Prisma Studio
-
-# 部署
-pnpm run deploy           # 部署到生产环境
-pnpm run deploy:staging   # 部署到测试环境
+pnpm build:deps
 ```
 
-### 智能合约开发
+### Development
+
 ```bash
-# 编译合约
-pnpm run contracts:compile
-
-# 运行测试
-pnpm run contracts:test
-
-# 部署到本地网络
-pnpm run contracts:deploy:local
-
-# 部署到测试网
-pnpm run contracts:deploy:testnet
+# Start development servers
+pnpm dev
+# API: http://localhost:3001
+# Web: http://localhost:3002
 ```
 
-## 📚 核心文档
+### Production Deployment
 
-- **PROJECT_STATUS.md**: 项目状态总结和功能概览
-- **PRD.md**: 产品需求文档
-- **FULLSTACK_ARCHITECTURE.md**: 全栈架构设计
-- **COMPONENT_LIBRARY_SPECS.md**: 组件库规范
-- **USER_EXPERIENCE_FLOWS.md**: 用户体验流程
-- **DESIGN_SYSTEM_PRO.md**: 设计系统规范
+```bash
+# Build for production
+pnpm build
 
-## 🔒 安全特性
+# Start with PM2
+pnpm pm2:start
 
-- **智能合约**: 重入攻击防护、权限控制、安全审计
-- **API安全**: JWT认证、RBAC权限系统、输入验证
-- **数据库**: 参数化查询、SQL注入防护、数据加密
-- **前端**: XSS防护、CSRF保护、安全头部
+# Monitor
+pnpm pm2:logs
+```
 
-## 📈 性能指标
+## 📦 Core Features
 
-- **API响应时间**: < 100ms
-- **页面加载时间**: < 2s
-- **合约部署成本**: 优化完成
-- **Gas使用效率**: 高度优化
+### ✅ Included in QAMini
 
-## 🤝 贡献指南
+**Authentication & Users**
+- JWT-based authentication
+- User registration and profile management
+- Role-based access control
 
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
+**Finance Module**
+- Product management (fixed-income products)
+- Order processing
+- Transaction history
+- Position tracking
 
-## 📄 许可证
+**Core Infrastructure**
+- Database optimization with Prisma
+- Health monitoring
+- Logging and error handling
+- API rate limiting
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+**Frontend**
+- Responsive dashboard
+- Product browsing and investment
+- User authentication flows
+- Core UI components
 
-## 📞 联系我们
+**Blockchain Integration**
+- Smart contracts for yield distribution
+- Treasury management on-chain
+- QA Card NFT system
+- MockUSDT for testing
+- Ethereum/Sepolia testnet support
 
-- **项目主页**: [https://github.com/kwannz/QAAPP](https://github.com/kwannz/QAAPP)
-- **问题反馈**: [Issues](https://github.com/kwannz/QAAPP/issues)
-- **讨论交流**: [Discussions](https://github.com/kwannz/QAAPP/discussions)
+### ❌ Excluded from QAMini
+
+- Real-time WebSocket features (basic WebSocket module included)
+- Advanced monitoring and alerting
+- Redis caching layer (basic cache module included)
+- Test suites and testing infrastructure
+- Storybook component library
+- CI/CD workflows
+- Advanced admin features
+
+## 🔧 Configuration
+
+### Environment Variables
+
+**API (.env):**
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/qamini"
+JWT_SECRET="your-secret-key"
+NODE_ENV="development"
+PORT=3001
+
+# Blockchain Configuration
+BLOCKCHAIN_ENABLED=true
+BLOCKCHAIN_NETWORK=localhost
+BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
+PRIVATE_KEY=your-private-key-for-deployment
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your-project-id
+ETHERSCAN_API_KEY=your-etherscan-api-key
+```
+
+**Web (.env.local):**
+```
+NEXT_PUBLIC_API_URL="http://localhost:3001"
+NODE_ENV="development"
+```
+
+### Database
+
+The system uses PostgreSQL with Prisma ORM. Key entities:
+- Users (authentication and profiles)
+- Products (fixed-income offerings)
+- Orders (investment orders)
+- Transactions (financial records)
+- Positions (user holdings)
+
+## 📚 API Documentation
+
+Once running, access the Swagger documentation at:
+- Development: http://localhost:3001/api/docs
+- Production: https://your-domain.com/api/docs
+
+## 🔍 Monitoring
+
+### Health Checks
+- API Health: `GET /health`
+- Database Health: `GET /health/database`
+
+### Logs
+Production logs are managed by PM2:
+```bash
+pnpm pm2:logs
+```
+
+## 🛠️ Development Scripts
+
+```bash
+# Development
+pnpm dev                    # Start development servers
+pnpm build                  # Build all packages
+pnpm lint                   # Run linting
+pnpm type-check            # TypeScript validation
+
+# Database
+pnpm db:generate           # Generate Prisma client
+pnpm db:push               # Push schema changes
+pnpm db:migrate            # Run migrations
+pnpm db:seed               # Seed database
+
+# Blockchain
+pnpm blockchain:start      # Start local Hardhat network
+pnpm blockchain:stop       # Stop local blockchain
+pnpm blockchain:deploy:local    # Deploy contracts to localhost
+pnpm blockchain:deploy:sepolia  # Deploy contracts to Sepolia
+pnpm blockchain:test:local      # Test contracts on localhost
+pnpm blockchain:verify:sepolia  # Verify contracts on Sepolia
+
+# Production
+pnpm start                 # Start production servers
+pnpm pm2:start            # Start with PM2
+pnpm pm2:stop             # Stop PM2 processes
+pnpm health               # Check system health
+```
+
+## 📁 Project Structure
+
+```
+qamini/
+├── apps/
+│   ├── api/              # NestJS Backend
+│   │   ├── src/
+│   │   │   ├── auth/     # Authentication module
+│   │   │   ├── users/    # User management
+│   │   │   ├── finance/  # Core business logic
+│   │   │   ├── blockchain/ # Blockchain integration
+│   │   │   ├── database/ # Database services
+│   │   │   └── health/   # Health monitoring
+│   │   └── package.json
+│   └── web/              # Next.js Frontend
+│       ├── app/          # App router pages
+│       ├── components/   # React components
+│       ├── hooks/        # Custom hooks
+│       └── package.json
+├── packages/
+│   ├── contracts/       # Smart contracts (Hardhat)
+│   ├── database/        # Prisma schema
+│   ├── shared/          # Shared utilities
+│   └── ui/              # UI components
+├── scripts/             # Utility scripts
+├── ecosystem.config.js  # PM2 configuration
+└── package.json         # Root package
+```
+
+## 🤝 Contributing
+
+This is a minimal version extracted from the full QAAPP. For development:
+
+1. Keep the scope minimal - only add essential features
+2. Maintain the modular architecture
+3. Follow existing code patterns
+4. Update this README when adding new features
+
+## 📄 License
+
+Private - Internal use only
 
 ---
 
-⭐ 如果这个项目对您有帮助，请给我们一个星标！
+**QAMini** - Web3固定收益平台精简版 | Simplified Web3 Fixed-Income Platform

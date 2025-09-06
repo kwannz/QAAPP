@@ -1,86 +1,87 @@
-'use client'
+'use client';
 
-import * as React from "react"
-import { ReactNode } from 'react'
-import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, User, Shield, Clock } from 'lucide-react'
-import { Button, Badge } from '@/components/ui'
-import { cn } from "@/lib/utils"
+import { motion } from 'framer-motion';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, User, Shield, Clock } from 'lucide-react';
+import * as React from 'react';
+import type { ReactNode } from 'react';
+
+import { Button, Badge } from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 // Base card components (preserved from ui/card.tsx)
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, ...properties }, reference) => (
   <div
-    ref={ref}
+    ref={reference}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
+      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      className,
     )}
-    {...props}
+    {...properties}
   />
-))
-Card.displayName = "Card"
+));
+Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, ...properties }, reference) => (
   <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props}
+    ref={reference}
+    className={cn('flex flex-col space-y-1.5 p-6', className)}
+    {...properties}
   />
-))
-CardHeader.displayName = "CardHeader"
+));
+CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
+>(({ className, ...properties }, reference) => (
   <h3
-    ref={ref}
+    ref={reference}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
-      className
+      'text-2xl font-semibold leading-none tracking-tight',
+      className,
     )}
-    {...props}
+    {...properties}
   />
-))
-CardTitle.displayName = "CardTitle"
+));
+CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
+>(({ className, ...properties }, reference) => (
   <p
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
+    ref={reference}
+    className={cn('text-sm text-muted-foreground', className)}
+    {...properties}
   />
-))
-CardDescription.displayName = "CardDescription"
+));
+CardDescription.displayName = 'CardDescription';
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-))
-CardContent.displayName = "CardContent"
+>(({ className, ...properties }, reference) => (
+  <div ref={reference} className={cn('p-6 pt-0', className)} {...properties} />
+));
+CardContent.displayName = 'CardContent';
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, ...properties }, reference) => (
   <div
-    ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
-    {...props}
+    ref={reference}
+    className={cn('flex items-center p-6 pt-0', className)}
+    {...properties}
   />
-))
-CardFooter.displayName = "CardFooter"
+));
+CardFooter.displayName = 'CardFooter';
 
 // Enhanced card types and interfaces
 
@@ -90,7 +91,7 @@ interface MetricsCardChange {
   label?: string
 }
 
-interface MetricsCardProps {
+interface MetricsCardProperties {
   title: string
   value: string | number
   icon?: ReactNode
@@ -109,7 +110,7 @@ interface ProductCardAction {
   disabled?: boolean
 }
 
-interface ProductCardProps {
+interface ProductCardProperties {
   title: string
   description: string
   price?: string | number
@@ -126,51 +127,57 @@ interface ProductCardProps {
 
 type CardVariant = 'basic' | 'metrics' | 'product'
 
-interface UnifiedCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface UnifiedCardProperties extends React.HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant
+
   // Basic card props
   children?: ReactNode
+
   // Metrics card props
-  metricsProps?: MetricsCardProps
+  metricsProps?: MetricsCardProperties
+
   // Product card props
-  productProps?: ProductCardProps
+  productProps?: ProductCardProperties
 }
 
 // Status styles for metrics
 const statusStyles = {
   success: 'border-green-200 bg-green-50',
-  warning: 'border-yellow-200 bg-yellow-50', 
+  warning: 'border-yellow-200 bg-yellow-50',
   error: 'border-red-200 bg-red-50',
-  neutral: 'border-gray-200 bg-white'
-}
+  neutral: 'border-gray-200 bg-white',
+};
 
 // Size styles for metrics
 const sizeStyles = {
   sm: 'p-4',
   md: 'p-6',
-  lg: 'p-8'
-}
+  lg: 'p-8',
+};
 
 // Status badge styles for products
 const productStatusStyles = {
-  'available': 'bg-green-100 text-green-800',
+  available: 'bg-green-100 text-green-800',
   'sold-out': 'bg-red-100 text-red-800',
   'coming-soon': 'bg-blue-100 text-blue-800',
-  'active': 'bg-green-100 text-green-800',
-  'inactive': 'bg-gray-100 text-gray-800'
-}
+  active: 'bg-green-100 text-green-800',
+  inactive: 'bg-gray-100 text-gray-800',
+};
 
 // Get trend icon
 const getTrendIcon = (type: string) => {
   switch (type) {
-    case 'increase':
-      return <TrendingUp className="w-4 h-4 text-green-600" />
-    case 'decrease':
-      return <TrendingDown className="w-4 h-4 text-red-600" />
-    default:
-      return <Minus className="w-4 h-4 text-gray-600" />
+    case 'increase': {
+      return <TrendingUp className="w-4 h-4 text-green-600" />;
+    }
+    case 'decrease': {
+      return <TrendingDown className="w-4 h-4 text-red-600" />;
+    }
+    default: {
+      return <Minus className="w-4 h-4 text-gray-600" />;
+    }
   }
-}
+};
 
 // Metrics Card Component
 function MetricsCard({
@@ -182,17 +189,17 @@ function MetricsCard({
   description,
   onClick,
   className,
-  size = 'md'
-}: MetricsCardProps) {
-  const CardComponent = onClick ? motion.div : 'div'
-  
+  size = 'md',
+}: MetricsCardProperties) {
+  const CardComponent = onClick ? motion.div : 'div';
+
   return (
     <CardComponent
       className={cn(
-        "rounded-lg border shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md",
+        'rounded-lg border shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md',
         statusStyles[status],
-        onClick && "hover:scale-105",
-        className
+        onClick && 'hover:scale-105',
+        className,
       )}
       onClick={onClick}
       whileHover={onClick ? { y: -2 } : undefined}
@@ -215,10 +222,12 @@ function MetricsCard({
             <div className="flex items-center gap-1">
               {getTrendIcon(change.type)}
               <span className={cn(
-                "text-sm font-medium",
-                change.type === 'increase' ? 'text-green-600' : 
-                change.type === 'decrease' ? 'text-red-600' : 'text-gray-600'
-              )}>
+                'text-sm font-medium',
+                change.type === 'increase'
+? 'text-green-600'
+                : (change.type === 'decrease' ? 'text-red-600' : 'text-gray-600'),
+              )}
+              >
                 {change.value > 0 && change.type !== 'neutral' ? '+' : ''}{change.value}%
               </span>
             </div>
@@ -232,7 +241,7 @@ function MetricsCard({
         )}
       </div>
     </CardComponent>
-  )
+  );
 }
 
 // Product Card Component
@@ -248,27 +257,27 @@ function ProductCard({
   actions,
   metadata,
   className,
-  onClick
-}: ProductCardProps) {
+  onClick,
+}: ProductCardProperties) {
   return (
-    <Card className={cn("overflow-hidden transition-all hover:shadow-lg", className)}>
+    <Card className={cn('overflow-hidden transition-all hover:shadow-lg', className)}>
       {image && (
         <div className="aspect-video relative overflow-hidden">
-          <img 
-            src={image} 
+          <img
+            src={image}
             alt={title}
             className="w-full h-full object-cover transition-transform hover:scale-105"
           />
           {status && (
-            <Badge 
-              className={cn("absolute top-2 right-2", productStatusStyles[status])}
+            <Badge
+              className={cn('absolute top-2 right-2', productStatusStyles[status])}
             >
               {status}
             </Badge>
           )}
         </div>
       )}
-      
+
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-xl">{title}</CardTitle>
@@ -279,7 +288,7 @@ function ProductCard({
           )}
         </div>
         <CardDescription>{description}</CardDescription>
-        
+
         {tags && (
           <div className="flex flex-wrap gap-1 mt-2">
             {tags.map((tag, index) => (
@@ -338,30 +347,29 @@ function ProductCard({
         </CardFooter>
       )}
     </Card>
-  )
+  );
 }
 
 // Main UnifiedCard component with variant support
-const UnifiedCard = React.forwardRef<HTMLDivElement, UnifiedCardProps>(
-  ({ variant = 'basic', metricsProps, productProps, children, className, ...props }, ref) => {
-    
+const UnifiedCard = React.forwardRef<HTMLDivElement, UnifiedCardProperties>(
+  ({ variant = 'basic', metricsProps, productProps, children, className, ...properties }, reference) => {
     if (variant === 'metrics' && metricsProps) {
-      return <MetricsCard {...metricsProps} className={className} />
+      return <MetricsCard {...metricsProps} className={className} />;
     }
-    
+
     if (variant === 'product' && productProps) {
-      return <ProductCard {...productProps} className={className} />
+      return <ProductCard {...productProps} className={className} />;
     }
-    
+
     // Basic card (default)
     return (
-      <Card ref={ref} className={className} {...props}>
+      <Card ref={reference} className={className} {...properties}>
         {children}
       </Card>
-    )
-  }
-)
-UnifiedCard.displayName = "UnifiedCard"
+    );
+  },
+);
+UnifiedCard.displayName = 'UnifiedCard';
 
 // Specialized card variants for common use cases
 export function UserMetricsCard({ count, change }: { count: number; change?: number }) {
@@ -372,7 +380,7 @@ export function UserMetricsCard({ count, change }: { count: number; change?: num
       icon={<User className="h-5 w-5 text-blue-600" />}
       change={change ? { value: change, type: change > 0 ? 'increase' : 'decrease', label: '本月' } : undefined}
     />
-  )
+  );
 }
 
 export function RevenueMetricsCard({ revenue, change }: { revenue: number; change?: number }) {
@@ -384,40 +392,43 @@ export function RevenueMetricsCard({ revenue, change }: { revenue: number; chang
       change={change ? { value: change, type: change > 0 ? 'increase' : 'decrease', label: '本月' } : undefined}
       status={change && change > 0 ? 'success' : 'neutral'}
     />
-  )
+  );
 }
 
 export function SystemHealthCard({ health }: { health: number }) {
-  const status = health >= 95 ? 'success' : health >= 90 ? 'warning' : 'error'
-  
+  const status = health >= 95 ? 'success' : (health >= 90 ? 'warning' : 'error');
+
   return (
     <MetricsCard
       title="系统健康度"
       value={`${health}%`}
       icon={<Shield className="h-5 w-5 text-blue-600" />}
       status={status}
-      description={health >= 95 ? '系统运行良好' : health >= 90 ? '需要关注' : '需要立即处理'}
+      description={health >= 95 ? '系统运行良好' : (health >= 90 ? '需要关注' : '需要立即处理')}
     />
-  )
+  );
 }
 
 // Export all components for compatibility
-export { 
+export {
+
   // Unified system
   UnifiedCard,
+
   // Original basic components (preserved for compatibility)
-  Card, 
-  CardHeader, 
-  CardFooter, 
-  CardTitle, 
-  CardDescription, 
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
   CardContent,
+
   // Enhanced components
   MetricsCard,
   ProductCard,
   ProductCard as EnhancedProductCard, // Alias for compatibility
   // Types
-  type MetricsCardProps,
-  type ProductCardProps,
-  type UnifiedCardProps
-}
+  type MetricsCardProperties as MetricsCardProps,
+  type ProductCardProperties as ProductCardProps,
+  type UnifiedCardProperties as UnifiedCardProps,
+};

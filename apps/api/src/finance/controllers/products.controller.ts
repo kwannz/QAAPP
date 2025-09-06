@@ -33,6 +33,7 @@ import {
   ProductResponseDto,
   ProductListResponseDto
 } from '../dto/products.dto';
+import { AuthenticatedRequest } from '../../common/types/express.types';
 
 @ApiTags('Products')
 @Controller('products')
@@ -121,7 +122,7 @@ export class ProductsController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body(ValidationPipe) createProductDto: CreateProductDto,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<ProductResponseDto> {
     return this.productsService.create(createProductDto, req.user.id);
   }
@@ -159,7 +160,7 @@ export class ProductsController {
   async update(
     @Param('id', ParseUUIDPipe) id: string, 
     @Body(ValidationPipe) updateProductDto: UpdateProductDto,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<ProductResponseDto> {
     return this.productsService.update(id, updateProductDto, req.user.id);
   }
@@ -194,7 +195,7 @@ export class ProductsController {
   @Delete(':id')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<{ message: string; productId: string }> {
     return this.productsService.remove(id, req.user.id);
   }

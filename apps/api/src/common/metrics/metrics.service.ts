@@ -58,7 +58,9 @@ export class MetricsService {
     // 保持最近100个指标
     if (this.metrics.size > 100) {
       const firstKey = this.metrics.keys().next().value;
-      this.metrics.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.metrics.delete(firstKey);
+      }
     }
   }
 

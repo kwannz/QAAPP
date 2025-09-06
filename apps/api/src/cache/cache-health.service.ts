@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { MultiLayerCacheService } from './multi-layer-cache.service';
 import { CacheInvalidationService } from './cache-invalidation.service';
-import { CacheLayer, CacheStats } from '@qa-app/shared';
+import { CacheLayer, CacheStats } from '../types/cache.types';
 
 interface CacheHealthReport {
   timestamp: number;
@@ -86,7 +86,11 @@ export class CacheHealthService {
 
     // 分析各层健康状况
     for (const [layer, stats] of cacheStats.entries()) {
-      const isOnline = layerHealth[layer.toLowerCase() as keyof typeof layerHealth];
+      // Map enum values to health check keys
+      const healthKey = layer === CacheLayer.L1_MEMORY ? 'l1' : 
+                       layer === CacheLayer.L2_REDIS ? 'l2' : 
+                       layer === CacheLayer.L3_CDN ? 'l3' : 'l1';
+      const isOnline = layerHealth[healthKey as keyof typeof layerHealth];
       const issues: string[] = [];
 
       // 检查命中率
@@ -127,7 +131,7 @@ export class CacheHealthService {
         });
       }
 
-      layers[layer] = {
+      layers[layer as keyof CacheHealthReport['layers']] = {
         status: !isOnline ? 'offline' : issues.length > 0 ? 'degraded' : 'online',
         stats,
         issues: issues.length > 0 ? issues : undefined

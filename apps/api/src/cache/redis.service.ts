@@ -5,7 +5,7 @@ import Redis, { Cluster } from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  private client: Redis | Cluster;
+  private client!: Redis | Cluster;
   private isConnected = false;
 
   constructor(private configService: ConfigService) {}
@@ -191,7 +191,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   // 获取 Redis 信息
   async info(section?: string): Promise<string> {
     this.ensureConnected();
-    return await this.client.info(section);
+    return section ? await this.client.info(section) : await this.client.info();
   }
 
   // 获取内存统计

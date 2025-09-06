@@ -1,29 +1,29 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowRight, Shield, TrendingUp, Users, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion';
+import { ArrowRight, Shield, TrendingUp, Users, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
-import { Button } from '@/components/ui'
+import { Button } from '@/components/ui';
 
 export function HeroSection() {
-  const [currentStat, setCurrentStat] = useState(0)
-  
+  const [currentStat, setCurrentStat] = useState(0);
+
   const stats = [
-    { value: '$12.5M', label: '总投资额' },
-    { value: '15.8%', label: '平均年化收益' },
-    { value: '2,847', label: '活跃投资者' },
-    { value: '99.9%', label: '资金安全率' },
-  ]
+    { value: '$12.5M', label: '总投资额', animation: 'fadeInUp' },
+    { value: '15.8%', label: '平均年化收益', animation: 'fadeInUp' },
+    { value: '2,847', label: '活跃投资者', animation: 'fadeInUp' },
+    { value: '99.9%', label: '资金安全率', animation: 'fadeInUp' },
+  ];
 
   // 轮播统计数据
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStat((prev) => (prev + 1) % stats.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [stats.length])
+      setCurrentStat((previous) => (previous + 1) % stats.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [stats.length]);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 py-24 sm:py-32">
@@ -31,13 +31,13 @@ export function HeroSection() {
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-br from-orange-400/20 to-red-400/20 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-gradient-to-br from-amber-400/20 to-orange-400/20 blur-3xl" />
-        
+
         {/* 网格背景 */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(251,146,60,0.5) 1px, transparent 0)',
-            backgroundSize: '50px 50px'
+            backgroundSize: '50px 50px',
           }}
         />
       </div>
@@ -78,7 +78,7 @@ export function HeroSection() {
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-              
+
               <Link href="/learn">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto">
                   了解更多
@@ -110,33 +110,47 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-16"
           >
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-8">
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/30 shadow-2xl p-8">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                 {stats.map((stat, index) => (
                   <motion.div
                     key={stat.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
                     className={`text-center transition-all duration-500 ${
-                      currentStat === index ? 'scale-110 text-primary' : 'text-muted-foreground'
+                      currentStat === index 
+                        ? 'scale-110 text-primary transform' 
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <div className="text-2xl md:text-3xl font-bold mb-1">
+                    <motion.div 
+                      className="text-2xl md:text-3xl font-bold mb-2"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    >
                       {stat.value}
-                    </div>
-                    <div className="text-sm">
+                    </motion.div>
+                    <div className="text-sm font-medium">
                       {stat.label}
                     </div>
                   </motion.div>
                 ))}
               </div>
-              
+
               {/* 进度指示器 */}
-              <div className="flex justify-center mt-6 space-x-2">
+              <div className="flex justify-center mt-8 space-x-3">
                 {stats.map((_, index) => (
-                  <div
+                  <motion.div
                     key={index}
-                    className={`h-2 w-8 rounded-full transition-all duration-500 ${
-                      currentStat === index ? 'bg-primary' : 'bg-gray-200'
+                    className={`h-2 rounded-full transition-all duration-500 cursor-pointer ${
+                      currentStat === index 
+                        ? 'bg-primary w-12 shadow-lg' 
+                        : 'bg-gray-300 w-8 hover:bg-gray-400'
                     }`}
+                    whileHover={{ scale: 1.1 }}
+                    onClick={() => setCurrentStat(index)}
                   />
                 ))}
               </div>
@@ -148,19 +162,53 @@ export function HeroSection() {
       {/* 浮动元素 */}
       <div className="absolute top-1/2 left-4 -translate-y-1/2 hidden xl:block">
         <motion.div
-          animate={{ y: [-10, 10, -10] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 opacity-20 blur-sm"
+          animate={{ 
+            y: [-15, 15, -15],
+            rotate: [0, 180, 360],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            duration: 6, 
+            repeat: Infinity, 
+            ease: 'easeInOut',
+            times: [0, 0.5, 1]
+          }}
+          className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 opacity-25 blur-sm shadow-lg"
         />
       </div>
-      
+
       <div className="absolute top-1/4 right-8 hidden xl:block">
         <motion.div
-          animate={{ y: [10, -10, 10] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-30 blur-sm"
+          animate={{ 
+            y: [15, -15, 15],
+            x: [-5, 5, -5],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ 
+            duration: 7, 
+            repeat: Infinity, 
+            ease: 'easeInOut',
+            times: [0, 0.5, 1]
+          }}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-35 blur-sm shadow-md"
+        />
+      </div>
+
+      {/* 新增装饰元素 */}
+      <div className="absolute bottom-1/4 left-1/4 hidden lg:block">
+        <motion.div
+          animate={{ 
+            rotate: [0, -180, -360],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity, 
+            ease: 'linear'
+          }}
+          className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 opacity-20 blur-sm"
         />
       </div>
     </section>
-  )
+  );
 }

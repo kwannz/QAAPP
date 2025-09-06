@@ -1,13 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserService } from '../../user/user.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UsersService } from '../../users/users.service';
 import { Cacheable, CacheEvict, CachePut } from '../cache.decorator';
-import { CacheLayer } from '@qa-app/shared';
+import { CacheLayer } from '../../../../../packages/shared/src/types/cache.types';
+import { MultiLayerCacheService } from '../multi-layer-cache.service';
+import { CacheInvalidationService } from '../cache-invalidation.service';
 
 @Injectable()
 export class CachedUserService {
   private readonly logger = new Logger(CachedUserService.name);
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UsersService,
+    private eventEmitter: EventEmitter2,
+    private cacheService: MultiLayerCacheService,
+    private invalidationService: CacheInvalidationService
+  ) {}
 
   /**
    * 获取用户详情 - 多层缓存，30分钟TTL

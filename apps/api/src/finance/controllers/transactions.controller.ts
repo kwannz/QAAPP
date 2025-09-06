@@ -190,7 +190,7 @@ export class LegacyTransactionsController {
   @Get('payouts')
   @Auth('ADMIN')
   async getLegacyPayouts(
-    @Query() query: any,
+    @Query() query: GetTransactionsDto,
     @Headers() headers: Record<string, string>,
     @Res({ passthrough: true }) res: Response
   ) {
@@ -242,7 +242,7 @@ export class LegacyTransactionsController {
   @Get('withdrawals')
   @Auth('ADMIN')
   async getLegacyWithdrawals(
-    @Query() query: any,
+    @Query() query: GetTransactionsDto,
     @Headers() headers: Record<string, string>,
     @Res({ passthrough: true }) res: Response
   ) {

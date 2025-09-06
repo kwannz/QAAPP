@@ -525,7 +525,7 @@ export class RiskEngineService {
   } {
     const warnings: string[] = [];
     const requiredActions: string[] = [];
-    let recommendation: string;
+    let recommendation: string = 'Unknown risk level';
     let autoApproved = false;
 
     // 检查关键风险因素
@@ -623,7 +623,7 @@ export class RiskEngineService {
   }> {
     // 模拟IP风险评估
     const knownVpnRanges = ['10.0.', '192.168.', '172.16.'];
-    const knownTorExits = []; // 实际应该从数据库获取
+    const knownTorExits: string[] = []; // 实际应该从数据库获取
 
     if (knownTorExits.includes(ipAddress)) {
       return { isHighRisk: true, isMediumRisk: false, reason: 'Tor出口节点' };

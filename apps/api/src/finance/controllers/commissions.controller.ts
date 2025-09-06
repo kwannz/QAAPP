@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Auth } from '../../auth/decorators/auth.decorator';
 import { CommissionsService } from '../services/commissions.service';
+import { AuthenticatedRequest, PaginationQuery, QueryFilters } from '../../common/types/express.types';
 
 @ApiTags('Finance - Commissions')
 @Controller('finance/commissions')
@@ -16,7 +17,7 @@ export class CommissionsController {
   @ApiResponse({ status: 200, description: 'User commission history retrieved' })
   async getUserCommissionHistory(
     @Param('userId') userId: string,
-    @Query() pagination: any
+    @Query() pagination: PaginationQuery
   ) {
     return this.commissionsService.getUserCommissionHistory(userId, pagination);
   }
@@ -32,7 +33,7 @@ export class CommissionsController {
   @Auth('ADMIN')
   @ApiOperation({ summary: 'Get admin commission list with filters' })
   @ApiResponse({ status: 200, description: 'Admin commission list retrieved' })
-  async getAdminCommissionList(@Query() filters: any) {
+  async getAdminCommissionList(@Query() filters: QueryFilters) {
     return this.commissionsService.getAdminCommissionList(filters);
   }
 

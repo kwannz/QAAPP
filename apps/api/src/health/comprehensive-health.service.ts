@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { RedisService } from '../cache/redis.service';
 import { MultiLayerCacheService } from '../cache/multi-layer-cache.service';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
+import { CacheStats } from '../types/cache.types';
 // PerformanceService integrated into monitoring module
 
 interface HealthCheckResult {
@@ -137,13 +139,13 @@ export class ComprehensiveHealthService {
         },
         lastChecked: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         status: 'critical',
         responseTime: Date.now() - startTime,
         details: {
           connected: false,
-          error: error.message
+          error: getErrorMessage(error)
         },
         lastChecked: new Date().toISOString()
       };
@@ -174,13 +176,13 @@ export class ComprehensiveHealthService {
         },
         lastChecked: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         status: 'critical',
         responseTime: Date.now() - startTime,
         details: {
           connected: false,
-          error: error.message
+          error: getErrorMessage(error)
         },
         lastChecked: new Date().toISOString()
       };
@@ -213,12 +215,12 @@ export class ComprehensiveHealthService {
         },
         lastChecked: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         status: 'critical',
         responseTime: Date.now() - startTime,
         details: {
-          error: error.message
+          error: getErrorMessage(error)
         },
         lastChecked: new Date().toISOString()
       };
@@ -265,12 +267,12 @@ export class ComprehensiveHealthService {
         },
         lastChecked: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         status: 'critical',
         responseTime: Date.now() - startTime,
         details: {
-          error: error.message
+          error: getErrorMessage(error)
         },
         lastChecked: new Date().toISOString()
       };

@@ -12,7 +12,8 @@ import {
   UserResponseDto,
   UserStatsResponseDto
 } from './dto/users.dto';
-import { UserRole, KycStatus } from '@qa-app/database';
+import { UserRole, KycStatus, Prisma } from '@qa-app/database';
+import { DatabaseWhereClause, DatabaseUpdateData } from '../database/interfaces/database.interface';
 
 @Injectable()
 export class UsersService {
@@ -131,7 +132,7 @@ export class UsersService {
       cacheKey,
       async () => {
         // 构建查询条件
-        const where: any = {};
+        const where: DatabaseWhereClause = {};
         
         if (email) {
           where.email = { contains: email, mode: 'insensitive' };
@@ -180,6 +181,7 @@ export class UsersService {
                   address: true,
                   chainId: true,
                   label: true,
+                  isPrimary: true,
                 },
                 take: 1
               },
@@ -213,7 +215,7 @@ export class UsersService {
         const totalPages = Math.ceil(total / limit);
 
         return {
-          users: users as UserResponseDto[],
+          users: users.map(user => this.mapDatabaseUserToResponseDto(user)),
           total,
           page,
           limit,
@@ -248,7 +250,7 @@ export class UsersService {
     }
 
     // 准备更新数据
-    const updateData: any = {};
+    const updateData: DatabaseUpdateData = {};
     
     if (updateDto.email) {
       updateData.email = updateDto.email.toLowerCase();
@@ -525,7 +527,7 @@ export class UsersService {
     const thisMonth = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     // 构建日期范围
-    let dateFilter: any = {};
+    let dateFilter: DatabaseWhereClause = {};
     if (statsDto.startDate && statsDto.endDate) {
       dateFilter = {
         createdAt: {
@@ -607,7 +609,7 @@ export class UsersService {
     action: string,
     resourceType: string,
     resourceId: string | null,
-    metadata: any,
+    metadata: Record<string, unknown>,
   ): Promise<void> {
     try {
       await this.database.auditLog.create({
@@ -617,11 +619,44 @@ export class UsersService {
           action,
           resourceType,
           resourceId,
-          metadata,
+          metadata: metadata as Prisma.InputJsonValue,
         },
       });
     } catch (error) {
       this.logger.error('Failed to create audit log:', error);
     }
+  }
+
+  /**
+   * 将数据库用户对象映射为 UserResponseDto
+   */
+  private mapDatabaseUserToResponseDto(user: any): UserResponseDto {
+    return {
+      id: user.id,
+      email: user.email ?? undefined,
+      role: user.role,
+      referralCode: user.referralCode,
+      kycStatus: user.kycStatus,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt ?? undefined,
+      wallets: (user.wallets || []).map((wallet: any) => ({
+        id: wallet.id,
+        address: wallet.address,
+        chainId: wallet.chainId,
+        isPrimary: wallet.isPrimary ?? false,
+        label: wallet.label ?? undefined,
+      })),
+      referredBy: user.referredBy ? {
+        id: user.referredBy.id,
+        referralCode: user.referredBy.referralCode,
+        email: user.referredBy.email ?? undefined,
+      } : undefined,
+      agent: user.agent ? {
+        id: user.agent.id,
+        referralCode: user.agent.referralCode,
+        email: user.agent.email ?? undefined,
+      } : undefined,
+    };
   }
 }

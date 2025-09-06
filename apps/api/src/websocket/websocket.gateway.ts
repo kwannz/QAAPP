@@ -11,6 +11,8 @@ import {
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
+import { WebSocketAuthData, WebSocketNotificationData, WebSocketBroadcastMessage } from './interfaces/websocket.interface';
 
 @WebSocketGateway({
   cors: {
@@ -20,7 +22,7 @@ import { JwtService } from '@nestjs/jwt';
   namespace: '/',
 })
 export class QAWebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
   private logger: Logger = new Logger('WebSocketGateway');
   private connectedClients = new Map<string, Socket>();
 
@@ -65,8 +67,8 @@ export class QAWebSocketGateway implements OnGatewayInit, OnGatewayConnection, O
       // 加入用户特定的房间
       await client.join(`user_${userId}`);
 
-    } catch (error) {
-      this.logger.error(`Authentication failed for client ${client.id}:`, error.message);
+    } catch (error: unknown) {
+      this.logger.error(`Authentication failed for client ${client.id}:`, getErrorMessage(error));
       client.emit('auth_error', { message: '认证失败' });
       client.disconnect();
     }
@@ -95,7 +97,7 @@ export class QAWebSocketGateway implements OnGatewayInit, OnGatewayConnection, O
 
   // 处理客户端认证消息
   @SubscribeMessage('auth')
-  handleAuth(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  handleAuth(@MessageBody() data: WebSocketAuthData, @ConnectedSocket() client: Socket) {
     // 认证逻辑已在 handleConnection 中处理
     return {
       event: 'auth_response',
@@ -138,18 +140,16 @@ export class QAWebSocketGateway implements OnGatewayInit, OnGatewayConnection, O
   }
 
   // 公共方法：向特定用户发送通知
-  async sendNotificationToUser(userId: string, notification: any) {
+  async sendNotificationToUser(userId: string, notification: WebSocketNotificationData) {
     const room = `user_${userId}`;
     this.server.to(room).emit('notification', {
       type: 'notification',
       payload: {
+        ...notification,
         id: notification.id || Date.now().toString(),
-        title: notification.title,
-        message: notification.message,
-        level: notification.level || 'info', // success, error, warning, info
+        level: notification.level || 'info',
         timestamp: new Date().toISOString(),
         isRead: false,
-        ...notification,
       },
     });
 
@@ -173,7 +173,7 @@ export class QAWebSocketGateway implements OnGatewayInit, OnGatewayConnection, O
   }
 
   // 公共方法：广播消息给所有连接的客户端
-  async broadcastMessage(message: any) {
+  async broadcastMessage(message: WebSocketBroadcastMessage) {
     this.server.emit('broadcast', {
       type: 'broadcast',
       payload: message,

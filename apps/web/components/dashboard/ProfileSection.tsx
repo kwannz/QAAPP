@@ -1,11 +1,13 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { 
-  User, Mail, Check, Camera, Edit, Save, X, Link as LinkIcon
-} from 'lucide-react'
-import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/components/ui'
-import { toast } from 'react-hot-toast'
+import {
+  User, Mail, Check, Camera, Edit, Save, X, Link as LinkIcon,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+
+import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/components/ui';
+
 
 interface UserProfile {
   id: string
@@ -53,7 +55,7 @@ const mockProfile: UserProfile = {
     state: '北京市',
     city: '北京市',
     street: '朝阳区建国门外大街1号',
-    postalCode: '100020'
+    postalCode: '100020',
   },
   occupation: '软件工程师',
   company: 'TechCorp Inc.',
@@ -64,24 +66,24 @@ const mockProfile: UserProfile = {
   lastLoginAt: '2024-02-01T10:30:00Z',
   emailVerified: true,
   phoneVerified: true,
-  twoFactorEnabled: false
-}
+  twoFactorEnabled: false,
+};
 
 export function ProfileSection() {
-  const [profile, setProfile] = useState<UserProfile>(mockProfile)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile)
+  const [profile, setProfile] = useState<UserProfile>(mockProfile);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile);
 
   const handleSaveProfile = () => {
-    setProfile(editedProfile)
-    setIsEditing(false)
-    toast.success('个人资料已更新')
-  }
+    setProfile(editedProfile);
+    setIsEditing(false);
+    toast.success('个人资料已更新');
+  };
 
   const handleCancelEdit = () => {
-    setEditedProfile(profile)
-    setIsEditing(false)
-  }
+    setEditedProfile(profile);
+    setIsEditing(false);
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -125,7 +127,8 @@ export function ProfileSection() {
             <div className="flex items-center justify-between">
               <CardTitle>基本信息</CardTitle>
               <div className="flex items-center space-x-2">
-                {isEditing ? (
+                {isEditing
+? (
                   <>
                     <Button size="sm" onClick={handleSaveProfile}>
                       <Save className="w-4 h-4 mr-2" />
@@ -136,7 +139,8 @@ export function ProfileSection() {
                       取消
                     </Button>
                   </>
-                ) : (
+                )
+: (
                   <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
                     <Edit className="w-4 h-4 mr-2" />
                     编辑
@@ -151,7 +155,7 @@ export function ProfileSection() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">姓</label>
                 <Input
                   value={isEditing ? editedProfile.firstName || '' : profile.firstName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, firstName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, firstName: e.target.value }))}
                   disabled={!isEditing}
                   placeholder="请输入姓"
                 />
@@ -160,7 +164,7 @@ export function ProfileSection() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">名</label>
                 <Input
                   value={isEditing ? editedProfile.lastName || '' : profile.lastName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, lastName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, lastName: e.target.value }))}
                   disabled={!isEditing}
                   placeholder="请输入名"
                 />
@@ -176,9 +180,11 @@ export function ProfileSection() {
                     disabled
                     className="flex-1"
                   />
-                  {profile.emailVerified ? (
+                  {profile.emailVerified
+? (
                     <Check className="w-5 h-5 text-green-600" />
-                  ) : (
+                  )
+: (
                     <Button size="sm">验证</Button>
                   )}
                 </div>
@@ -188,14 +194,16 @@ export function ProfileSection() {
                 <div className="flex items-center space-x-2">
                   <Input
                     value={isEditing ? editedProfile.phoneNumber || '' : profile.phoneNumber || ''}
-                    onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                    onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, phoneNumber: e.target.value }))}
                     disabled={!isEditing}
                     placeholder="请输入手机号码"
                     className="flex-1"
                   />
-                  {profile.phoneVerified ? (
+                  {profile.phoneVerified
+? (
                     <Check className="w-5 h-5 text-green-600" />
-                  ) : (
+                  )
+: (
                     <Button size="sm">验证</Button>
                   )}
                 </div>
@@ -219,5 +227,5 @@ export function ProfileSection() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

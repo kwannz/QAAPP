@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { StructuredLog, PerformanceLog, LogContext } from '../logger/winston.config';
+import { getErrorMessage, getErrorStack } from '../utils/error.utils';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -80,24 +81,24 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logStructured('info', successLog);
         }
       }),
-      catchError((error) => {
+      catchError((error: unknown) => {
         const responseTime = Date.now() - startTime;
         
         // 错误响应日志
         const errorLog: StructuredLog = {
-          message: `❌ ${request.method} ${request.url} - ${error.status || 500}`,
+          message: `❌ ${request.method} ${request.url} - ${(error as any).status || 500}`,
           context: LogContext.API,
           requestId,
           endpoint: request.url,
           method: request.method,
           responseTime,
-          statusCode: error.status || 500,
+          statusCode: (error as any).status || 500,
           userId,
           userAgent,
           ipAddress,
           metadata: {
-            error: error.message,
-            stack: error.stack,
+            error: getErrorMessage(error),
+            stack: getErrorStack(error),
             success: false
           }
         };

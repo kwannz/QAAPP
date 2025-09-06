@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import React, { memo, useMemo, useRef, useEffect, useState } from 'react'
+import React, { memo, useMemo, useRef, useEffect, useState } from 'react';
 
-interface VirtualListProps<T> {
+interface VirtualListProperties<T> {
   items: T[]
   itemHeight: number
   containerHeight: number
@@ -10,39 +10,39 @@ interface VirtualListProps<T> {
   overscan?: number
 }
 
-export const VirtualList = memo(<T,>({ 
-  items, 
-  itemHeight, 
-  containerHeight, 
+export const VirtualList = memo(<T, >({
+  items,
+  itemHeight,
+  containerHeight,
   renderItem,
-  overscan = 5 
-}: VirtualListProps<T>) => {
-  const [scrollTop, setScrollTop] = useState(0)
-  const scrollElementRef = useRef<HTMLDivElement>(null)
+  overscan = 5,
+}: VirtualListProperties<T>) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  const scrollElementReference = useRef<HTMLDivElement>(null);
 
   const visibleRange = useMemo(() => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan)
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
     const endIndex = Math.min(
       items.length - 1,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
-    )
-    return { startIndex, endIndex }
-  }, [scrollTop, itemHeight, containerHeight, items.length, overscan])
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
+    );
+    return { startIndex, endIndex };
+  }, [scrollTop, itemHeight, containerHeight, items.length, overscan]);
 
   const visibleItems = useMemo(() => {
-    return items.slice(visibleRange.startIndex, visibleRange.endIndex + 1)
-  }, [items, visibleRange])
+    return items.slice(visibleRange.startIndex, visibleRange.endIndex + 1);
+  }, [items, visibleRange]);
 
-  const totalHeight = items.length * itemHeight
-  const offsetY = visibleRange.startIndex * itemHeight
+  const totalHeight = items.length * itemHeight;
+  const offsetY = visibleRange.startIndex * itemHeight;
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop)
-  }
+    setScrollTop(e.currentTarget.scrollTop);
+  };
 
   return (
     <div
-      ref={scrollElementRef}
+      ref={scrollElementReference}
       className="overflow-auto"
       style={{ height: containerHeight }}
       onScroll={handleScroll}
@@ -57,7 +57,7 @@ export const VirtualList = memo(<T,>({
         </div>
       </div>
     </div>
-  )
-})
+  );
+});
 
-VirtualList.displayName = 'VirtualList'
+VirtualList.displayName = 'VirtualList';

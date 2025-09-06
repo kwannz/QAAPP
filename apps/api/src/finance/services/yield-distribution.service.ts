@@ -1,8 +1,10 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PayoutsService, MockPayout } from './payouts.service';
-import { PositionsService, MockPosition } from './positions.service';
+import { PayoutsService } from './payouts.service';
+import { PositionsService } from './positions.service';
+import { MockPayout, MockPosition, FinanceMappingUtils } from '../interfaces/mapping.interface';
 import { DatabaseService } from '../../database/database.service';
+import { getErrorMessage, getErrorStack } from '../../common/utils/error.utils';
 
 // Future blockchain integration planned:
 // - BlockchainService for on-chain yield distribution
@@ -36,7 +38,7 @@ export interface DistributionBatch {
 }
 
 @Injectable()
-export class YieldDistributionService implements OnModuleInit {
+export class YieldDistributionService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(YieldDistributionService.name);
   
   // 内存存储任务队列
@@ -48,6 +50,10 @@ export class YieldDistributionService implements OnModuleInit {
   private readonly batchSize = 100; // 每批处理的持仓数量
   private readonly gasLimit = 200000;
   private readonly minGasBalance = '0.01'; // ETH
+  
+  // Timer references for cleanup
+  private batchProcessingIntervalId!: NodeJS.Timeout
+  private healthMonitoringIntervalId!: NodeJS.Timeout
   
   constructor(
     private payoutsService: PayoutsService,
@@ -64,6 +70,20 @@ export class YieldDistributionService implements OnModuleInit {
     
     // 初始化监控
     this.startHealthMonitoring();
+  }
+
+  async onModuleDestroy() {
+    this.logger.log('Cleaning up Yield Distribution Service...');
+    
+    if (this.healthMonitoringIntervalId) {
+      clearInterval(this.healthMonitoringIntervalId);
+    }
+    
+    if (this.batchProcessingIntervalId) {
+      clearInterval(this.batchProcessingIntervalId);
+    }
+    
+    this.logger.log('Yield Distribution Service cleanup completed');
   }
 
   /**
@@ -106,11 +126,11 @@ export class YieldDistributionService implements OnModuleInit {
       
       this.logger.log(`每日收益分发完成，成功: ${batch.completedTasks}，失败: ${batch.failedTasks}`);
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('每日收益分发失败:', error);
       
       // 发送告警通知
-      await this.sendAlert('DAILY_DISTRIBUTION_FAILED', error.message);
+      await this.sendAlert('DAILY_DISTRIBUTION_FAILED', getErrorMessage(error));
     }
   }
 
@@ -160,7 +180,7 @@ export class YieldDistributionService implements OnModuleInit {
       this.logger.log(`手动收益分发完成，成功: ${batch.completedTasks}，失败: ${batch.failedTasks}`);
       return batch;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('手动收益分发失败:', error);
       throw error;
     }
@@ -224,7 +244,7 @@ export class YieldDistributionService implements OnModuleInit {
         
         this.logger.debug(`创建收益分发任务: ${taskId}，金额: ${dailyYield.toFixed(6)} USDT`);
         
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error(`为持仓 ${position.id} 创建分发任务失败:`, error);
       }
     }
@@ -321,9 +341,9 @@ export class YieldDistributionService implements OnModuleInit {
       this.logger.debug(`任务 ${task.id} 执行成功，交易哈希: ${txHash}`);
       return true;
       
-    } catch (error) {
+    } catch (error: unknown) {
       task.status = 'FAILED';
-      task.failureReason = error.message;
+      task.failureReason = getErrorMessage(error);
       task.retryCount++;
       this.distributionTasks.set(task.id, task);
       
@@ -380,7 +400,7 @@ export class YieldDistributionService implements OnModuleInit {
     
     if (existingPayout) {
       this.logger.debug(`收益记录已存在: ${existingPayout.id}`);
-      return {
+      return FinanceMappingUtils.mapDatabasePayoutToMock({
         id: existingPayout.id,
         userId: existingPayout.userId,
         positionId: existingPayout.positionId,
@@ -393,7 +413,7 @@ export class YieldDistributionService implements OnModuleInit {
         txHash: existingPayout.claimTxHash,
         createdAt: existingPayout.createdAt,
         updatedAt: existingPayout.updatedAt
-      };
+      });
     }
     
     // 创建新的收益记录
@@ -410,7 +430,7 @@ export class YieldDistributionService implements OnModuleInit {
     
     this.logger.debug(`创建收益记录: ${createdPayout.id}`);
     
-    return {
+    return FinanceMappingUtils.mapDatabasePayoutToMock({
       id: createdPayout.id,
       userId: createdPayout.userId,
       positionId: createdPayout.positionId,
@@ -423,7 +443,7 @@ export class YieldDistributionService implements OnModuleInit {
       txHash: createdPayout.claimTxHash,
       createdAt: createdPayout.createdAt,
       updatedAt: createdPayout.updatedAt
-    };
+    });
   }
 
   /**
@@ -447,9 +467,9 @@ export class YieldDistributionService implements OnModuleInit {
       this.logger.debug(`模拟链上转账成功: ${mockTxHash}，金额: ${task.amount.toFixed(6)} USDT`);
       return mockTxHash;
       
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('链上转账失败:', error);
-      throw new Error(`链上转账失败: ${error.message}`);
+      throw new Error(`链上转账失败: ${getErrorMessage(error)}`);
     }
   }
 
@@ -480,7 +500,7 @@ export class YieldDistributionService implements OnModuleInit {
       }
       
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('系统健康检查失败:', error);
       return false;
     }
@@ -497,7 +517,7 @@ export class YieldDistributionService implements OnModuleInit {
       
       // 模拟检查
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('区块链健康检查失败:', error);
       return false;
     }
@@ -514,7 +534,7 @@ export class YieldDistributionService implements OnModuleInit {
       
       // 模拟检查
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Gas余额检查失败:', error);
       return false;
     }
@@ -528,7 +548,7 @@ export class YieldDistributionService implements OnModuleInit {
       // 使用 DatabaseService 的健康检查
       const healthResult = await this.database.healthCheck();
       return healthResult.status === 'healthy';
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('数据库健康检查失败:', error);
       return false;
     }
@@ -581,7 +601,7 @@ export class YieldDistributionService implements OnModuleInit {
       } else {
         this.logger.log('没有待恢复的任务');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('恢复待处理任务失败:', error);
     }
   }
@@ -591,7 +611,7 @@ export class YieldDistributionService implements OnModuleInit {
    */
   private startHealthMonitoring(): void {
     // 每5分钟检查一次系统健康状态
-    setInterval(async () => {
+    this.healthMonitoringIntervalId = setInterval(async () => {
       const healthy = await this.checkSystemHealth();
       if (!healthy) {
         await this.sendAlert('SYSTEM_UNHEALTHY', '系统健康检查失败');

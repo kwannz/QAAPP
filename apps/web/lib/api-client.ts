@@ -1,163 +1,178 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
-import { tokenManager } from './token-manager'
-import toast from 'react-hot-toast'
-import logger from './logger'
+import type { AxiosError, AxiosResponse } from 'axios';
+import axios from 'axios';
+
+// 动态导入 toast 以避免 SSR 问题
+const getToast = () => {
+  if (typeof window !== 'undefined') {
+    return import('react-hot-toast').then(module => module.default);
+  }
+  return null;
+};
+
+import logger from './logger';
+import { tokenManager } from './token-manager';
 
 // API 基础配置
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // 创建 axios 实例
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 10_000,
   headers: {
     'Content-Type': 'application/json',
   },
-})
+});
 
 // 请求拦截器 - 添加认证token和日志
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = tokenManager.getAccessToken()
-    
+    const accessToken = tokenManager.getAccessToken();
+
     if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
-    
+
     // 记录请求日志并生成请求ID
     const requestId = logger.logApiRequest(
       config.method?.toUpperCase() || 'GET',
       config.url || '',
       config.data,
-      config.headers
-    )
+      config.headers,
+    );
     config.headers['X-Request-Id'] = requestId
-    
+
     // 保存请求开始时间
     ;(config as any).requestStartTime = Date.now()
-    ;(config as any).requestId = requestId
-    
-    return config
+    ;(config as any).requestId = requestId;
+
+    return config;
   },
-  (error) => {
-    logger.error('API', 'Request interceptor error', error)
-    return Promise.reject(error)
-  }
-)
+  async (error) => {
+    logger.error('API', 'Request interceptor error', error);
+    throw error;
+  },
+);
 
 // 响应拦截器 - 处理错误、token刷新和日志
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // 计算请求耗时
-    const config = response.config as any
-    const duration = config.requestStartTime ? Date.now() - config.requestStartTime : undefined
-    
+    const config = response.config as any;
+    const duration = config.requestStartTime ? Date.now() - config.requestStartTime : undefined;
+
     // 记录响应日志
     logger.logApiResponse(
       config.requestId || 'unknown',
       response.status,
       response.data,
-      duration
-    )
-    
-    return response
+      duration,
+    );
+
+    return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as any
-    
+    const originalRequest = error.config as any;
+
     // 处理401错误（token过期）
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-      
-      const refreshToken = tokenManager.getRefreshToken()
-      
+      originalRequest._retry = true;
+
+      const refreshToken = tokenManager.getRefreshToken();
+
       if (refreshToken) {
         try {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken,
-          })
-          
-          const { accessToken: newAccessToken } = response.data
-          tokenManager.setTokens(newAccessToken, refreshToken)
-          
+          });
+
+          const { accessToken: newAccessToken } = response.data;
+          tokenManager.setTokens(newAccessToken, refreshToken);
+
           // 重试原始请求
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-          return apiClient(originalRequest)
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return apiClient(originalRequest);
         } catch (refreshError) {
           // 刷新失败，清除认证信息
-          tokenManager.clearTokens()
-          toast.error('登录已过期，请重新登录')
-          window.location.href = '/auth/login'
-          return Promise.reject(refreshError)
+          tokenManager.clearTokens();
+          const toast = await getToast();
+          if (toast) {
+            toast.error('登录已过期，请重新登录');
+          }
+          window.location.href = '/auth/login';
+          return Promise.reject(refreshError);
         }
       } else {
         // 没有refresh token，直接跳转登录
-        tokenManager.clearTokens()
-        window.location.href = '/auth/login'
+        tokenManager.clearTokens();
+        window.location.href = '/auth/login';
       }
     }
-    
+
     // 处理其他错误
-    const errorMessage = (error.response?.data as any)?.message || (error as any).message || '请求失败'
-    
+    const errorMessage = (error.response?.data as any)?.message || (error as any).message || '请求失败';
+
     // 记录错误日志
-    const config = error.config as any
-    if (config && config.requestId) {
-      logger.logApiError(config.requestId, error)
+    const config = error.config as any;
+    if (config?.requestId) {
+      logger.logApiError(config.requestId, error);
     }
-    
+
     // 不显示某些错误的toast
-    const silentErrors = [401, 403]
+    const silentErrors = [401, 403];
     if (!silentErrors.includes(error.response?.status || 0)) {
-      toast.error(errorMessage)
+      const toast = await getToast();
+      if (toast) {
+        toast.error(errorMessage);
+      }
     }
-    
-    return Promise.reject(error)
-  }
-)
+
+    throw error;
+  },
+);
 
 // API 接口定义
 export const authApi = {
   // 邮箱登录
-  login: (data: { email: string; password: string }) =>
+  login: async (data: { email: string; password: string }) =>
     apiClient.post('/auth/login', data),
-  
+
   // 邮箱注册
-  register: (data: { email: string; password: string; referralCode?: string }) =>
+  register: async (data: { email: string; password: string; referralCode?: string }) =>
     apiClient.post('/auth/register', data),
-  
+
   // 获取Web3挑战
-  getWeb3Challenge: (address: string) =>
+  getWeb3Challenge: async (address: string) =>
     apiClient.get(`/auth/web3/challenge/${address}`),
-  
+
   // Web3登录
-  web3Login: (data: { address: string; signature: string }) =>
+  web3Login: async (data: { address: string; signature: string }) =>
     apiClient.post('/auth/web3/login', data),
-  
+
   // Web3注册
-  web3Register: (data: { address: string; signature: string; referralCode?: string }) =>
+  web3Register: async (data: { address: string; signature: string; referralCode?: string }) =>
     apiClient.post('/auth/web3/register', data),
-  
+
   // 刷新token
-  refresh: (refreshToken: string) =>
+  refresh: async (refreshToken: string) =>
     apiClient.post('/auth/refresh', { refreshToken }),
-  
+
   // 登出
-  logout: () =>
+  logout: async () =>
     apiClient.post('/auth/logout'),
-  
+
   // 获取当前用户信息
-  me: () =>
+  me: async () =>
     apiClient.get('/auth/me'),
-  
+
   // 修改密码
-  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+  changePassword: async (data: { currentPassword: string; newPassword: string }) =>
     apiClient.post('/auth/change-password', data),
-}
+};
 
 // 监控中心 API
 export const monitoringApi = {
-  getMetrics: (params?: {
+  getMetrics: async (parameters?: {
     startDate?: string;
     endDate?: string;
     level?: string;
@@ -165,79 +180,79 @@ export const monitoringApi = {
     userId?: string;
     limit?: number;
     offset?: number;
-  }) => apiClient.get('/monitoring/metrics', { params }),
+  }) => apiClient.get('/monitoring/metrics', { params: parameters }),
 
-  getDashboard: (timeRange: '1h' | '24h' | '7d' | '30d' = '24h') =>
+  getDashboard: async (timeRange: '1h' | '24h' | '7d' | '30d' = '24h') =>
     apiClient.get('/monitoring/dashboard', { params: { timeRange } }),
 
-  getDeprecations: () => apiClient.get('/monitoring/deprecations'),
-}
+  getDeprecations: async () => apiClient.get('/monitoring/deprecations'),
+};
 
 export const userApi = {
   // 获取当前用户详细信息
-  getCurrentUser: () =>
+  getCurrentUser: async () =>
     apiClient.get('/users/me'),
-  
+
   // 更新用户信息
-  updateProfile: (data: any) =>
+  updateProfile: async (data: any) =>
     apiClient.put('/users/me', data),
-  
+
   // 获取用户统计
-  getStats: () =>
+  getStats: async () =>
     apiClient.get('/users/me/stats'),
-  
+
   // 获取推荐用户列表
-  getReferrals: (params?: { page?: number; limit?: number }) =>
-    apiClient.get('/users/me/referrals', { params }),
-  
+  getReferrals: async (parameters?: { page?: number; limit?: number }) =>
+    apiClient.get('/users/me/referrals', { params: parameters }),
+
   // 添加钱包
-  addWallet: (data: { chainId: number; address: string; isPrimary?: boolean; label?: string }) =>
+  addWallet: async (data: { chainId: number; address: string; isPrimary?: boolean; label?: string }) =>
     apiClient.post('/users/me/wallets', data),
-  
+
   // 删除钱包
-  removeWallet: (walletId: string) =>
+  removeWallet: async (walletId: string) =>
     apiClient.delete(`/users/me/wallets/${walletId}`),
-  
+
   // 设置主钱包
-  setPrimaryWallet: (walletId: string) =>
+  setPrimaryWallet: async (walletId: string) =>
     apiClient.put(`/users/me/wallets/${walletId}/primary`),
-}
+};
 
 // 产品API（占位符）
 export const productApi = {
-  getAll: () => apiClient.get('/products'),
-  getById: (id: string) => apiClient.get(`/products/${id}`),
-}
+  getAll: async () => apiClient.get('/products'),
+  getById: async (id: string) => apiClient.get(`/products/${id}`),
+};
 
 // 订单API（占位符）
 export const orderApi = {
-  create: (data: any) => apiClient.post('/orders', data),
-  getMyOrders: (params?: any) => apiClient.get('/orders/me', { params }),
-}
+  create: async (data: any) => apiClient.post('/orders', data),
+  getMyOrders: async (parameters?: any) => apiClient.get('/orders/me', { params: parameters }),
+};
 
 // 仓位API（占位符）
 export const positionApi = {
-  getMyPositions: (params?: any) => apiClient.get('/positions/me', { params }),
-  getById: (id: string) => apiClient.get(`/positions/${id}`),
-}
+  getMyPositions: async (parameters?: any) => apiClient.get('/positions/me', { params: parameters }),
+  getById: async (id: string) => apiClient.get(`/positions/${id}`),
+};
 
-// 分红API（占位符）  
+// 分红API（占位符）
 export const payoutApi = {
-  getClaimable: () => apiClient.get('/payouts/claimable'),
-  claim: (ids: string[]) => apiClient.post('/payouts/claim', { payoutIds: ids }),
-}
+  getClaimable: async () => apiClient.get('/payouts/claimable'),
+  claim: async (ids: string[]) => apiClient.post('/payouts/claim', { payoutIds: ids }),
+};
 
 // 审计API
 export const auditApi = {
   // 用户端
-  getMyLogs: (params?: { page?: number; limit?: number }) =>
-    apiClient.get('/audit/me', { params }),
-  
-  getActivityStats: (days?: number) =>
+  getMyLogs: async (parameters?: { page?: number; limit?: number }) =>
+    apiClient.get('/audit/me', { params: parameters }),
+
+  getActivityStats: async (days?: number) =>
     apiClient.get('/audit/me/activity-stats', { params: { days } }),
-  
+
   // 管理员端
-  getAdminLogs: (params?: { 
+  getAdminLogs: async (parameters?: {
     actorId?: string;
     action?: string;
     resourceType?: string;
@@ -248,41 +263,41 @@ export const auditApi = {
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get('/audit/admin/logs', { params }),
-  
-  getLogById: (id: string) =>
+    apiClient.get('/audit/admin/logs', { params: parameters }),
+
+  getLogById: async (id: string) =>
     apiClient.get(`/audit/admin/logs/${id}`),
-  
-  getAuditStats: (params?: {
+
+  getAuditStats: async (parameters?: {
     startDate?: string;
     endDate?: string;
   }) =>
-    apiClient.get('/audit/admin/stats', { params }),
-  
-  exportAuditLogs: (params?: {
+    apiClient.get('/audit/admin/stats', { params: parameters }),
+
+  exportAuditLogs: async (parameters?: {
     format: 'csv' | 'pdf' | 'excel';
     startDate?: string;
     endDate?: string;
     category?: string;
     severity?: string;
   }) =>
-    apiClient.get('/audit/admin/export', { 
-      params,
-      responseType: 'blob'
+    apiClient.get('/audit/admin/export', {
+      params: parameters,
+      responseType: 'blob',
     }),
-  
-  markAsAbnormal: (logIds: string[]) =>
+
+  markAsAbnormal: async (logIds: string[]) =>
     apiClient.post('/audit/admin/mark-abnormal', { logIds }),
-  
-  generateSummary: (params?: {
+
+  generateSummary: async (parameters?: {
     period?: string;
     startDate?: string;
     endDate?: string;
   }) =>
-    apiClient.post('/audit/admin/generate-summary', params),
-  
+    apiClient.post('/audit/admin/generate-summary', parameters),
+
   // 系统审计
-  getSystemEvents: (params?: {
+  getSystemEvents: async (parameters?: {
     eventType?: string;
     severity?: string;
     status?: string;
@@ -292,73 +307,73 @@ export const auditApi = {
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get('/audit/system/events', { params }),
-  
-  getSystemMetrics: () =>
+    apiClient.get('/audit/system/events', { params: parameters }),
+
+  getSystemMetrics: async () =>
     apiClient.get('/audit/system/metrics'),
-  
+
   // 用户审计
-  getUserAuditLogs: (userId?: string, params?: {
+  getUserAuditLogs: async (userId?: string, parameters?: {
     action?: string;
     startDate?: string;
     endDate?: string;
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get(userId ? `/audit/users/${userId}` : '/audit/users', { params }),
-  
-  getUserBehaviorAnalysis: (userId: string) =>
+    apiClient.get(userId ? `/audit/users/${userId}` : '/audit/users', { params: parameters }),
+
+  getUserBehaviorAnalysis: async (userId: string) =>
     apiClient.get(`/audit/users/${userId}/behavior-analysis`),
-  
-  getUserRiskScore: (userId: string) =>
+
+  getUserRiskScore: async (userId: string) =>
     apiClient.get(`/audit/users/${userId}/risk-score`),
-}
+};
 
 // 佣金API
 export const commissionApi = {
   // 用户端
-  getUserHistory: (userId: string, params?: { page?: number; limit?: number }) =>
-    apiClient.get(`/commissions/user/${userId}/history`, { params }),
-  
-  getUserSummary: (userId: string) =>
+  getUserHistory: async (userId: string, parameters?: { page?: number; limit?: number }) =>
+    apiClient.get(`/commissions/user/${userId}/history`, { params: parameters }),
+
+  getUserSummary: async (userId: string) =>
     apiClient.get(`/commissions/user/${userId}/summary`),
-  
+
   // 管理员端
-  getAdminList: (params?: { 
-    status?: string; 
-    type?: string; 
-    period?: string; 
-    agentId?: string; 
-    page?: number; 
-    limit?: number 
+  getAdminList: async (parameters?: {
+    status?: string;
+    type?: string;
+    period?: string;
+    agentId?: string;
+    page?: number;
+    limit?: number
   }) =>
-    apiClient.get('/commissions/admin/list', { params }),
-  
-  getStats: (period?: string) =>
+    apiClient.get('/commissions/admin/list', { params: parameters }),
+
+  getStats: async (period?: string) =>
     apiClient.get('/commissions/admin/stats', { params: { period } }),
-  
-  calculate: (data: {
+
+  calculate: async (data: {
     period: string;
     agentIds?: string[];
     includeSubAgents?: boolean;
     forceRecalculate?: boolean;
   }) =>
     apiClient.post('/commissions/admin/calculate', data),
-  
-  processPayments: (data: {
+
+  processPayments: async (data: {
     commissionIds?: string[];
     period?: string;
     batchSize?: number;
   }) =>
     apiClient.post('/commissions/admin/process-payments', data),
-  
-  getBreakdown: (period: string, groupBy?: string) =>
+
+  getBreakdown: async (period: string, groupBy?: string) =>
     apiClient.get('/commissions/admin/breakdown', { params: { period, groupBy } }),
-  
-  getRules: () =>
+
+  getRules: async () =>
     apiClient.get('/commissions/admin/rules'),
-  
-  updateRules: (data: {
+
+  updateRules: async (data: {
     minCommissionThreshold: number;
     maxCommissionRate: number;
     payoutFrequency: string;
@@ -366,43 +381,43 @@ export const commissionApi = {
     bonusStructure?: any;
   }) =>
     apiClient.post('/commissions/admin/rules', data),
-  
-  generateReport: (data: {
+
+  generateReport: async (data: {
     period: string;
     type: 'summary' | 'detailed' | 'agent-breakdown';
     format: 'pdf' | 'excel' | 'csv';
     includeSubAgents?: boolean;
   }) =>
     apiClient.post('/commissions/admin/generate-report', data),
-  
-  export: (params?: { period?: string; status?: string; format?: string }) =>
-    apiClient.get('/commissions/admin/export', { params }),
-}
+
+  export: async (parameters?: { period?: string; status?: string; format?: string }) =>
+    apiClient.get('/commissions/admin/export', { params: parameters }),
+};
 
 // 通知API
 export const notificationApi = {
   // 用户端
-  getUserNotifications: (userId: string, params?: {
+  getUserNotifications: async (userId: string, parameters?: {
     type?: string;
     status?: string;
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get(`/notifications/user/${userId}`, { params }),
-  
-  markAsRead: (userId: string, notificationId: string) =>
+    apiClient.get(`/notifications/user/${userId}`, { params: parameters }),
+
+  markAsRead: async (userId: string, notificationId: string) =>
     apiClient.put(`/notifications/user/${userId}/read/${notificationId}`),
-  
-  markAllAsRead: (userId: string) =>
+
+  markAllAsRead: async (userId: string) =>
     apiClient.put(`/notifications/user/${userId}/read-all`),
-  
-  getStats: (userId: string) =>
+
+  getStats: async (userId: string) =>
     apiClient.get(`/notifications/user/${userId}/stats`),
-  
-  getPreferences: (userId: string) =>
+
+  getPreferences: async (userId: string) =>
     apiClient.get(`/notifications/user/${userId}/preferences`),
-  
-  updatePreferences: (userId: string, preferences: {
+
+  updatePreferences: async (userId: string, preferences: {
     email?: boolean;
     push?: boolean;
     sms?: boolean;
@@ -414,12 +429,12 @@ export const notificationApi = {
     };
   }) =>
     apiClient.put(`/notifications/user/${userId}/preferences`, preferences),
-  
-  delete: (userId: string, notificationId: string) =>
+
+  delete: async (userId: string, notificationId: string) =>
     apiClient.delete(`/notifications/user/${userId}/${notificationId}`),
-  
+
   // 管理员端
-  getAdminNotifications: (params?: {
+  getAdminNotifications: async (parameters?: {
     type?: string;
     status?: string;
     recipient?: string;
@@ -428,9 +443,9 @@ export const notificationApi = {
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get('/notifications/admin/list', { params }),
-  
-  send: (data: {
+    apiClient.get('/notifications/admin/list', { params: parameters }),
+
+  send: async (data: {
     recipientId?: string;
     recipientType: 'USER' | 'AGENT' | 'ALL';
     type: string;
@@ -442,8 +457,8 @@ export const notificationApi = {
     scheduledFor?: string;
   }) =>
     apiClient.post('/notifications/admin/send', data),
-  
-  sendBulk: (data: {
+
+  sendBulk: async (data: {
     recipientIds: string[];
     type: string;
     title: string;
@@ -453,11 +468,11 @@ export const notificationApi = {
     data?: any;
   }) =>
     apiClient.post('/notifications/admin/send-bulk', data),
-  
-  getTemplates: () =>
+
+  getTemplates: async () =>
     apiClient.get('/notifications/admin/templates'),
-  
-  createTemplate: (data: {
+
+  createTemplate: async (data: {
     name: string;
     type: string;
     title: string;
@@ -466,8 +481,8 @@ export const notificationApi = {
     channels: ('EMAIL' | 'PUSH' | 'SMS')[];
   }) =>
     apiClient.post('/notifications/admin/templates', data),
-  
-  updateTemplate: (templateId: string, data: {
+
+  updateTemplate: async (templateId: string, data: {
     name?: string;
     title?: string;
     content?: string;
@@ -476,14 +491,14 @@ export const notificationApi = {
     isActive?: boolean;
   }) =>
     apiClient.put(`/notifications/admin/templates/${templateId}`, data),
-  
-  deleteTemplate: (templateId: string) =>
+
+  deleteTemplate: async (templateId: string) =>
     apiClient.delete(`/notifications/admin/templates/${templateId}`),
-  
-  getAdminStats: (params?: { period?: string; type?: string }) =>
-    apiClient.get('/notifications/admin/stats', { params }),
-  
-  scheduleCampaign: (data: {
+
+  getAdminStats: async (parameters?: { period?: string; type?: string }) =>
+    apiClient.get('/notifications/admin/stats', { params: parameters }),
+
+  scheduleCampaign: async (data: {
     name: string;
     templateId: string;
     targetAudience: 'ALL' | 'USERS' | 'AGENTS' | 'CUSTOM';
@@ -493,15 +508,15 @@ export const notificationApi = {
     variables?: Record<string, any>;
   }) =>
     apiClient.post('/notifications/admin/campaigns', data),
-  
-  getCampaigns: (params?: { status?: string; page?: number; limit?: number }) =>
-    apiClient.get('/notifications/admin/campaigns', { params }),
-}
+
+  getCampaigns: async (parameters?: { status?: string; page?: number; limit?: number }) =>
+    apiClient.get('/notifications/admin/campaigns', { params: parameters }),
+};
 
 // 报表API
 export const reportApi = {
   // 生成报表
-  generateFinancialOverview: (data: {
+  generateFinancialOverview: async (data: {
     period: string;
     dateFrom: string;
     dateTo: string;
@@ -510,8 +525,8 @@ export const reportApi = {
     breakdown?: string[];
   }) =>
     apiClient.post('/reports/financial/overview', data),
-  
-  generateCommissionReport: (data: {
+
+  generateCommissionReport: async (data: {
     period: string;
     dateFrom: string;
     dateTo: string;
@@ -521,8 +536,8 @@ export const reportApi = {
     includeSubAgents?: boolean;
   }) =>
     apiClient.post('/reports/commissions', data),
-  
-  generateRevenueReport: (data: {
+
+  generateRevenueReport: async (data: {
     period: string;
     dateFrom: string;
     dateTo: string;
@@ -531,8 +546,8 @@ export const reportApi = {
     includeProjections?: boolean;
   }) =>
     apiClient.post('/reports/revenue', data),
-  
-  generateInvestmentAnalysis: (data: {
+
+  generateInvestmentAnalysis: async (data: {
     period: string;
     dateFrom: string;
     dateTo: string;
@@ -541,8 +556,8 @@ export const reportApi = {
     includePerformance?: boolean;
   }) =>
     apiClient.post('/reports/investments/analysis', data),
-  
-  generateAgentPerformanceReport: (data: {
+
+  generateAgentPerformanceReport: async (data: {
     period: string;
     dateFrom: string;
     dateTo: string;
@@ -552,12 +567,12 @@ export const reportApi = {
     includeHierarchy?: boolean;
   }) =>
     apiClient.post('/reports/agents/performance', data),
-  
+
   // 获取报表
-  getTemplates: (category?: string) =>
+  getTemplates: async (category?: string) =>
     apiClient.get('/reports/templates', { params: { category } }),
-  
-  createTemplate: (data: {
+
+  createTemplate: async (data: {
     name: string;
     category: string;
     description?: string;
@@ -568,22 +583,22 @@ export const reportApi = {
     schedule?: any;
   }) =>
     apiClient.post('/reports/templates', data),
-  
-  getHistory: (params?: {
+
+  getHistory: async (parameters?: {
     type?: string;
     status?: string;
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get('/reports/history', { params }),
-  
-  getReport: (reportId: string) =>
+    apiClient.get('/reports/history', { params: parameters }),
+
+  getReport: async (reportId: string) =>
     apiClient.get(`/reports/${reportId}`),
-  
-  downloadReport: (reportId: string) =>
+
+  downloadReport: async (reportId: string) =>
     apiClient.get(`/reports/${reportId}/download`, { responseType: 'blob' }),
-  
-  scheduleReport: (data: {
+
+  scheduleReport: async (data: {
     templateId: string;
     name: string;
     schedule: {
@@ -597,14 +612,14 @@ export const reportApi = {
     parameters?: any;
   }) =>
     apiClient.post('/reports/schedule', data),
-  
-  getStats: (period?: string) =>
+
+  getStats: async (period?: string) =>
     apiClient.get('/reports/stats/overview', { params: { period } }),
-  
-  getDashboardKPIs: (period: string = '30d', comparison: string = 'previous_period') =>
+
+  getDashboardKPIs: async (period = '30d', comparison = 'previous_period') =>
     apiClient.get('/reports/dashboard/kpis', { params: { period, comparison } }),
-  
-  exportData: (data: {
+
+  exportData: async (data: {
     reportType: string;
     dateFrom: string;
     dateTo: string;
@@ -613,20 +628,20 @@ export const reportApi = {
     fields?: string[];
   }) =>
     apiClient.post('/reports/export', data),
-  
-  previewReport: (data: {
+
+  previewReport: async (data: {
     templateId?: string;
     type: string;
     parameters: any;
     sampleSize?: number;
   }) =>
     apiClient.post('/reports/preview', data),
-}
+};
 
 // 管理员API
 export const adminApi = {
   // 用户管理
-  getUsers: (params?: {
+  getUsers: async (parameters?: {
     search?: string;
     role?: string;
     status?: string;
@@ -634,30 +649,30 @@ export const adminApi = {
     page?: number;
     limit?: number;
   }) =>
-    apiClient.get('/users', { params }),
-  
-  getUserById: (id: string) =>
+    apiClient.get('/users', { params: parameters }),
+
+  getUserById: async (id: string) =>
     apiClient.get(`/users/${id}`),
-  
-  updateKycStatus: (id: string, data: { status: string; reason?: string }) =>
+
+  updateKycStatus: async (id: string, data: { status: string; reason?: string }) =>
     apiClient.put(`/users/${id}/kyc`, data),
-  
-  updateUserRole: (id: string, data: { role: string }) =>
+
+  updateUserRole: async (id: string, data: { role: string }) =>
     apiClient.put(`/users/${id}/role`, data),
-  
-  toggleUserStatus: (id: string) =>
+
+  toggleUserStatus: async (id: string) =>
     apiClient.post(`/users/${id}/toggle-status`),
-  
-  getUserStats: (params?: { period?: string }) =>
-    apiClient.get('/users/admin/stats', { params }),
-  
+
+  getUserStats: async (parameters?: { period?: string }) =>
+    apiClient.get('/users/admin/stats', { params: parameters }),
+
   // 系统配置
-  getSystemConfig: () =>
+  getSystemConfig: async () =>
     apiClient.get('/config'),
-  
-  updateSystemConfig: (data: any) =>
+
+  updateSystemConfig: async (data: any) =>
     apiClient.put('/config', data),
-}
+};
 
 // 导出默认客户端
-export default apiClient
+export default apiClient;

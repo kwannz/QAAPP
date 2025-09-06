@@ -8,6 +8,7 @@ import {
   Query
 } from '@nestjs/common';
 import { PositionsService } from '../services/positions.service';
+import { QueryFilters } from '../../common/types/express.types';
 
 @Controller('positions')
 export class PositionsController {
@@ -16,7 +17,7 @@ export class PositionsController {
   @Get('user/:userId')
   async getUserPositions(
     @Param('userId') userId: string,
-    @Query() queryDto: any
+    @Query() queryDto: QueryFilters
   ) {
     return this.positionsService.getUserPositions(userId, queryDto);
   }

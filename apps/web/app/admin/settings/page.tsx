@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label } from '@/components/ui';
-import { 
-  Settings, 
-  Briefcase, 
-  Shield, 
-  CreditCard, 
-  Bell, 
+import {
+  Settings,
+  Briefcase,
+  Shield,
+  CreditCard,
+  Bell,
   Save,
   RotateCcw,
   Download,
@@ -16,8 +14,11 @@ import {
   TestTube,
   AlertTriangle,
   CheckCircle,
-  Info
+  Info,
 } from 'lucide-react';
+import React, { useState } from 'react';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label } from '@/components/ui';
 
 interface ConfigData {
   system: any;
@@ -36,23 +37,23 @@ export default function AdminSettingsPage() {
       supportEmail: 'support@qa-investment.com',
       maintenanceMode: false,
       allowRegistration: true,
-      maxFileUpload: 10485760,
+      maxFileUpload: 10_485_760,
       defaultLanguage: 'en',
-      timezone: 'UTC'
+      timezone: 'UTC',
     },
     business: {
       minimumInvestment: 1000,
-      maximumInvestment: 1000000,
+      maximumInvestment: 1_000_000,
       defaultRiskLevel: 'MEDIUM',
       kycRequired: true,
-      autoApprovalLimit: 10000,
+      autoApprovalLimit: 10_000,
       commissionRates: {
-        level1: 3.0,
+        level1: 3,
         level2: 2.5,
-        level3: 2.0,
+        level3: 2,
         level4: 1.5,
-        level5: 1.0
-      }
+        level5: 1,
+      },
     },
     security: {
       passwordPolicy: {
@@ -60,31 +61,31 @@ export default function AdminSettingsPage() {
         requireUppercase: true,
         requireLowercase: true,
         requireNumbers: true,
-        requireSymbols: true
+        requireSymbols: true,
       },
       sessionTimeout: 3600,
       maxLoginAttempts: 5,
       enableTwoFactor: false,
       enableRateLimit: true,
       rateLimitWindow: 900,
-      rateLimitMax: 100
+      rateLimitMax: 100,
     },
     payment: {
       enabledMethods: ['BANK_TRANSFER', 'CREDIT_CARD', 'CRYPTOCURRENCY'],
       defaultCurrency: 'USD',
       minimumAmount: 100,
-      maximumAmount: 100000,
+      maximumAmount: 100_000,
       processingFee: 2.5,
-      withdrawalLimit: 50000,
-      autoProcessingThreshold: 5000
+      withdrawalLimit: 50_000,
+      autoProcessingThreshold: 5000,
     },
     notifications: {
       emailEnabled: true,
       smsEnabled: false,
       pushEnabled: true,
       emailProvider: 'sendgrid',
-      smsProvider: 'twilio'
-    }
+      smsProvider: 'twilio',
+    },
   });
 
   const [testResults, setTestResults] = useState<any>({});
@@ -95,29 +96,29 @@ export default function AdminSettingsPage() {
     { id: 'business', name: '业务设置', icon: Briefcase, description: '投资限额、佣金费率和业务规则' },
     { id: 'security', name: '安全设置', icon: Shield, description: '认证、授权和安全策略' },
     { id: 'payment', name: '支付设置', icon: CreditCard, description: '支付方式、限额和处理设置' },
-    { id: 'notifications', name: '通知设置', icon: Bell, description: '邮件、短信和推送通知设置' }
+    { id: 'notifications', name: '通知设置', icon: Bell, description: '邮件、短信和推送通知设置' },
   ];
 
   const handleConfigChange = (category: string, field: string, value: any) => {
-    setConfigData(prev => ({
-      ...prev,
+    setConfigData(previous => ({
+      ...previous,
       [category]: {
-        ...prev[category],
-        [field]: value
-      }
+        ...previous[category],
+        [field]: value,
+      },
     }));
   };
 
   const handleNestedConfigChange = (category: string, parentField: string, field: string, value: any) => {
-    setConfigData(prev => ({
-      ...prev,
+    setConfigData(previous => ({
+      ...previous,
       [category]: {
-        ...prev[category],
+        ...previous[category],
         [parentField]: {
-          ...prev[category][parentField],
-          [field]: value
-        }
-      }
+          ...previous[category][parentField],
+          [field]: value,
+        },
+      },
     }));
   };
 
@@ -125,6 +126,7 @@ export default function AdminSettingsPage() {
     try {
       // Mock API call
       console.log(`Saving ${category} configuration:`, configData[category]);
+
       // Here you would make an API call to save the configuration
       alert(`${category}配置已保存成功！`);
     } catch (error) {
@@ -143,7 +145,7 @@ export default function AdminSettingsPage() {
         business: { passed: 4, warnings: 1, errors: 0 },
         security: { passed: 3, warnings: 2, errors: 0 },
         payment: { passed: 4, warnings: 1, errors: 0 },
-        notifications: { passed: 3, warnings: 1, errors: 1 }
+        notifications: { passed: 3, warnings: 1, errors: 1 },
       };
       setTestResults({ ...testResults, [category]: mockResults[category] });
     } catch (error) {
@@ -163,30 +165,30 @@ export default function AdminSettingsPage() {
           supportEmail: 'support@qa-investment.com',
           maintenanceMode: false,
           allowRegistration: true,
-          maxFileUpload: 10485760,
+          maxFileUpload: 10_485_760,
           defaultLanguage: 'en',
-          timezone: 'UTC'
+          timezone: 'UTC',
         },
         business: {
           minimumInvestment: 1000,
-          maximumInvestment: 1000000,
+          maximumInvestment: 1_000_000,
           defaultRiskLevel: 'MEDIUM',
           kycRequired: true,
-          autoApprovalLimit: 10000,
+          autoApprovalLimit: 10_000,
           commissionRates: {
-            level1: 3.0,
+            level1: 3,
             level2: 2.5,
-            level3: 2.0,
+            level3: 2,
             level4: 1.5,
-            level5: 1.0
-          }
-        }
+            level5: 1,
+          },
+        },
       };
-      
+
       if (defaults[category]) {
-        setConfigData(prev => ({
-          ...prev,
-          [category]: defaults[category]
+        setConfigData(previous => ({
+          ...previous,
+          [category]: defaults[category],
         }));
         alert(`${category}配置已重置为默认值。`);
       }
@@ -236,7 +238,7 @@ export default function AdminSettingsPage() {
           </select>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h4 className="font-medium">系统选项</h4>
         <div className="space-y-3">
@@ -305,7 +307,7 @@ export default function AdminSettingsPage() {
           </select>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h4 className="font-medium">佣金费率设置</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -315,14 +317,14 @@ export default function AdminSettingsPage() {
               <Input
                 type="number"
                 step="0.1"
-                value={rate}
+                value={rate as number}
                 onChange={(e) => handleNestedConfigChange('business', 'commissionRates', level, Number(e.target.value))}
               />
             </div>
           ))}
         </div>
       </div>
-      
+
       <div className="space-y-3">
         <label className="flex items-center space-x-2">
           <input
@@ -386,7 +388,7 @@ export default function AdminSettingsPage() {
           </label>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="sessionTimeout">会话超时时间 (秒)</Label>
@@ -407,7 +409,7 @@ export default function AdminSettingsPage() {
           />
         </div>
       </div>
-      
+
       <div className="space-y-3">
         <label className="flex items-center space-x-2">
           <input
@@ -457,7 +459,7 @@ export default function AdminSettingsPage() {
           ))}
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="minAmount">最小金额</Label>
@@ -528,7 +530,7 @@ export default function AdminSettingsPage() {
           <span>启用推送通知</span>
         </label>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="emailProvider">邮件服务商</Label>
@@ -562,12 +564,18 @@ export default function AdminSettingsPage() {
 
   const renderConfigSection = () => {
     switch (activeTab) {
-      case 'system': return renderSystemConfig();
-      case 'business': return renderBusinessConfig();
-      case 'security': return renderSecurityConfig();
-      case 'payment': return renderPaymentConfig();
-      case 'notifications': return renderNotificationConfig();
-      default: return renderSystemConfig();
+      case 'system': { return renderSystemConfig();
+      }
+      case 'business': { return renderBusinessConfig();
+      }
+      case 'security': { return renderSecurityConfig();
+      }
+      case 'payment': { return renderPaymentConfig();
+      }
+      case 'notifications': { return renderNotificationConfig();
+      }
+      default: { return renderSystemConfig();
+      }
     }
   };
 
@@ -578,7 +586,7 @@ export default function AdminSettingsPage() {
           <h1 className="text-3xl font-bold text-gray-900">系统设置</h1>
           <p className="mt-2 text-sm text-gray-600">管理平台配置和系统设置</p>
         </div>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
@@ -639,7 +647,7 @@ export default function AdminSettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleTestConfig(activeTab)}
+                    onClick={async () => handleTestConfig(activeTab)}
                     disabled={isTesting}
                   >
                     <TestTube className="h-4 w-4 mr-2" />
@@ -648,12 +656,12 @@ export default function AdminSettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleResetToDefaults(activeTab)}
+                    onClick={async () => handleResetToDefaults(activeTab)}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     重置默认
                   </Button>
-                  <Button size="sm" onClick={() => handleSaveConfig(activeTab)}>
+                  <Button size="sm" onClick={async () => handleSaveConfig(activeTab)}>
                     <Save className="h-4 w-4 mr-2" />
                     保存配置
                   </Button>
@@ -686,7 +694,7 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
               )}
-              
+
               {/* 配置表单 */}
               {renderConfigSection()}
             </CardContent>

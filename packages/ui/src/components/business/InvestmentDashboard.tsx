@@ -1,12 +1,13 @@
-import * as React from "react"
-import { motion } from "framer-motion"
-import { cn } from "../../utils/cn"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { motion } from 'framer-motion';
+import * as React from 'react';
+
+import { cn } from '../../utils/cn';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 export interface DashboardPosition {
   id: string
   productName: string
-  productType: "silver" | "gold" | "diamond"
+  productType: 'silver' | 'gold' | 'diamond'
   principal: number
   currentValue: number
   apr: number
@@ -14,7 +15,7 @@ export interface DashboardPosition {
   endDate: string
   nextPayoutAt?: string
   nextPayoutAmount?: number
-  status: "active" | "redeeming" | "closed" | "defaulted"
+  status: 'active' | 'redeeming' | 'closed' | 'defaulted'
 }
 
 export interface DashboardInvestmentStats {
@@ -25,7 +26,7 @@ export interface DashboardInvestmentStats {
   activePositions: number
 }
 
-export interface InvestmentDashboardProps {
+export interface InvestmentDashboardProperties {
   stats: DashboardInvestmentStats
   positions: DashboardPosition[]
   onClaimRewards?: () => void
@@ -35,46 +36,55 @@ export interface InvestmentDashboardProps {
 
 const statusStyles = {
   active: {
-    bg: "bg-green-100",
-    text: "text-green-800",
-    label: "持有中",
-    icon: "🟢",
+    bg: 'bg-green-100',
+    text: 'text-green-800',
+    label: '持有中',
+    icon: '🟢',
   },
   redeeming: {
-    bg: "bg-yellow-100", 
-    text: "text-yellow-800",
-    label: "赎回中",
-    icon: "🟡",
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    label: '赎回中',
+    icon: '🟡',
   },
   closed: {
-    bg: "bg-gray-100",
-    text: "text-gray-800", 
-    label: "已结束",
-    icon: "⚫",
+    bg: 'bg-gray-100',
+    text: 'text-gray-800',
+    label: '已结束',
+    icon: '⚫',
   },
   defaulted: {
-    bg: "bg-red-100",
-    text: "text-red-800",
-    label: "违约",
-    icon: "🔴",
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    label: '违约',
+    icon: '🔴',
   },
-}
+};
 
 const typeIcons = {
-  silver: "🥈",
-  gold: "🥇", 
-  diamond: "💎",
-}
+  silver: '🥈',
+  gold: '🥇',
+  diamond: '💎',
+};
 
-const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboardProps>(
-  ({ stats, positions, onClaimRewards, onViewPosition, className, ...props }, ref) => {
-    const profitLoss = stats.currentValue - stats.totalInvested
-    const profitLossPercentage = stats.totalInvested > 0 
-      ? ((profitLoss / stats.totalInvested) * 100) 
-      : 0
+const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboardProperties>(
+  ({ stats, positions, onClaimRewards, onViewPosition, className, ...properties }, reference) => {
+    // Magic numbers defined as constants
+    const PERCENTAGE_MULTIPLIER = 100;
+    const DECIMAL_PRECISION = 2;
+    const MILLISECONDS_PER_SECOND = 1000;
+    const SECONDS_PER_MINUTE = 60;
+    const MINUTES_PER_HOUR = 60;
+    const HOURS_PER_DAY = 24;
+    const MILLISECONDS_PER_DAY = MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY;
+    const ANIMATION_DELAY_INCREMENT = 0.1;
+    const profitLoss = stats.currentValue - stats.totalInvested;
+    const profitLossPercentage = stats.totalInvested > 0
+      ? ((profitLoss / stats.totalInvested) * PERCENTAGE_MULTIPLIER)
+      : 0;
 
     return (
-      <div ref={ref} className={cn("space-y-6", className)} {...props}>
+      <div ref={reference} className={cn('space-y-6', className)} {...properties}>
         {/* 总体统计 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <motion.div
@@ -113,11 +123,11 @@ const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboard
                   ${stats.currentValue.toLocaleString()}
                 </div>
                 <p className={cn(
-                  "text-xs font-medium",
-                  profitLoss >= 0 ? "text-green-600" : "text-red-600"
+                  'text-xs font-medium',
+                  profitLoss >= 0 ? 'text-green-600' : 'text-red-600',
                 )}>
-                  {profitLoss >= 0 ? "+" : ""}${profitLoss.toLocaleString()} 
-                  ({profitLoss >= 0 ? "+" : ""}{profitLossPercentage.toFixed(2)}%)
+                  {profitLoss >= 0 ? '+' : ''}${profitLoss.toLocaleString()}
+                  ({profitLoss >= 0 ? '+' : ''}{profitLossPercentage.toFixed(DECIMAL_PRECISION)}%)
                 </p>
               </CardContent>
             </Card>
@@ -180,28 +190,30 @@ const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {positions.length === 0 ? (
-              <div className="text-center py-8">
+            {positions.length === 0
+              ? (
+                <div className="text-center py-8">
                 <span className="text-6xl mb-4 block">📊</span>
                 <p className="text-muted-foreground">暂无投资仓位</p>
                 <p className="text-sm text-muted-foreground mt-2">
                   购买NFT产品开始您的投资之旅
                 </p>
               </div>
-            ) : (
-              <div className="space-y-4">
+                )
+              : (
+                <div className="space-y-4">
                 {positions.map((position, index) => {
-                  const status = statusStyles[position.status]
+                  const status = statusStyles[position.status];
                   const daysRemaining = Math.ceil(
-                    (new Date(position.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-                  )
+                    (new Date(position.endDate).getTime() - Date.now()) / MILLISECONDS_PER_DAY,
+                  );
 
                   return (
                     <motion.div
                       key={position.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * ANIMATION_DELAY_INCREMENT }}
                       className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                       onClick={() => onViewPosition?.(position.id)}
                     >
@@ -221,9 +233,9 @@ const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboard
                         <div className="text-right">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={cn(
-                              "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                              'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
                               status.bg,
-                              status.text
+                              status.text,
                             )}>
                               {status.icon} {status.label}
                             </span>
@@ -231,7 +243,7 @@ const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboard
                           <p className="text-sm font-medium">
                             当前价值: ${position.currentValue.toLocaleString()}
                           </p>
-                          {position.status === "active" && daysRemaining > 0 && (
+                          {position.status === 'active' && daysRemaining > 0 && (
                             <p className="text-xs text-muted-foreground">
                               剩余 {daysRemaining} 天
                             </p>
@@ -243,23 +255,23 @@ const InvestmentDashboard = React.forwardRef<HTMLDivElement, InvestmentDashboard
                       {position.nextPayoutAt && position.nextPayoutAmount && (
                         <div className="mt-3 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
                           <p className="text-sm text-blue-800">
-                            下次分红: {new Date(position.nextPayoutAt).toLocaleDateString()} 
-                            • ${position.nextPayoutAmount.toFixed(2)}
+                            下次分红: {new Date(position.nextPayoutAt).toLocaleDateString()}
+                            • ${position.nextPayoutAmount.toFixed(DECIMAL_PRECISION)}
                           </p>
                         </div>
                       )}
                     </motion.div>
-                  )
+                  );
                 })}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-    )
-  }
-)
+    );
+  },
+);
 
-InvestmentDashboard.displayName = "InvestmentDashboard"
+InvestmentDashboard.displayName = 'InvestmentDashboard';
 
-export { InvestmentDashboard }
+export { InvestmentDashboard };

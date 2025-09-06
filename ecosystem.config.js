@@ -22,6 +22,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3001,
         DATABASE_URL: DB_URL,
+        JWT_SECRET: process.env.JWT_SECRET || 'production-jwt-secret-change-in-production-env',
         LOG_LEVEL: 'info',
         ENABLE_METRICS: 'true'
       },
@@ -29,6 +30,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3001,
         DATABASE_URL: DB_URL,
+        JWT_SECRET: process.env.JWT_SECRET || 'production-jwt-secret-change-in-production-env',
         LOG_LEVEL: 'info',
         ENABLE_METRICS: 'true'
       },

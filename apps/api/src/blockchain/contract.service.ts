@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BlockchainService } from './blockchain.service';
 import { ethers } from 'ethers';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 // 智能合约ABI (只包含需要的方法)
 const TREASURY_ABI = [
@@ -19,9 +20,9 @@ const QA_CARD_ABI = [
 @Injectable()
 export class ContractService {
   private readonly logger = new Logger(ContractService.name);
-  private provider: ethers.Provider;
-  private treasuryContract: ethers.Contract;
-  private qaCardContract: ethers.Contract;
+  private provider!: ethers.Provider;
+  private treasuryContract!: ethers.Contract;
+  private qaCardContract!: ethers.Contract;
 
   constructor(
     private readonly configService: ConfigService,
@@ -48,8 +49,8 @@ export class ContractService {
     try {
       const balance = await this.treasuryContract.getBalance();
       return ethers.formatUnits(balance, 6); // USDT 6位小数
-    } catch (error) {
-      this.logger.error('获取Treasury余额失败', { error: error.message, stack: error.stack });
+    } catch (error: unknown) {
+      this.logger.error('获取Treasury余额失败', { error: getErrorMessage(error), stack: getErrorStack(error) });
       return '0';
     }
   }
@@ -65,8 +66,8 @@ export class ContractService {
         duration: productInfo.duration.toString(),
         isActive: productInfo.isActive
       };
-    } catch (error) {
-      this.logger.error('获取产品信息失败', { error: error.message, stack: error.stack });
+    } catch (error: unknown) {
+      this.logger.error('获取产品信息失败', { error: getErrorMessage(error), stack: getErrorStack(error) });
       // 返回默认值
       const products = [
         { name: 'QA Silver Card', apr: '1200', minInvestment: '100', maxInvestment: '10000', duration: '30', isActive: true },
@@ -82,8 +83,8 @@ export class ContractService {
     try {
       const balance = await this.qaCardContract.balanceOf(userAddress, tokenId);
       return balance.toString();
-    } catch (error) {
-      this.logger.error('获取NFT余额失败', { error: error.message, stack: error.stack });
+    } catch (error: unknown) {
+      this.logger.error('获取NFT余额失败', { error: getErrorMessage(error), stack: getErrorStack(error) });
       return '0';
     }
   }
@@ -104,8 +105,8 @@ export class ContractService {
         }
       }
       return nfts;
-    } catch (error) {
-      this.logger.error('获取用户NFT失败', { error: error.message, stack: error.stack });
+    } catch (error: unknown) {
+      this.logger.error('获取用户NFT失败', { error: getErrorMessage(error), stack: getErrorStack(error) });
       return [];
     }
   }
@@ -123,8 +124,8 @@ export class ContractService {
           blockNumber: event.blockNumber
         });
       });
-    } catch (error) {
-      this.logger.error('监听合约事件失败', { error: error.message, stack: error.stack });
+    } catch (error: unknown) {
+      this.logger.error('监听合约事件失败', { error: getErrorMessage(error), stack: getErrorStack(error) });
     }
   }
 }

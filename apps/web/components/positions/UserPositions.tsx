@@ -1,32 +1,33 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react'
-import apiClient from '@/lib/api-client'
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Badge, 
-  Button, 
-  Alert, 
-  AlertDescription, 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from '@/components/ui'
-import { 
-  TrendingUp, 
-  Clock, 
-  DollarSign, 
+import {
+  TrendingUp,
+  Clock,
+  DollarSign,
   Calendar,
   Target,
   Award,
   AlertCircle,
   CheckCircle2,
-  RefreshCw
-} from 'lucide-react'
+  RefreshCw,
+} from 'lucide-react';
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Button,
+  Alert,
+  AlertDescription,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui';
+import apiClient from '@/lib/api-client';
 
 // 类型定义
 interface Position {
@@ -68,52 +69,52 @@ interface UserPositionsData {
   summary: PositionSummary
 }
 
-interface UserPositionsProps {
+interface UserPositionsProperties {
   userId?: string
   className?: string
 }
 
-export function UserPositions({ userId = 'user-test-001', className = '' }: UserPositionsProps) {
-  const [positionsData, setPositionsData] = useState<UserPositionsData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedTab, setSelectedTab] = useState('active')
+export function UserPositions({ userId = 'user-test-001', className = '' }: UserPositionsProperties) {
+  const [positionsData, setPositionsData] = useState<UserPositionsData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState('active');
 
   // 获取用户持仓数据
   const fetchPositions = async (status?: string) => {
-    setLoading(true)
-    setError(null)
-    
+    setLoading(true);
+    setError(null);
+
     try {
-      const params: Record<string, any> = {}
-      if (status && status !== 'all') params.status = status.toUpperCase()
-      const { data } = await apiClient.get(`/positions/user/${userId}`, { params })
-      setPositionsData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
-      console.error('Failed to fetch positions:', err)
+      const parameters: Record<string, any> = {};
+      if (status && status !== 'all') parameters.status = status.toUpperCase();
+      const { data } = await apiClient.get(`/positions/user/${userId}`, { params: parameters });
+      setPositionsData(data);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '获取数据时发生未知错误');
+      console.error('Failed to fetch positions:', error_);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 初始化和刷新
   useEffect(() => {
-    fetchPositions(selectedTab)
-  }, [userId, selectedTab])
+    fetchPositions(selectedTab);
+  }, [userId, selectedTab]);
 
   // 持仓赎回
   const handleRedeem = async (positionId: string) => {
     try {
-      const { data: result } = await apiClient.post(`/positions/${positionId}/redeem`, { userId })
-      alert(`赎回成功！赎回金额: $${result.redeemAmount.toFixed(2)}`)
-      
+      const { data: result } = await apiClient.post(`/positions/${positionId}/redeem`, { userId });
+      alert(`赎回成功！赎回金额: $${result.redeemAmount.toFixed(2)}`);
+
       // 刷新数据
-      fetchPositions(selectedTab)
-    } catch (err) {
-      alert(`赎回失败: ${err instanceof Error ? err.message : '未知错误'}`)
+      fetchPositions(selectedTab);
+    } catch (error_) {
+      alert(`赎回失败: ${error_ instanceof Error ? error_.message : '未知错误'}`);
     }
-  }
+  };
 
   // 格式化状态
   const getStatusBadge = (status: Position['status']) => {
@@ -121,36 +122,36 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
       ACTIVE: { label: '活跃中', variant: 'default' as const, icon: <TrendingUp className="w-3 h-3" /> },
       REDEEMING: { label: '可赎回', variant: 'secondary' as const, icon: <Target className="w-3 h-3" /> },
       CLOSED: { label: '已关闭', variant: 'outline' as const, icon: <CheckCircle2 className="w-3 h-3" /> },
-      DEFAULTED: { label: '违约', variant: 'destructive' as const, icon: <AlertCircle className="w-3 h-3" /> }
-    }
-    
-    const config = statusConfig[status]
+      DEFAULTED: { label: '违约', variant: 'destructive' as const, icon: <AlertCircle className="w-3 h-3" /> },
+    };
+
+    const config = statusConfig[status];
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         {config.icon}
         {config.label}
       </Badge>
-    )
-  }
+    );
+  };
 
   // 计算剩余天数
   const getDaysRemaining = (endDate: string) => {
-    const end = new Date(endDate)
-    const now = new Date()
-    const diff = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-    return diff
-  }
+    const end = new Date(endDate);
+    const now = new Date();
+    const diff = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    return diff;
+  };
 
   // 计算收益率
   const calculateCurrentYield = (totalPaid: number, principal: number) => {
-    return principal > 0 ? (totalPaid / principal) * 100 : 0
-  }
+    return principal > 0 ? (totalPaid / principal) * 100 : 0;
+  };
 
   // 渲染持仓卡片
   const renderPositionCard = (position: Position) => {
-    const daysRemaining = getDaysRemaining(position.endDate)
-    const currentYield = calculateCurrentYield(position.totalPaid, position.principal)
-    const expectedAPR = position.metadata?.aprBps ? position.metadata.aprBps / 100 : 0
+    const daysRemaining = getDaysRemaining(position.endDate);
+    const currentYield = calculateCurrentYield(position.totalPaid, position.principal);
+    const expectedAPR = position.metadata?.aprBps ? position.metadata.aprBps / 100 : 0;
 
     return (
       <Card key={position.id} className="hover:shadow-md transition-shadow">
@@ -158,7 +159,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                {position.metadata?.nftTokenId && (
+                {(position.metadata as any)?.nftTokenId && (
                   <Award className="w-4 h-4 text-yellow-500" />
                 )}
                 {position.metadata?.productName || `产品 ${position.productId}`}
@@ -170,7 +171,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
             {getStatusBadge(position.status)}
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* 核心数据 */}
           <div className="grid grid-cols-2 gap-4">
@@ -183,7 +184,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
                 ${position.principal.toFixed(2)}
               </div>
             </div>
-            
+
             <div className="space-y-1">
               <div className="flex items-center gap-1 text-sm text-gray-600">
                 <TrendingUp className="w-3 h-3" />
@@ -228,7 +229,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
               </div>
               <span>{position.metadata?.lockDays || 0}天</span>
             </div>
-            
+
             {position.status === 'ACTIVE' && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-gray-600">
@@ -240,7 +241,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
                 </span>
               </div>
             )}
-            
+
             {position.lastPayoutAt && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">最近收益</span>
@@ -251,15 +252,15 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
 
           {/* 操作按钮 */}
           {position.status === 'REDEEMING' && (
-            <Button 
-              onClick={() => handleRedeem(position.id)}
+            <Button
+              onClick={async () => handleRedeem(position.id)}
               className="w-full"
               variant="default"
             >
               立即赎回
             </Button>
           )}
-          
+
           {position.metadata?.txHash && (
             <div className="text-xs text-gray-500 break-all">
               交易哈希: {position.metadata.txHash}
@@ -267,15 +268,15 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
           )}
         </CardContent>
       </Card>
-    )
-  }
+    );
+  };
 
   // 渲染汇总信息
   const renderSummary = () => {
-    if (!positionsData?.summary) return null
+    if (!positionsData?.summary) return null;
 
-    const { summary } = positionsData
-    
+    const { summary } = positionsData;
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
@@ -289,7 +290,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
@@ -301,7 +302,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
@@ -313,7 +314,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
@@ -326,8 +327,8 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
           </CardContent>
         </Card>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className={className}>
@@ -336,7 +337,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
         <Button
           variant="outline"
           size="sm"
-          onClick={() => fetchPositions(selectedTab)}
+          onClick={async () => fetchPositions(selectedTab)}
           disabled={loading}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -362,14 +363,17 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
         </TabsList>
 
         <TabsContent value={selectedTab} className="mt-4">
-          {loading ? (
+          {loading
+? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>加载中...</span>
               </div>
             </div>
-          ) : positionsData?.positions.length === 0 ? (
+          )
+: (positionsData?.positions.length === 0
+? (
             <Card>
               <CardContent className="py-12">
                 <div className="text-center text-gray-500">
@@ -379,13 +383,14 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
                 </div>
               </CardContent>
             </Card>
-          ) : (
+          )
+: (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {positionsData?.positions.map(renderPositionCard)}
             </div>
-          )}
+          ))}
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

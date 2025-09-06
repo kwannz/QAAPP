@@ -37,11 +37,11 @@ export interface ApiEndpointVersion {
   deprecated?: boolean;
   deprecationMessage?: string;
   alternativeEndpoint?: string; // 替代端点
-  requestSchema?: any;       // 请求schema
-  responseSchema?: any;      // 响应schema
+  requestSchema?: Record<string, unknown>;       // 请求schema
+  responseSchema?: Record<string, unknown>;      // 响应schema
   examples?: {
-    request?: any;
-    response?: any;
+    request?: Record<string, unknown>;
+    response?: Record<string, unknown>;
   };
 }
 

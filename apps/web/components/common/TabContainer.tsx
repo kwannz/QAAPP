@@ -1,8 +1,9 @@
-'use client'
+'use client';
 
-import { ReactNode } from 'react'
-import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion';
+import type { ReactNode } from 'react';
+
+import { cn } from '@/lib/utils';
 
 interface Tab {
   id: string
@@ -11,7 +12,7 @@ interface Tab {
   badge?: string | number
 }
 
-interface TabContainerProps {
+interface TabContainerProperties {
   tabs: Tab[]
   activeTab: string
   onTabChange: (tabId: string) => void
@@ -19,13 +20,13 @@ interface TabContainerProps {
   className?: string
 }
 
-export function TabContainer({ 
-  tabs, 
-  activeTab, 
-  onTabChange, 
-  children, 
-  className 
-}: TabContainerProps) {
+export function TabContainer({
+  tabs,
+  activeTab,
+  onTabChange,
+  children,
+  className,
+}: TabContainerProperties) {
   return (
     <div className={cn('space-y-4', className)}>
       {/* 标签导航 */}
@@ -39,7 +40,7 @@ export function TabContainer({
                 'relative px-1 pb-4 text-sm font-medium transition-colors',
                 activeTab === tab.id
                   ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 hover:text-gray-700',
               )}
             >
               <div className="flex items-center space-x-2">
@@ -51,7 +52,7 @@ export function TabContainer({
                   </span>
                 )}
               </div>
-              
+
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
@@ -70,5 +71,5 @@ export function TabContainer({
         {children}
       </div>
     </div>
-  )
+  );
 }

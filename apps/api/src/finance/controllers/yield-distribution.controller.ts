@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@ne
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Auth } from '../../auth/decorators/auth.decorator';
 import { YieldDistributionService, DistributionBatch, YieldDistributionTask } from '../services/yield-distribution.service';
+import { getErrorMessage, getErrorStack } from '../../common/utils/error.utils';
 
 class TriggerDistributionDto {
   positionIds?: string[];
@@ -21,23 +22,23 @@ class TriggerDistributionDto {
 }
 
 class DistributionStatsDto {
-  totalDistributed: number;
-  totalBatches: number;
-  successRate: number;
+  totalDistributed!: number;
+  totalBatches!: number;
+  successRate!: number;
   lastDistribution?: Date;
-  pendingTasks: number;
-  failedTasks: number;
+  pendingTasks!: number;
+  failedTasks!: number;
 }
 
 class DistributionBatchDto {
-  id: string;
-  date: Date;
-  totalAmount: number;
-  totalPositions: number;
-  completedTasks: number;
-  failedTasks: number;
-  status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  startedAt: Date;
+  id!: string;
+  date!: Date;
+  totalAmount!: number;
+  totalPositions!: number;
+  completedTasks!: number;
+  failedTasks!: number;
+  status!: 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  startedAt!: Date;
   completedAt?: Date;
 }
 
@@ -87,11 +88,11 @@ export class YieldDistributionController {
         batch,
         message: `收益分发任务已创建，批次ID: ${batch.id}`,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
         batch: null as any,
-        message: `触发收益分发失败: ${error.message}`,
+        message: `触发收益分发失败: ${getErrorMessage(error)}`,
       };
     }
   }
@@ -338,10 +339,10 @@ export class YieldDistributionController {
         message: `批次 ${batchId} 的失败任务已提交重试`,
         retriedCount: 0,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
-        message: `重试任务失败: ${error.message}`,
+        message: `重试任务失败: ${getErrorMessage(error)}`,
         retriedCount: 0,
       };
     }
@@ -398,10 +399,10 @@ export class YieldDistributionController {
         message: 'JSON报告生成成功',
       };
       
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
-        message: `报告生成失败: ${error.message}`,
+        message: `报告生成失败: ${getErrorMessage(error)}`,
       };
     }
   }

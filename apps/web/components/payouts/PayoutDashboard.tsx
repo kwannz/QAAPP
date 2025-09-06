@@ -1,25 +1,9 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react'
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Badge, 
-  Button, 
-  Alert, 
-  AlertDescription, 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger, 
-  Checkbox 
-} from '@/components/ui'
-import { 
-  Coins, 
-  Clock, 
-  DollarSign, 
+import {
+  Coins,
+  Clock,
+  DollarSign,
   Calendar,
   TrendingUp,
   Download,
@@ -27,8 +11,25 @@ import {
   CheckCircle2,
   RefreshCw,
   Wallet,
-  History
-} from 'lucide-react'
+  History,
+} from 'lucide-react';
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Button,
+  Alert,
+  AlertDescription,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Checkbox,
+} from '@/components/ui';
 
 // 类型定义
 interface Payout {
@@ -57,20 +58,20 @@ interface PayoutHistoryData {
   totalPending: number
 }
 
-interface PayoutDashboardProps {
+interface PayoutDashboardProperties {
   userId?: string
   className?: string
 }
 
 // 优化的收益项组件
-const PayoutItem = memo(({ 
-  payout, 
-  isSelected, 
-  onSelectionChange 
-}: { 
-  payout: Payout, 
-  isSelected: boolean, 
-  onSelectionChange: (id: string, checked: boolean) => void 
+const PayoutItem = memo(({
+  payout,
+  isSelected,
+  onSelectionChange,
+}: {
+  payout: Payout,
+  isSelected: boolean,
+  onSelectionChange: (id: string, checked: boolean) => void
 }) => (
   <Card className={`cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-500 bg-orange-50' : 'hover:shadow-md'}`}>
     <CardContent className="p-4">
@@ -78,9 +79,9 @@ const PayoutItem = memo(({
         <div className="flex items-center gap-3">
           <Checkbox
             checked={isSelected}
-            onCheckedChange={(checked) => onSelectionChange(payout.id, checked as boolean)}
+            onCheckedChange={(checked) => onSelectionChange(payout.id, checked)}
           />
-          
+
           <div>
             <div className="flex items-center gap-2">
               <Coins className="w-4 h-4 text-yellow-500" />
@@ -96,7 +97,7 @@ const PayoutItem = memo(({
             </p>
           </div>
         </div>
-        
+
         <div className="text-right">
           <Badge variant="default" className="mb-1">
             可领取
@@ -108,112 +109,111 @@ const PayoutItem = memo(({
       </div>
     </CardContent>
   </Card>
-))
+));
 
-PayoutItem.displayName = 'PayoutItem'
+PayoutItem.displayName = 'PayoutItem';
 
-export function PayoutDashboard({ userId = 'user-test-001', className = '' }: PayoutDashboardProps) {
-  const [claimableData, setClaimableData] = useState<ClaimablePayoutsData | null>(null)
-  const [historyData, setHistoryData] = useState<PayoutHistoryData | null>(null)
-  const [selectedPayouts, setSelectedPayouts] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
-  const [claiming, setClaiming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('claimable')
+export function PayoutDashboard({ userId = 'user-test-001', className = '' }: PayoutDashboardProperties) {
+  const [claimableData, setClaimableData] = useState<ClaimablePayoutsData | null>(null);
+  const [historyData, setHistoryData] = useState<PayoutHistoryData | null>(null);
+  const [selectedPayouts, setSelectedPayouts] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('claimable');
 
   // 获取可领取收益
   const fetchClaimablePayouts = async () => {
-    setLoading(true)
-    setError(null)
-    
+    setLoading(true);
+    setError(null);
+
     try {
-      const { apiClient } = await import('@/lib/api-client')
-      const { data } = await apiClient.get(`/payouts/user/${userId}/claimable`)
-      setClaimableData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
+      const { apiClient } = await import('@/lib/api-client');
+      const { data } = await apiClient.get(`/payouts/user/${userId}/claimable`);
+      setClaimableData(data);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '获取数据时发生未知错误');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 获取收益历史
   const fetchPayoutHistory = async () => {
-    setLoading(true)
-    setError(null)
-    
+    setLoading(true);
+    setError(null);
+
     try {
-      const { apiClient } = await import('@/lib/api-client')
-      const { data } = await apiClient.get(`/payouts/user/${userId}/history`)
-      setHistoryData(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
+      const { apiClient } = await import('@/lib/api-client');
+      const { data } = await apiClient.get(`/payouts/user/${userId}/history`);
+      setHistoryData(data);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '获取数据时发生未知错误');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 初始化数据
   useEffect(() => {
     if (activeTab === 'claimable') {
-      fetchClaimablePayouts()
+      fetchClaimablePayouts();
     } else {
-      fetchPayoutHistory()
+      fetchPayoutHistory();
     }
-  }, [userId, activeTab])
+  }, [userId, activeTab]);
 
   // 处理收益选择
   const handlePayoutSelection = useCallback((payoutId: string, checked: boolean) => {
-    setSelectedPayouts(prev => {
+    setSelectedPayouts(previous => {
       if (checked) {
-        return [...prev, payoutId]
-      } else {
-        return prev.filter(id => id !== payoutId)
+        return [...previous, payoutId];
       }
-    })
-  }, [])
+        return previous.filter(id => id !== payoutId);
+    });
+  }, []);
 
   // 全选/取消全选
   const handleSelectAll = useCallback((checked: boolean) => {
     if (checked && claimableData) {
-      setSelectedPayouts(claimableData.payouts.map(p => p.id))
+      setSelectedPayouts(claimableData.payouts.map(p => p.id));
     } else {
-      setSelectedPayouts([])
+      setSelectedPayouts([]);
     }
-  }, [claimableData])
+  }, [claimableData]);
 
   // 领取选中的收益
   const handleClaimSelected = async () => {
     if (selectedPayouts.length === 0) {
-      alert('请选择要领取的收益')
-      return
+      alert('请选择要领取的收益');
+      return;
     }
 
-    setClaiming(true)
-    setError(null)
+    setClaiming(true);
+    setError(null);
 
     try {
-      const { apiClient } = await import('@/lib/api-client')
-      const { data: result } = await apiClient.post('/payouts/claim', { userId, payoutIds: selectedPayouts })
-      alert(`领取成功！\n金额: $${result.claimedAmount.toFixed(6)}\n交易哈希: ${result.txHash}`)
-      
+      const { apiClient } = await import('@/lib/api-client');
+      const { data: result } = await apiClient.post('/payouts/claim', { userId, payoutIds: selectedPayouts });
+      alert(`领取成功！\n金额: $${result.claimedAmount.toFixed(6)}\n交易哈希: ${result.txHash}`);
+
       // 重置选择并刷新数据
-      setSelectedPayouts([])
-      fetchClaimablePayouts()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '领取失败')
+      setSelectedPayouts([]);
+      fetchClaimablePayouts();
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '领取失败');
     } finally {
-      setClaiming(false)
+      setClaiming(false);
     }
-  }
+  };
 
   // 计算选中的收益总额
   const selectedAmount = useMemo(() => {
-    if (!claimableData) return 0
+    if (!claimableData) return 0;
     return claimableData.payouts
       .filter(p => selectedPayouts.includes(p.id))
-      .reduce((sum, p) => sum + p.amount, 0)
-  }, [claimableData, selectedPayouts])
+      .reduce((sum, p) => sum + p.amount, 0);
+  }, [claimableData, selectedPayouts]);
 
 
   // 渲染历史收益项
@@ -224,7 +224,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`w-2 h-2 rounded-full ${payout.isClaimable ? 'bg-green-500' : 'bg-gray-400'}`} />
-              
+
               <div>
                 <div className="flex items-center gap-2">
                   <Coins className="w-4 h-4 text-yellow-500" />
@@ -242,9 +242,9 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                 )}
               </div>
             </div>
-            
+
             <div className="text-right">
-              <Badge variant={payout.isClaimable ? "default" : "secondary"}>
+              <Badge variant={payout.isClaimable ? 'default' : 'secondary'}>
                 {payout.isClaimable ? '待领取' : '已领取'}
               </Badge>
               {payout.claimedAt && (
@@ -256,15 +256,15 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
           </div>
         </CardContent>
       </Card>
-    )
-  }
+    );
+  };
 
   // 渲染汇总统计
   const renderSummaryStats = () => {
-    const claimableTotal = claimableData?.totalAmount || 0
-    const totalClaimed = historyData?.totalClaimed || 0
-    const totalPending = historyData?.totalPending || 0
-    
+    const claimableTotal = claimableData?.totalAmount || 0;
+    const totalClaimed = historyData?.totalClaimed || 0;
+    const totalPending = historyData?.totalPending || 0;
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
@@ -280,7 +280,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
@@ -309,8 +309,8 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
           </CardContent>
         </Card>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className={className}>
@@ -319,7 +319,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
         <Button
           variant="outline"
           size="sm"
-          onClick={() => activeTab === 'claimable' ? fetchClaimablePayouts() : fetchPayoutHistory()}
+          onClick={async () => activeTab === 'claimable' ? fetchClaimablePayouts() : fetchPayoutHistory()}
           disabled={loading}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -358,7 +358,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                     onCheckedChange={handleSelectAll}
                   />
                   <span className="text-sm">
-                    已选择 {selectedPayouts.length} 项收益 
+                    已选择 {selectedPayouts.length} 项收益
                     {selectedPayouts.length > 0 && (
                       <span className="font-semibold ml-2">
                         (${selectedAmount.toFixed(6)})
@@ -366,15 +366,17 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                     )}
                   </span>
                 </div>
-                
+
                 <Button
                   onClick={handleClaimSelected}
                   disabled={selectedPayouts.length === 0 || claiming}
                   className="flex items-center gap-2"
                 >
-                  {claiming ? (
+                  {claiming
+? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
+                  )
+: (
                     <Download className="w-4 h-4" />
                   )}
                   {claiming ? '领取中...' : '领取选中'}
@@ -383,14 +385,17 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
             </div>
           )}
 
-          {loading ? (
+          {loading
+? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>加载中...</span>
               </div>
             </div>
-          ) : claimableData?.payouts.length === 0 ? (
+          )
+: (claimableData?.payouts.length === 0
+? (
             <Card>
               <CardContent className="py-12">
                 <div className="text-center text-gray-500">
@@ -400,29 +405,33 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                 </div>
               </CardContent>
             </Card>
-          ) : (
+          )
+: (
             <div className="space-y-3">
               {claimableData?.payouts.map(payout => (
-                <PayoutItem 
+                <PayoutItem
                   key={payout.id}
-                  payout={payout} 
+                  payout={payout}
                   isSelected={selectedPayouts.includes(payout.id)}
                   onSelectionChange={handlePayoutSelection}
                 />
               ))}
             </div>
-          )}
+          ))}
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">
-          {loading ? (
+          {loading
+? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>加载中...</span>
               </div>
             </div>
-          ) : historyData?.payouts.length === 0 ? (
+          )
+: (historyData?.payouts.length === 0
+? (
             <Card>
               <CardContent className="py-12">
                 <div className="text-center text-gray-500">
@@ -432,13 +441,14 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                 </div>
               </CardContent>
             </Card>
-          ) : (
+          )
+: (
             <div className="space-y-3">
               {historyData?.payouts.map(renderHistoryPayout)}
             </div>
-          )}
+          ))}
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

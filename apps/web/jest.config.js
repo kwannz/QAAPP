@@ -15,6 +15,13 @@ const customJestConfig = {
   
   testEnvironment: 'jest-environment-jsdom',
   
+  // Use the test-specific TypeScript configuration
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.test.json'
+    }
+  },
+  
   
   // Coverage configuration
   collectCoverageFrom: [

@@ -102,6 +102,30 @@ afterAll(() => {
   console.error = originalError;
 });
 
+// Mock auth context
+jest.mock('./lib/auth-context', () => ({
+  useAuth: jest.fn(() => ({
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    isLoading: false,
+    user: null,
+    token: null,
+  })),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    refresh: jest.fn(),
+  })),
+  useSearchParams: jest.fn(() => new URLSearchParams()),
+  usePathname: jest.fn(() => '/'),
+}));
+
 // Clean up after each test
 afterEach(() => {
   jest.clearAllMocks();

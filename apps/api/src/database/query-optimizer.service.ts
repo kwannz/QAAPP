@@ -5,6 +5,7 @@
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from './database.service';
+import { DatabaseWhereClause } from './interfaces/database.interface';
 // PerformanceService integrated into monitoring module
 
 @Injectable()
@@ -250,7 +251,7 @@ export class QueryOptimizerService {
     const offset = (page - 1) * limit;
     
     try {
-      const where: any = {};
+      const where: DatabaseWhereClause = {};
       
       if (filters.userId) where.userId = filters.userId;
       if (filters.status) where.status = filters.status;

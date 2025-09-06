@@ -1,63 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { Prisma } from '@qa-app/database'
 import { DatabaseService } from '../../database/database.service'
 import { PerformanceOptimizerService } from '../../common/performance/performance-optimizer.service'
 import { OptimizedQueriesService } from '../../common/database/optimized-queries.service'
+import { getErrorMessage, getErrorStack } from '../../common/utils/error.utils';
+import { MonitoringMetrics, MonitoringQuery } from '../interfaces/monitoring.interface';
 
-export interface MonitoringMetrics {
-  logs: {
-    total: number
-    errors: number
-    warnings: number
-    recentEntries: any[]
-  }
-  audit: {
-    total: number
-    todayEntries: number
-    criticalActions: number
-    recentEntries: any[]
-  }
-  alerts: {
-    active: number
-    resolved: number
-    critical: number
-    recentAlerts: any[]
-  }
-  performance: {
-    avgResponseTime: number
-    errorRate: number
-    uptime: number
-    metrics: any[]
-    optimizer: {
-      cacheHitRate: number
-      queryOptimizations: number
-      memoryUsage: number
-      recommendations: string[]
-      healthStatus: string
-    }
-    queries: {
-      totalQueries: number
-      optimizedQueries: number
-      slowQueries: number
-      averageQueryTime: number
-    }
-  }
-  system: {
-    status: 'healthy' | 'warning' | 'error'
-    lastCheck: Date
-    issues: string[]
-  }
-}
+export { MonitoringQuery };
+import { DatabaseWhereClause } from '../../database/interfaces/database.interface';
 
-export interface MonitoringQuery {
-  startDate?: Date
-  endDate?: Date
-  level?: 'error' | 'warn' | 'info' | 'debug'
-  module?: string
-  userId?: string
-  limit?: number
-  offset?: number
-}
 
 @Injectable()
 export class MonitoringService {
@@ -91,7 +43,7 @@ export class MonitoringService {
         performance,
         system
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get monitoring metrics', error)
       throw error
     }
@@ -105,7 +57,7 @@ export class MonitoringService {
       const startDate = query.startDate || new Date(Date.now() - 24 * 60 * 60 * 1000)
       const endDate = query.endDate || new Date()
       
-      const whereClause: any = {
+      const whereClause: DatabaseWhereClause = {
         timestamp: {
           gte: startDate,
           lte: endDate
@@ -154,14 +106,14 @@ export class MonitoringService {
         warnings: warningLogs,
         recentEntries: (recentLogs || []).map(log => ({
           id: log.id,
-          level: log.level.toLowerCase(),
+          level: log.level.toLowerCase() as 'error' | 'warning' | 'info' | 'debug',
           message: log.message,
-          module: log.module,
           timestamp: log.timestamp,
-          userId: log.userId
+          context: log.module || undefined,
+          metadata: { userId: log.userId }
         }))
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get logs metrics', error)
       return {
         total: 0,
@@ -180,7 +132,7 @@ export class MonitoringService {
       const startDate = query.startDate || new Date(Date.now() - 24 * 60 * 60 * 1000)
       const endDate = query.endDate || new Date()
       
-      const whereClause: any = {
+      const whereClause: DatabaseWhereClause = {
         createdAt: {
           gte: startDate,
           lte: endDate
@@ -237,15 +189,15 @@ export class MonitoringService {
         criticalActions: criticalAudits,
         recentEntries: (recentAudits || []).map(audit => ({
           id: audit.id,
+          actorId: audit.actorId || '',
           action: audit.action,
-          actorId: audit.actorId,
-          resourceType: audit.resourceType,
+          resourceType: audit.resourceType || '',
           resourceId: audit.resourceId,
-          createdAt: audit.createdAt,
-          actor: audit.actor
+          timestamp: audit.createdAt,
+          metadata: { actor: audit.actor }
         }))
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get audit metrics', error)
       return {
         total: 0,
@@ -264,7 +216,7 @@ export class MonitoringService {
       const startDate = query.startDate || new Date(Date.now() - 24 * 60 * 60 * 1000)
       const endDate = query.endDate || new Date()
       
-      const whereClause: any = {
+      const whereClause: DatabaseWhereClause = {
         createdAt: {
           gte: startDate,
           lte: endDate
@@ -309,16 +261,17 @@ export class MonitoringService {
         critical: criticalAlerts,
         recentAlerts: (recentAlerts || []).map(alert => ({
           id: alert.id,
+          type: alert.module || 'system',
+          severity: alert.severity.toLowerCase() as 'low' | 'medium' | 'high' | 'critical',
           title: alert.title,
-          message: alert.message,
-          status: alert.status.toLowerCase(),
-          severity: alert.severity.toLowerCase(),
-          module: alert.module,
-          createdAt: alert.createdAt,
-          resolvedAt: alert.resolvedAt
+          description: alert.message,
+          status: alert.status.toLowerCase() as 'active' | 'resolved' | 'investigating',
+          timestamp: alert.createdAt,
+          resolvedAt: alert.resolvedAt || undefined,
+          metadata: { module: alert.module }
         }))
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get alerts metrics', error)
       return {
         active: 0,
@@ -343,7 +296,24 @@ export class MonitoringService {
         avgResponseTime: optimizerMetrics.averageResponseTime || 45,
         errorRate: 0.01, // 1% error rate
         uptime: 99.9, // 99.9% uptime
-        metrics: [{ uptime: 99.9, responseTime: 45 }],
+        metrics: [
+          {
+            id: 'uptime-' + Date.now(),
+            metric: 'uptime',
+            value: 99.9,
+            unit: 'percent',
+            timestamp: new Date(),
+            context: 'system'
+          },
+          {
+            id: 'response-time-' + Date.now(),
+            metric: 'responseTime',
+            value: 45,
+            unit: 'milliseconds',
+            timestamp: new Date(),
+            context: 'api'
+          }
+        ],
         optimizer: {
           cacheHitRate: optimizerMetrics.cacheHitRate,
           queryOptimizations: optimizerMetrics.queryOptimizations,
@@ -358,7 +328,7 @@ export class MonitoringService {
           averageQueryTime: optimizerMetrics.averageResponseTime
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get performance metrics', error)
       return {
         avgResponseTime: 0,
@@ -433,7 +403,7 @@ export class MonitoringService {
         lastCheck: new Date(),
         issues
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get system status', error)
       return {
         status: 'error' as const,
@@ -450,7 +420,7 @@ export class MonitoringService {
     try {
       // 执行简单查询测试数据库连接
       await this.database.$queryRaw`SELECT 1`
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Database health check failed', error)
       throw new Error('Database connection failed')
     }
@@ -464,7 +434,7 @@ export class MonitoringService {
       // 由于当前架构中没有直接的Redis客户端，我们跳过Redis检查
       // 在生产环境中，这里应该添加实际的Redis ping操作
       this.logger.debug('Redis health check skipped - no Redis client configured')
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Redis health check failed', error)
       throw new Error('Redis connection failed')
     }
@@ -486,7 +456,7 @@ export class MonitoringService {
       
       // 在实际生产环境中，这里应该添加对支付网关、区块链节点等的具体健康检查
       this.logger.debug(`External services check: ${recentConfigs} recent config updates`)
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('External services health check failed', error)
       throw new Error('External services check failed')
     }
@@ -500,7 +470,7 @@ export class MonitoringService {
       const startDate = query.startDate || new Date(Date.now() - 24 * 60 * 60 * 1000)
       const endDate = query.endDate || new Date()
       
-      const whereClause: any = {
+      const whereClause: DatabaseWhereClause = {
         timestamp: {
           gte: startDate,
           lte: endDate
@@ -557,7 +527,7 @@ export class MonitoringService {
         page,
         limit
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get logs', error)
       return {
         logs: [],
@@ -576,7 +546,7 @@ export class MonitoringService {
       const startDate = query.startDate || new Date(Date.now() - 24 * 60 * 60 * 1000)
       const endDate = query.endDate || new Date()
       
-      const whereClause: any = {
+      const whereClause: DatabaseWhereClause = {
         createdAt: {
           gte: startDate,
           lte: endDate
@@ -627,7 +597,7 @@ export class MonitoringService {
         page,
         limit
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get audit logs', error)
       return {
         logs: [],
@@ -646,7 +616,7 @@ export class MonitoringService {
       const startDate = query.startDate || new Date(Date.now() - 24 * 60 * 60 * 1000)
       const endDate = query.endDate || new Date()
       
-      const whereClause: any = {
+      const whereClause: DatabaseWhereClause = {
         createdAt: {
           gte: startDate,
           lte: endDate
@@ -690,7 +660,7 @@ export class MonitoringService {
         page,
         limit
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get alerts', error)
       return {
         data: [],
@@ -724,7 +694,7 @@ export class MonitoringService {
           memoryUsage: performanceMetrics.memoryUsage
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get performance data', error)
       // 返回基础默认值
       return {
@@ -745,7 +715,7 @@ export class MonitoringService {
     severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
     module: string
     category?: string
-    metadata?: any
+    metadata?: Record<string, unknown>
   }) {
     try {
       const alert = await this.database.alert.create({
@@ -755,7 +725,7 @@ export class MonitoringService {
           severity: alertData.severity,
           module: alertData.module,
           category: alertData.category,
-          metadata: alertData.metadata,
+          metadata: alertData.metadata as Prisma.InputJsonValue,
           status: 'TRIGGERED'
         }
       })
@@ -773,7 +743,7 @@ export class MonitoringService {
         createdAt: alert.createdAt,
         metadata: alert.metadata
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to create alert', error)
       throw error
     }
@@ -803,7 +773,7 @@ export class MonitoringService {
         resolvedBy: alert.resolvedBy,
         resolvedAt: alert.resolvedAt
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to resolve alert', error)
       throw error
     }
@@ -882,7 +852,7 @@ export class MonitoringService {
       ]
       
       return rows.join('\n')
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate CSV', error)
       return 'timestamp,error\n' + new Date().toISOString() + ',Failed to generate CSV data'
     }
@@ -898,9 +868,9 @@ export class MonitoringService {
       const excelHeader = `# Monitoring Metrics Report\n# Generated: ${new Date().toISOString()}\n# Format: CSV-Compatible\n\n`
       
       return Buffer.from(excelHeader + csvData, 'utf8')
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate Excel', error)
-      return Buffer.from(`Error generating Excel file: ${error.message}`, 'utf8')
+      return Buffer.from(`Error generating Excel file: ${getErrorMessage(error)}`, 'utf8')
     }
   }
 
@@ -918,7 +888,7 @@ export class MonitoringService {
         timestamp: new Date().toISOString(),
         status: 'success'
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get performance optimization report', error)
       return {
         summary: {},
@@ -927,7 +897,7 @@ export class MonitoringService {
         cacheStats: {},
         timestamp: new Date().toISOString(),
         status: 'error',
-        error: error.message
+        error: getErrorMessage(error)
       }
     }
   }
@@ -958,7 +928,7 @@ export class MonitoringService {
         transactionStats,
         timestamp: new Date().toISOString()
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get query optimization stats', error)
       return {
         queryOptimizations: 0,
@@ -969,7 +939,7 @@ export class MonitoringService {
         userStats: null,
         transactionStats: null,
         timestamp: new Date().toISOString(),
-        error: error.message
+        error: getErrorMessage(error)
       }
     }
   }
@@ -1000,7 +970,7 @@ export class MonitoringService {
         recommendations: metrics.recommendations.filter(rec => rec.includes('缓存')),
         timestamp: new Date().toISOString()
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get cache performance stats', error)
       return {
         hitRate: 0,
@@ -1011,7 +981,7 @@ export class MonitoringService {
         performance: { averageHitTime: 0, averageMissTime: 0, efficiency: 'unknown' },
         recommendations: [],
         timestamp: new Date().toISOString(),
-        error: error.message
+        error: getErrorMessage(error)
       }
     }
   }
@@ -1029,12 +999,12 @@ export class MonitoringService {
         message: '性能优化缓存已清理',
         timestamp: new Date().toISOString()
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to clear performance cache', error)
       return {
         status: 'error',
         message: '缓存清理失败',
-        error: error.message,
+        error: getErrorMessage(error),
         timestamp: new Date().toISOString()
       }
     }
@@ -1103,7 +1073,7 @@ export class MonitoringService {
       ])
       
       return totalLogs > 0 ? Math.round((errorLogs / totalLogs) * 100 * 100) / 100 : 0
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to calculate error rate', error)
       return 0.5 // 默认错误率
     }

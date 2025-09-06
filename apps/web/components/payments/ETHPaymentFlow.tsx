@@ -1,36 +1,39 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi'
-import { parseUnits, formatEther, formatUnits } from 'viem'
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Alert, 
-  AlertDescription, 
-  Badge, 
-  Separator 
-} from '@/components/ui'
-import { 
-  Loader2, 
-  CheckCircle, 
-  AlertTriangle, 
-  ExternalLink, 
+import {
+  Loader2,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
   Clock,
   Wallet,
   ArrowRight,
-  RefreshCw
-} from 'lucide-react'
-import { useTreasury } from '@/lib/hooks/use-contracts'
-import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses'
-import { toast } from 'sonner'
+  RefreshCw,
+} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { parseUnits, formatEther, formatUnits } from 'viem';
+import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi';
+
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Alert,
+  AlertDescription,
+  Badge,
+  Separator,
+} from '@/components/ui';
+import type { ProductType } from '@/lib/contracts/addresses';
+import { PRODUCT_CONFIG } from '@/lib/contracts/addresses';
+import { useTreasury } from '@/lib/hooks/use-contracts';
+
 
 export type PaymentStep = 'preparation' | 'confirmation' | 'processing' | 'success' | 'error'
 
-interface ETHPaymentFlowProps {
+interface ETHPaymentFlowProperties {
   productType: ProductType
   ethAmount: string
   onSuccess?: (txHash: string, tokenId?: string) => void
@@ -47,122 +50,121 @@ interface PaymentState {
   gasPrice?: bigint
 }
 
-export function ETHPaymentFlow({ 
-  productType, 
-  ethAmount, 
-  onSuccess, 
-  onError, 
-  onCancel 
-}: ETHPaymentFlowProps) {
-  const { address, isConnected, chainId } = useAccount()
-  const { data: ethBalance } = useBalance({ address })
-  const treasury = useTreasury()
-  
+export function ETHPaymentFlow({
+  productType,
+  ethAmount,
+  onSuccess,
+  onError,
+  onCancel,
+}: ETHPaymentFlowProperties) {
+  const { address, isConnected, chainId } = useAccount();
+  const { data: ethBalance } = useBalance({ address });
+  const treasury = useTreasury();
+
   const [paymentState, setPaymentState] = useState<PaymentState>({
-    step: 'preparation'
-  })
+    step: 'preparation',
+  });
 
   // 等待交易确认
   const { data: receipt, isLoading: isConfirming, isSuccess, isError } = useWaitForTransactionReceipt({
     hash: paymentState.txHash as `0x${string}` | undefined,
-  })
+  });
 
   // 产品配置
-  const productConfig = PRODUCT_CONFIG[productType]
-  
+  const productConfig = PRODUCT_CONFIG[productType];
+
   // 计算相关数值
-  const ethAmountWei = parseUnits(ethAmount, 18)
-  const equivalentUSDT = parseFloat(ethAmount) * 2000 // 1 ETH = 2000 USDT
-  const hasEnoughBalance = ethBalance ? ethBalance.value >= ethAmountWei : false
-  const estimatedGas = BigInt(200000) // 估计的gas消耗
-  const estimatedGasCost = ethBalance ? (estimatedGas * BigInt(20000000000)) : BigInt(0) // 20 gwei估算
-  const totalRequired = ethAmountWei + estimatedGasCost
+  const ethAmountWei = parseUnits(ethAmount, 18);
+  const equivalentUSDT = Number.parseFloat(ethAmount) * 2000; // 1 ETH = 2000 USDT
+  const hasEnoughBalance = ethBalance ? ethBalance.value >= ethAmountWei : false;
+  const estimatedGas = BigInt(200_000); // 估计的gas消耗
+  const estimatedGasCost = ethBalance ? (estimatedGas * BigInt(20_000_000_000)) : BigInt(0); // 20 gwei估算
+  const totalRequired = ethAmountWei + estimatedGasCost;
 
   // 监听交易状态变化
   useEffect(() => {
     if (isSuccess && receipt) {
-      setPaymentState(prev => ({
-        ...prev,
-        step: 'success'
-      }))
-      
+      setPaymentState(previous => ({
+        ...previous,
+        step: 'success',
+      }));
+
       toast.success('支付成功！', {
-        description: '您的投资凭证NFT已发送到钱包'
-      })
-      
-      onSuccess?.(receipt.transactionHash, 'pending') // tokenId待从事件中解析
+        description: '您的投资凭证NFT已发送到钱包',
+      });
+
+      onSuccess?.(receipt.transactionHash, 'pending'); // tokenId待从事件中解析
     } else if (isError) {
-      setPaymentState(prev => ({
-        ...prev,
+      setPaymentState(previous => ({
+        ...previous,
         step: 'error',
-        error: '交易执行失败'
-      }))
-      
+        error: '交易执行失败',
+      }));
+
       toast.error('支付失败', {
-        description: '交易未能成功执行，请重试'
-      })
-      
-      onError?.('交易执行失败')
+        description: '交易未能成功执行，请重试',
+      });
+
+      onError?.('交易执行失败');
     }
-  }, [isSuccess, isError, receipt, onSuccess, onError])
+  }, [isSuccess, isError, receipt, onSuccess, onError]);
 
   // 执行ETH支付
   const handlePayment = async () => {
     if (!isConnected || !address) {
-      toast.error('请先连接钱包')
-      return
+      toast.error('请先连接钱包');
+      return;
     }
 
     if (!hasEnoughBalance) {
-      toast.error('ETH余额不足')
-      return
+      toast.error('ETH余额不足');
+      return;
     }
 
     try {
-      setPaymentState(prev => ({ ...prev, step: 'confirmation' }))
-      
+      setPaymentState(previous => ({ ...previous, step: 'confirmation' }));
+
       toast.info('请在钱包中确认交易', {
-        description: `投资金额: ${ethAmount} ETH (≈${equivalentUSDT} USDT)`
-      })
+        description: `投资金额: ${ethAmount} ETH (≈${equivalentUSDT} USDT)`,
+      });
 
       // 调用智能合约
-      await treasury.purchaseProductWithETH(productType, ethAmount)
-      
+      await treasury.purchaseProductWithETH(productType, ethAmount);
+
       if (treasury.hash) {
-        setPaymentState(prev => ({
-          ...prev,
+        setPaymentState(previous => ({
+          ...previous,
           step: 'processing',
-          txHash: treasury.hash
-        }))
-        
+          txHash: treasury.hash,
+        }));
+
         toast.loading('交易处理中...', {
-          description: '等待区块链确认交易'
-        })
+          description: '等待区块链确认交易',
+        });
       }
-      
     } catch (error: any) {
-      const errorMessage = error?.message?.includes('User rejected') 
-        ? '用户取消了交易' 
-        : error?.message || '支付失败'
-        
-      setPaymentState(prev => ({
-        ...prev,
+      const errorMessage = error?.message?.includes('User rejected')
+        ? '用户取消了交易'
+        : error?.message || '支付失败';
+
+      setPaymentState(previous => ({
+        ...previous,
         step: 'error',
-        error: errorMessage
-      }))
-      
+        error: errorMessage,
+      }));
+
       toast.error('支付失败', {
-        description: errorMessage
-      })
-      
-      onError?.(errorMessage)
+        description: errorMessage,
+      });
+
+      onError?.(errorMessage);
     }
-  }
+  };
 
   // 重置支付状态
   const resetPayment = () => {
-    setPaymentState({ step: 'preparation' })
-  }
+    setPaymentState({ step: 'preparation' });
+  };
 
   // 渲染支付准备阶段
   const renderPreparation = () => (
@@ -193,9 +195,9 @@ export function ETHPaymentFlow({
               <p className="font-semibold">{productConfig.duration}天</p>
             </div>
           </div>
-          
+
           <Separator />
-          
+
           {/* 预期收益计算 */}
           <div className="bg-gradient-to-r from-green-50 to-orange-50 p-3 rounded-lg">
             <div className="text-sm font-medium text-gray-700 mb-2">预期收益</div>
@@ -226,11 +228,11 @@ export function ETHPaymentFlow({
         <CardContent className="pt-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">钱包余额检查</span>
-            <Badge variant={hasEnoughBalance ? "default" : "destructive"}>
-              {hasEnoughBalance ? "充足" : "不足"}
+            <Badge variant={hasEnoughBalance ? 'default' : 'destructive'}>
+              {hasEnoughBalance ? '充足' : '不足'}
             </Badge>
           </div>
-          
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">当前ETH余额:</span>
@@ -266,28 +268,30 @@ export function ETHPaymentFlow({
 
       {/* 操作按钮 */}
       <div className="flex gap-3">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onCancel}
           className="flex-1"
         >
           取消
         </Button>
-        <Button 
+        <Button
           onClick={handlePayment}
           disabled={!hasEnoughBalance || treasury.isPending}
           className="flex-1"
         >
-          {treasury.isPending ? (
+          {treasury.isPending
+? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
+          )
+: (
             <Wallet className="w-4 h-4 mr-2" />
           )}
           确认支付
         </Button>
       </div>
     </div>
-  )
+  );
 
   // 渲染确认阶段
   const renderConfirmation = () => (
@@ -306,7 +310,7 @@ export function ETHPaymentFlow({
         </AlertDescription>
       </Alert>
     </div>
-  )
+  );
 
   // 渲染处理阶段
   const renderProcessing = () => (
@@ -318,12 +322,12 @@ export function ETHPaymentFlow({
         <h3 className="text-lg font-semibold">交易处理中</h3>
         <p className="text-gray-600">等待区块链网络确认交易</p>
       </div>
-      
+
       {paymentState.txHash && (
         <div className="bg-gray-50 p-3 rounded-lg">
           <div className="text-sm text-gray-600 mb-1">交易哈希:</div>
           <div className="font-mono text-xs break-all">{paymentState.txHash}</div>
-          {chainId === 11155111 && (
+          {chainId === 11_155_111 && (
             <Button
               variant="link"
               size="sm"
@@ -336,7 +340,7 @@ export function ETHPaymentFlow({
           )}
         </div>
       )}
-      
+
       <Alert>
         <Clock className="h-4 w-4" />
         <AlertDescription>
@@ -344,7 +348,7 @@ export function ETHPaymentFlow({
         </AlertDescription>
       </Alert>
     </div>
-  )
+  );
 
   // 渲染成功阶段
   const renderSuccess = () => (
@@ -364,8 +368,8 @@ export function ETHPaymentFlow({
             <div>区块高度: {receipt.blockNumber?.toString()}</div>
             <div>Gas使用: {receipt.gasUsed?.toString()}</div>
           </div>
-          
-          {chainId === 11155111 && (
+
+          {chainId === 11_155_111 && (
             <Button
               variant="link"
               size="sm"
@@ -385,7 +389,7 @@ export function ETHPaymentFlow({
         </AlertDescription>
       </Alert>
     </div>
-  )
+  );
 
   // 渲染错误阶段
   const renderError = () => (
@@ -401,7 +405,7 @@ export function ETHPaymentFlow({
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          {paymentState.error === '用户取消了交易' 
+          {paymentState.error === '用户取消了交易'
             ? '您取消了交易。如需继续投资，请重新发起支付。'
             : '交易执行失败。请检查网络连接和钱包设置后重试。'
           }
@@ -417,25 +421,31 @@ export function ETHPaymentFlow({
         </Button>
       </div>
     </div>
-  )
+  );
 
   // 主渲染逻辑
   const renderCurrentStep = () => {
     switch (paymentState.step) {
-      case 'preparation':
-        return renderPreparation()
-      case 'confirmation':
-        return renderConfirmation()
-      case 'processing':
-        return renderProcessing()
-      case 'success':
-        return renderSuccess()
-      case 'error':
-        return renderError()
-      default:
-        return renderPreparation()
+      case 'preparation': {
+        return renderPreparation();
+      }
+      case 'confirmation': {
+        return renderConfirmation();
+      }
+      case 'processing': {
+        return renderProcessing();
+      }
+      case 'success': {
+        return renderSuccess();
+      }
+      case 'error': {
+        return renderError();
+      }
+      default: {
+        return renderPreparation();
+      }
     }
-  }
+  };
 
   return (
     <div className="max-w-md mx-auto">
@@ -443,32 +453,37 @@ export function ETHPaymentFlow({
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           {['preparation', 'confirmation', 'processing', 'success'].map((step, index) => {
-            const isActive = step === paymentState.step
-            const isCompleted = ['confirmation', 'processing', 'success'].indexOf(paymentState.step) > index - 1
-            const isError = paymentState.step === 'error'
-            
+            const isActive = step === paymentState.step;
+            const isCompleted = ['confirmation', 'processing', 'success'].indexOf(paymentState.step) > index - 1;
+            const isError = paymentState.step === 'error';
+
             return (
               <div key={step} className="flex items-center">
-                <div 
+                <div
                   className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium ${
-                    isError && index > 0 ? 'bg-red-100 border-red-300 text-red-600' :
-                    isCompleted || isActive ? 'bg-orange-100 border-orange-500 text-orange-600' : 
-                    'bg-gray-100 border-gray-300 text-gray-400'
+                    isError && index > 0
+? 'bg-red-100 border-red-300 text-red-600'
+                    : (isCompleted || isActive
+? 'bg-orange-100 border-orange-500 text-orange-600'
+                    : 'bg-gray-100 border-gray-300 text-gray-400')
                   }`}
                 >
-                  {isCompleted && !isActive && paymentState.step !== 'error' ? (
+                  {isCompleted && !isActive && paymentState.step !== 'error'
+? (
                     <CheckCircle className="w-4 h-4" />
-                  ) : (
+                  )
+: (
                     index + 1
                   )}
                 </div>
                 {index < 3 && (
                   <div className={`w-12 h-0.5 mx-2 ${
                     isCompleted && !isError ? 'bg-orange-500' : 'bg-gray-300'
-                  }`} />
+                  }`}
+                  />
                 )}
               </div>
-            )
+            );
           })}
         </div>
         <div className="text-center text-sm text-gray-600">
@@ -483,5 +498,5 @@ export function ETHPaymentFlow({
       {/* 当前步骤内容 */}
       {renderCurrentStep()}
     </div>
-  )
+  );
 }

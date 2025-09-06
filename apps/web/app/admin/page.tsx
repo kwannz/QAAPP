@@ -1,7 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 import {
   Users,
   UserCheck,
@@ -18,23 +17,26 @@ import {
   ArrowDown,
   Eye,
   Filter,
-  Download
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
-import { AdminLayout } from '../../components/admin/AdminLayout'
-import { AdminGuard } from '../../components/admin/AdminGuard'
+  Download,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
+
+import { AdminGuard } from '../../components/admin/AdminGuard';
+import { AdminLayout } from '../../components/admin/AdminLayout';
 
 // 模拟数据
 const adminStats = {
-  totalUsers: 15420,
+  totalUsers: 15_420,
   pendingKyc: 89,
   activeOrders: 234,
   pendingWithdrawals: 12,
-  totalRevenue: 1234567.89,
+  totalRevenue: 1_234_567.89,
   dailyActiveUsers: 3421,
   systemHealth: 99.8,
-  pendingReviews: 47
-}
+  pendingReviews: 47,
+};
 
 const recentActivities = [
   {
@@ -43,25 +45,25 @@ const recentActivities = [
     user: 'user1234@example.com',
     action: 'KYC审核通过',
     timestamp: '5分钟前',
-    status: 'success'
+    status: 'success',
   },
   {
     id: 2,
     type: 'withdrawal_pending',
-    user: 'user5678@example.com', 
+    user: 'user5678@example.com',
     action: '提现申请待审核',
     amount: 5000,
     timestamp: '12分钟前',
-    status: 'pending'
+    status: 'pending',
   },
   {
     id: 3,
     type: 'large_order',
     user: 'user9999@example.com',
     action: '大额订单预警',
-    amount: 50000,
+    amount: 50_000,
     timestamp: '25分钟前',
-    status: 'warning'
+    status: 'warning',
   },
   {
     id: 4,
@@ -69,9 +71,9 @@ const recentActivities = [
     user: 'user7777@example.com',
     action: 'KYC审核拒绝',
     timestamp: '1小时前',
-    status: 'error'
-  }
-]
+    status: 'error',
+  },
+];
 
 const quickStats = [
   {
@@ -82,7 +84,7 @@ const quickStats = [
     icon: UserCheck,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
-    href: '/admin/kycreview'
+    href: '/admin/kycreview',
   },
   {
     title: '待审核提现',
@@ -92,7 +94,7 @@ const quickStats = [
     icon: CreditCard,
     color: 'text-red-600',
     bgColor: 'bg-red-100',
-    href: '/admin/withdrawals'
+    href: '/admin/withdrawals',
   },
   {
     title: '活跃订单',
@@ -102,7 +104,7 @@ const quickStats = [
     icon: ShoppingBag,
     color: 'text-green-600',
     bgColor: 'bg-green-100',
-    href: '/admin/orders'
+    href: '/admin/orders',
   },
   {
     title: '系统健康度',
@@ -112,39 +114,44 @@ const quickStats = [
     icon: Activity,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
-    href: '/admin/system'
-  }
-]
+    href: '/admin/system',
+  },
+];
 
 export default function AdminDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState('today')
+  const [isLoading, setIsLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('today');
 
   useEffect(() => {
     // 模拟数据加载
     const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+      setIsLoading(false);
+    }, 1000);
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  }, []);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
-      currency: 'CNY'
-    }).format(amount)
-  }
+      currency: 'CNY',
+    }).format(amount);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'text-green-600 bg-green-100'
-      case 'warning': return 'text-yellow-600 bg-yellow-100'
-      case 'error': return 'text-red-600 bg-red-100'
-      case 'pending': return 'text-blue-600 bg-blue-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'success': { return 'text-green-600 bg-green-100';
+      }
+      case 'warning': { return 'text-yellow-600 bg-yellow-100';
+      }
+      case 'error': { return 'text-red-600 bg-red-100';
+      }
+      case 'pending': { return 'text-blue-600 bg-blue-100';
+      }
+      default: { return 'text-gray-600 bg-gray-100';
+      }
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -153,8 +160,8 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             <div className="h-8 bg-gray-200 rounded animate-pulse w-64" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -164,7 +171,7 @@ export default function AdminDashboard() {
           </div>
         </AdminLayout>
       </AdminGuard>
-    )
+    );
   }
 
   return (
@@ -184,7 +191,7 @@ export default function AdminDashboard() {
                 系统运营概览和快速操作入口
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <select
                 value={timeRange}
@@ -195,12 +202,12 @@ export default function AdminDashboard() {
                 <option value="week">本周</option>
                 <option value="month">本月</option>
               </select>
-              
+
               <Button variant="outline" size="sm">
                 <Filter className="w-4 h-4 mr-2" />
                 筛选
               </Button>
-              
+
               <Button variant="outline" size="sm">
                 <Download className="w-4 h-4 mr-2" />
                 导出报告
@@ -216,7 +223,7 @@ export default function AdminDashboard() {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {quickStats.map((stat, index) => {
-              const Icon = stat.icon
+              const Icon = stat.icon;
               return (
                 <Card key={stat.title} className="cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
@@ -229,14 +236,17 @@ export default function AdminDashboard() {
                           {stat.value}
                         </p>
                         <div className="flex items-center mt-2">
-                          {stat.changeType === 'increase' ? (
+                          {stat.changeType === 'increase'
+? (
                             <ArrowUp className="w-3 h-3 text-green-600 mr-1" />
-                          ) : (
+                          )
+: (
                             <ArrowDown className="w-3 h-3 text-red-600 mr-1" />
                           )}
                           <span className={`text-xs font-medium ${
                             stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          }`}
+                          >
                             {stat.change}
                           </span>
                           <span className="text-xs text-gray-500 ml-1">较昨日</span>
@@ -248,7 +258,7 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-              )
+              );
             })}
           </motion.div>
 
@@ -281,7 +291,7 @@ export default function AdminDashboard() {
                       <div className="text-sm text-gray-600">总收入</div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">今日活跃用户</span>
@@ -391,5 +401,5 @@ export default function AdminDashboard() {
         </div>
       </AdminLayout>
     </AdminGuard>
-  )
+  );
 }

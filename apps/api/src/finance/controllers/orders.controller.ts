@@ -36,6 +36,7 @@ import {
   OrderStatsResponseDto,
   BatchUpdateOrdersDto
 } from '../dto/orders.dto';
+import { AuthenticatedRequest } from '../../common/types/express.types';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -60,7 +61,7 @@ export class OrdersController {
   @ApiBearerAuth()
   @Get('me')
   async getMyOrders(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Query(new ValidationPipe({ transform: true })) queryDto: OrderQueryDto
   ): Promise<OrderListResponseDto> {
     return this.ordersService.findUserOrders(req.user.id, queryDto);
@@ -89,7 +90,7 @@ export class OrdersController {
   @Get(':id')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<OrderResponseDto> {
     return this.ordersService.findOne(id, req.user.id);
   }
@@ -118,7 +119,7 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body(ValidationPipe) createOrderDto: CreateOrderDto,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<OrderResponseDto> {
     return this.ordersService.create(createOrderDto, req.user.id);
   }
@@ -143,7 +144,7 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   async createWithETH(
     @Body(ValidationPipe) createOrderDto: CreateOrderDto,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<OrderResponseDto> {
     const ethOrderDto = { ...createOrderDto, paymentType: 'ETH' };
     return this.ordersService.create(ethOrderDto, req.user.id);
@@ -174,7 +175,7 @@ export class OrdersController {
   async confirmOrder(
     @Param('id', ParseUUIDPipe) id: string, 
     @Body(ValidationPipe) confirmDto: ConfirmOrderDto,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<OrderResponseDto> {
     return this.ordersService.confirmOrder(id, confirmDto, req.user.id);
   }
@@ -202,7 +203,7 @@ export class OrdersController {
   @Patch(':id/cancel')
   async cancelOrder(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: any
+    @Req() req: AuthenticatedRequest
   ): Promise<OrderResponseDto> {
     return this.ordersService.update(id, { status: 'CANCELED' }, req.user.id);
   }

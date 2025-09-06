@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SystemConfigData, BusinessConfigData, SecurityConfigData, PaymentConfigData, NotificationConfigData, ConfigBackupData, ConfigPagination, ConfigAuditFilters } from './interfaces/config.interface';
 
 @Injectable()
 export class ConfigService {
@@ -139,7 +140,7 @@ export class ConfigService {
     };
   }
 
-  async updateSystemConfig(configData: any) {
+  async updateSystemConfig(configData: SystemConfigData) {
     Object.assign(this.systemConfig, configData);
     
     return {
@@ -159,7 +160,7 @@ export class ConfigService {
     };
   }
 
-  async updateBusinessConfig(configData: any) {
+  async updateBusinessConfig(configData: BusinessConfigData) {
     Object.assign(this.businessConfig, configData);
     
     return {
@@ -179,7 +180,7 @@ export class ConfigService {
     };
   }
 
-  async updateSecurityConfig(configData: any) {
+  async updateSecurityConfig(configData: SecurityConfigData) {
     Object.assign(this.securityConfig, configData);
     
     return {
@@ -199,7 +200,7 @@ export class ConfigService {
     };
   }
 
-  async updatePaymentConfig(configData: any) {
+  async updatePaymentConfig(configData: PaymentConfigData) {
     Object.assign(this.paymentConfig, configData);
     
     return {
@@ -219,7 +220,7 @@ export class ConfigService {
     };
   }
 
-  async updateNotificationConfig(configData: any) {
+  async updateNotificationConfig(configData: NotificationConfigData) {
     Object.assign(this.notificationConfig, configData);
     
     return {
@@ -272,7 +273,7 @@ export class ConfigService {
     };
   }
 
-  async createConfigBackup(backupData: any) {
+  async createConfigBackup(backupData: ConfigBackupData) {
     const backup = {
       id: 'backup-' + Date.now(),
       name: backupData.name || 'Manual backup',
@@ -302,10 +303,10 @@ export class ConfigService {
     };
   }
 
-  async getConfigBackups(pagination: any) {
+  async getConfigBackups(pagination: ConfigPagination) {
     const total = this.configBackups.length;
-    const page = parseInt(pagination.page) || 1;
-    const limit = parseInt(pagination.limit) || 20;
+    const page = parseInt(pagination.page ?? '1') || 1;
+    const limit = parseInt(pagination.limit ?? '20') || 20;
     const offset = (page - 1) * limit;
 
     return {
@@ -329,7 +330,7 @@ export class ConfigService {
     };
   }
 
-  async getConfigAuditLog(filters: any) {
+  async getConfigAuditLog(filters: ConfigAuditFilters) {
     let filtered = [...this.auditLog];
 
     if (filters.category) {
@@ -337,8 +338,8 @@ export class ConfigService {
     }
 
     const total = filtered.length;
-    const page = parseInt(filters.page) || 1;
-    const limit = parseInt(filters.limit) || 20;
+    const page = parseInt(filters.page ?? '1') || 1;
+    const limit = parseInt(filters.limit ?? '20') || 20;
     const offset = (page - 1) * limit;
 
     return {
@@ -358,7 +359,7 @@ export class ConfigService {
   }
 
   async testConfiguration(category: string) {
-    const testResults = {
+    const testResults: Record<string, any> = {
       system: {
         siteName: 'OK',
         siteUrl: 'OK - URL accessible',
@@ -406,7 +407,7 @@ export class ConfigService {
   }
 
   async resetConfigToDefaults(category: string) {
-    const defaultConfigs = {
+    const defaultConfigs: Record<string, any> = {
       system: {
         siteName: 'QA Investment Platform',
         siteUrl: 'https://qa-investment.com',

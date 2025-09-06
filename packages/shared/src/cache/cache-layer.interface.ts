@@ -43,7 +43,7 @@ export interface CacheStats {
   operationsPerSecond: number;
 }
 
-export interface CacheOperation<T = any> {
+export interface CacheOperation<T = unknown> {
   get(key: string): Promise<T | null>;
   set(key: string, value: T, ttl?: number): Promise<void>;
   delete(key: string): Promise<boolean>;

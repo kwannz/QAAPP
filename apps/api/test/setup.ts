@@ -287,16 +287,18 @@ jest.mock('winston', () => ({
     log: jest.fn(),
   })),
   format: {
-    combine: jest.fn(),
-    timestamp: jest.fn(),
-    errors: jest.fn(),
-    json: jest.fn(),
-    colorize: jest.fn(),
-    simple: jest.fn(),
+    combine: jest.fn(() => jest.fn()),
+    timestamp: jest.fn(() => jest.fn()),
+    errors: jest.fn(() => jest.fn()),
+    json: jest.fn(() => jest.fn()),
+    colorize: jest.fn(() => jest.fn()),
+    simple: jest.fn(() => jest.fn()),
+    printf: jest.fn(() => jest.fn()),
   },
   transports: {
     Console: jest.fn(),
     File: jest.fn(),
+    DailyRotateFile: jest.fn(),
   },
 }));
 

@@ -10,7 +10,7 @@ export const rainbowkitConfig = getDefaultConfig({
     {
       ...hardhat,
       name: 'Hardhat Local',
-      id: 31337,
+      id: 31_337,
       rpcUrls: {
         default: { http: ['http://localhost:8545'] },
         public: { http: ['http://localhost:8545'] },
@@ -31,7 +31,7 @@ export const isRainbowKitConfigured = () => {
 
 // 开发模式配置
 export const isDevelopmentMode = () => {
-  return process.env.NEXT_PUBLIC_DEVELOPMENT_MODE === 'true' || 
-         process.env.NEXT_PUBLIC_DISABLE_WALLETCONNECT === 'true' ||
-         !isRainbowKitConfigured();
+  return process.env.NEXT_PUBLIC_DEVELOPMENT_MODE === 'true'
+         || process.env.NEXT_PUBLIC_DISABLE_WALLETCONNECT === 'true'
+         || !isRainbowKitConfigured();
 };

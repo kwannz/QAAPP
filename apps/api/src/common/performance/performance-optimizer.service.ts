@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 export interface PerformanceConfig {
@@ -27,7 +27,7 @@ export interface OptimizationMetrics {
 }
 
 @Injectable()
-export class PerformanceOptimizerService implements OnModuleInit {
+export class PerformanceOptimizerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PerformanceOptimizerService.name)
   private config: PerformanceConfig
   private metrics: OptimizationMetrics
@@ -35,6 +35,9 @@ export class PerformanceOptimizerService implements OnModuleInit {
   private responseCache = new Map<string, { data: any; timestamp: number; ttl: number }>()
   private readonly maxCacheSize = 1000
   private readonly cacheCleanupInterval = 300000 // 5 minutes
+  
+  private cleanupIntervalId!: NodeJS.Timeout
+  private monitoringIntervalId!: NodeJS.Timeout
 
   constructor(private configService: ConfigService) {
     this.config = {
@@ -69,9 +72,31 @@ export class PerformanceOptimizerService implements OnModuleInit {
     await this.initializeCacheWarmup()
     
     // Start cache cleanup interval
-    setInterval(() => {
+    this.cleanupIntervalId = setInterval(() => {
       this.cleanupCaches()
     }, this.cacheCleanupInterval)
+  }
+
+  async onModuleDestroy() {
+    this.logger.log('Cleaning up Performance Optimizer...')
+    
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId)
+    }
+    
+    if (this.monitoringIntervalId) {
+      clearInterval(this.monitoringIntervalId)
+    }
+    
+    // Clean up any batch request timers
+    for (const [key, batch] of this.batchRequests.entries()) {
+      if (batch.timer) {
+        clearTimeout(batch.timer)
+      }
+    }
+    this.batchRequests.clear()
+    
+    this.logger.log('Performance Optimizer cleanup completed')
   }
 
   /**
@@ -269,7 +294,7 @@ export class PerformanceOptimizerService implements OnModuleInit {
    * 性能监控和建议生成
    */
   private async startPerformanceMonitoring(): Promise<void> {
-    setInterval(async () => {
+    this.monitoringIntervalId = setInterval(async () => {
       await this.collectPerformanceMetrics()
       await this.generateOptimizationRecommendations()
       await this.optimizeMemoryUsage()
@@ -557,7 +582,7 @@ export function OptimizeQuery(cacheKey?: string, ttl?: number) {
     const method = descriptor.value
 
     descriptor.value = async function (...args: any[]) {
-      const optimizer = this.performanceOptimizer as PerformanceOptimizerService
+      const optimizer = (this as any).performanceOptimizer as PerformanceOptimizerService
       const key = cacheKey || `${target.constructor.name}.${propertyName}`
       
       if (optimizer) {
@@ -580,7 +605,7 @@ export function CompressResponse(threshold?: number) {
 
     descriptor.value = async function (...args: any[]) {
       const result = await method.apply(this, args)
-      const optimizer = this.performanceOptimizer as PerformanceOptimizerService
+      const optimizer = (this as any).performanceOptimizer as PerformanceOptimizerService
       
       if (optimizer) {
         return optimizer.compressResponse(result, threshold)

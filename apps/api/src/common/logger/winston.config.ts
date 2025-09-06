@@ -13,14 +13,15 @@ const customFormat = winston.format.combine(
   }),
   winston.format.errors({ stack: true }),
   winston.format.json(),
-  winston.format.printf(({ timestamp, level, message, context, trace, ...meta }) => {
+  winston.format.printf((info: any) => {
+    const { timestamp, level, message, context, trace, ...meta } = info;
     const logObject = {
       timestamp,
       level: level.toUpperCase(),
       context: context || 'Application',
       message,
       ...(trace && { trace }),
-      ...meta
+      ...(typeof meta === 'object' && meta ? meta : {})
     };
     
     return JSON.stringify(logObject, null, 0);

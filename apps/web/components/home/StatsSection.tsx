@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 const stats = [
   {
     id: 'totalValue',
     label: '平台总锁仓价值',
-    value: 12500000,
+    value: 12_500_000,
     prefix: '$',
     suffix: '',
     format: 'currency',
@@ -15,7 +15,7 @@ const stats = [
   {
     id: 'totalUsers',
     label: '累计用户数量',
-    value: 28470,
+    value: 28_470,
     prefix: '',
     suffix: '+',
     format: 'number',
@@ -23,7 +23,7 @@ const stats = [
   {
     id: 'totalRewards',
     label: '累计发放收益',
-    value: 1890000,
+    value: 1_890_000,
     prefix: '$',
     suffix: '',
     format: 'currency',
@@ -36,78 +36,90 @@ const stats = [
     suffix: '%',
     format: 'decimal',
   },
-]
+];
 
 // 数字动画组件
-function AnimatedNumber({ 
-  value, 
-  format, 
-  prefix = '', 
-  suffix = '' 
-}: { 
+function AnimatedNumber({
+  value,
+  format,
+  prefix = '',
+  suffix = '',
+}: {
   value: number
   format: string
   prefix?: string
-  suffix?: string 
+  suffix?: string
 }) {
-  const [displayValue, setDisplayValue] = useState(0)
-  const [isVisible, setIsVisible] = useState(false)
+  const [displayValue, setDisplayValue] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (!isVisible) return
+    if (!isVisible) return;
 
-    const startTime = Date.now()
-    const duration = 2000 // 2秒动画
-    const startValue = 0
-    
+    const startTime = Date.now();
+    const duration = 2000; // 2秒动画
+    const startValue = 0;
+
     const animate = () => {
-      const elapsed = Date.now() - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
       // 使用缓动函数
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-      const currentValue = startValue + (value - startValue) * easeOutQuart
-      
-      setDisplayValue(currentValue)
-      
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const currentValue = startValue + (value - startValue) * easeOutQuart;
+
+      setDisplayValue(currentValue);
+
       if (progress < 1) {
-        requestAnimationFrame(animate)
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }, [value, isVisible]);
+
+  const formatValue = (value_: number) => {
+    switch (format) {
+      case 'currency': {
+        return value_ >= 1_000_000
+          ? `${(value_ / 1_000_000).toFixed(1)  }M`
+          : (value_ >= 1000
+            ? `${(value_ / 1000).toFixed(0)  }K`
+            : value_.toFixed(0));
+      }
+      case 'number': {
+        return value_ >= 1000
+          ? `${(value_ / 1000).toFixed(1)  }K`
+          : value_.toFixed(0);
+      }
+      case 'decimal': {
+        return value_.toFixed(1);
+      }
+      default: {
+        return value_.toFixed(0);
       }
     }
-    
-    animate()
-  }, [value, isVisible])
-
-  const formatValue = (val: number) => {
-    switch (format) {
-      case 'currency':
-        return val >= 1000000 
-          ? (val / 1000000).toFixed(1) + 'M'
-          : val >= 1000 
-            ? (val / 1000).toFixed(0) + 'K'
-            : val.toFixed(0)
-      case 'number':
-        return val >= 1000 
-          ? (val / 1000).toFixed(1) + 'K'
-          : val.toFixed(0)
-      case 'decimal':
-        return val.toFixed(1)
-      default:
-        return val.toFixed(0)
-    }
-  }
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
+      initial={{ opacity: 0, scale: 0.5 }}
+      whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       onViewportEnter={() => setIsVisible(true)}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
       className="text-3xl md:text-4xl font-bold text-primary"
     >
-      {prefix}{formatValue(displayValue)}{suffix}
+      <motion.span
+        key={Math.floor(displayValue)}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        {prefix}{formatValue(displayValue)}{suffix}
+      </motion.span>
     </motion.div>
-  )
+  );
 }
 
 export function StatsSection() {
@@ -131,7 +143,7 @@ export function StatsSection() {
         </div>
 
         {/* 统计数据网格 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.id}
@@ -139,16 +151,28 @@ export function StatsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="text-center p-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-100"
+              whileHover={{ 
+                y: -5,
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+              className="group text-center p-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-100 hover:border-orange-200 hover:shadow-xl transition-all duration-300 cursor-pointer"
             >
-              <AnimatedNumber
-                value={stat.value}
-                format={stat.format}
-                prefix={stat.prefix}
-                suffix={stat.suffix}
-              />
-              <div className="mt-3 text-sm font-medium text-muted-foreground">
+              <div className="transform transition-transform duration-300 group-hover:scale-105">
+                <AnimatedNumber
+                  value={stat.value}
+                  format={stat.format}
+                  prefix={stat.prefix}
+                  suffix={stat.suffix}
+                />
+              </div>
+              <div className="mt-4 text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors duration-300">
                 {stat.label}
+              </div>
+              
+              {/* 装饰性元素 */}
+              <div className="mt-4 flex justify-center">
+                <div className="w-12 h-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
             </motion.div>
           ))}
@@ -227,14 +251,14 @@ export function StatsSection() {
             </div>
             <span>智能合约审计通过</span>
           </div>
-          
+
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
               <span className="text-xs font-bold">√</span>
             </div>
             <span>资金安全保险承保</span>
           </div>
-          
+
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
               <span className="text-xs font-bold">√</span>
@@ -244,5 +268,5 @@ export function StatsSection() {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

@@ -1,11 +1,10 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { 
-  BarChart3, 
-  FileText, 
-  Bell, 
+import { motion } from 'framer-motion';
+import {
+  BarChart3,
+  FileText,
+  Bell,
   TrendingUp,
   DollarSign,
   Users,
@@ -24,16 +23,19 @@ import {
   Key,
   Clock,
   CheckCircle,
-  XCircle
-} from 'lucide-react'
-import { Card, Button, Badge, Separator } from '@/components/ui'
-import { Header } from '../../../components/layout/Header'
-import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'
-import { TabContainer } from '../../../components/common/TabContainer'
-import { MetricsCard } from '@/components/ui'
-import { FilterPanel } from '../../../components/common/FilterPanel'
-import { useFeatureFlag } from '../../../lib/feature-flags'
-import { motion } from 'framer-motion'
+  XCircle,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import { Card, Button, Badge, Separator, MetricsCard } from '@/components/ui';
+import { cn } from '@/lib/utils';
+
+import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
+import { FilterPanel } from '../../../components/common/FilterPanel';
+import { TabContainer } from '../../../components/common/TabContainer';
+import { Header } from '../../../components/layout/Header';
+import { useFeatureFlag } from '../../../lib/feature-flags';
+
 
 interface AnalyticsData {
   commissions: {
@@ -77,96 +79,103 @@ interface AnalyticsData {
 }
 
 
-
 export default function AnalyticsPage() {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 获取分析数据
   const fetchAnalyticsData = async () => {
     try {
-      setIsLoading(true)
-      const { monitoringApi } = await import('@/lib/api-client')
-      const { data } = await monitoringApi.getDashboard('24h')
-      setAnalyticsData(data)
+      setIsLoading(true);
+      const { monitoringApi } = await import('@/lib/api-client');
+      const { data } = await monitoringApi.getDashboard('24h');
+      setAnalyticsData(data);
     } catch (error) {
-      console.error('获取分析数据失败:', error)
+      console.error('获取分析数据失败:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchAnalyticsData()
-  }, [])
+    fetchAnalyticsData();
+  }, []);
 
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('overview');
 
   const tabs = [
-    { 
-      id: 'overview', 
-      label: '总览', 
-      icon: <BarChart3 className="w-4 h-4" />, 
-      badge: null 
+    {
+      id: 'overview',
+      label: '总览',
+      icon: <BarChart3 className="w-4 h-4" />,
+      badge: null,
     },
-    { 
-      id: 'commissions', 
-      label: '佣金分析', 
-      icon: <DollarSign className="w-4 h-4" />, 
-      badge: analyticsData?.commissions?.pending || 0 
+    {
+      id: 'commissions',
+      label: '佣金分析',
+      icon: <DollarSign className="w-4 h-4" />,
+      badge: analyticsData?.commissions?.pending || 0,
     },
-    { 
-      id: 'reports', 
-      label: '报告中心', 
-      icon: <FileText className="w-4 h-4" />, 
-      badge: analyticsData?.reports?.scheduled || 0 
+    {
+      id: 'reports',
+      label: '报告中心',
+      icon: <FileText className="w-4 h-4" />,
+      badge: analyticsData?.reports?.scheduled || 0,
     },
-    { 
-      id: 'notifications', 
-      label: '通知管理', 
-      icon: <Bell className="w-4 h-4" />, 
-      badge: analyticsData?.notifications?.pending || 0 
+    {
+      id: 'notifications',
+      label: '通知管理',
+      icon: <Bell className="w-4 h-4" />,
+      badge: analyticsData?.notifications?.pending || 0,
     },
-    { 
-      id: 'audit', 
-      label: '审计中心', 
-      icon: <Shield className="w-4 h-4" />, 
-      badge: analyticsData?.audit?.criticalAlerts || 0 
+    {
+      id: 'audit',
+      label: '审计中心',
+      icon: <Shield className="w-4 h-4" />,
+      badge: analyticsData?.audit?.criticalAlerts || 0,
     },
-    { 
-      id: 'compliance', 
-      label: '合规中心', 
-      icon: <UserCheck className="w-4 h-4" />, 
-      badge: analyticsData?.compliance?.pendingKYC || 0 
-    }
-  ]
+    {
+      id: 'compliance',
+      label: '合规中心',
+      icon: <UserCheck className="w-4 h-4" />,
+      badge: analyticsData?.compliance?.pendingKYC || 0,
+    },
+  ];
 
-  const filterConfig = {
-    dateRange: { label: '时间范围', type: 'daterange' as const },
-    status: { 
-      label: '状态', 
-      type: 'select' as const, 
+  const filterConfigs = [
+    {
+      id: 'dateRange',
+      label: '时间范围',
+      type: 'daterange' as const,
+    },
+    {
+      id: 'status',
+      label: '状态',
+      type: 'select' as const,
       options: [
         { label: '全部', value: 'all' },
         { label: '活跃', value: 'active' },
         { label: '待处理', value: 'pending' },
-        { label: '已完成', value: 'completed' }
-      ] 
+        { label: '已完成', value: 'completed' },
+      ],
     },
-    category: { 
-      label: '类别', 
+    {
+      id: 'category',
+      label: '类别',
       type: 'select' as const,
       options: [
         { label: '全部类别', value: 'all' },
         { label: '佣金', value: 'commission' },
         { label: '报告', value: 'report' },
-        { label: '通知', value: 'notification' }
-      ]
-    }
-  }
+        { label: '通知', value: 'notification' },
+      ],
+    },
+  ];
+
+  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
   const renderOverview = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
@@ -175,29 +184,25 @@ export default function AnalyticsPage() {
         <MetricsCard
           title="总佣金收入"
           value={analyticsData ? `¥${analyticsData.commissions.totalAmount.toLocaleString()}` : '¥0'}
-          change="+12.5%"
-          trend="up"
+          change={{ value: 12.5, type: 'increase', label: '本月增长' }}
           icon={<DollarSign className="w-4 h-4" />}
         />
         <MetricsCard
           title="报告生成数"
           value={analyticsData?.reports?.generated?.toString() || '0'}
-          change="+8.3%"
-          trend="up"
+          change={{ value: 8.3, type: 'increase', label: '本月增长' }}
           icon={<FileText className="w-4 h-4" />}
         />
         <MetricsCard
           title="通知发送数"
           value={analyticsData?.notifications?.sent?.toString() || '0'}
-          change="+15.2%"
-          trend="up"
+          change={{ value: 15.2, type: 'increase', label: '本月增长' }}
           icon={<Bell className="w-4 h-4" />}
         />
         <MetricsCard
           title="活跃用户数"
           value="2,847"
-          change="+5.7%"
-          trend="up"
+          change={{ value: 5.7, type: 'increase', label: '本月增长' }}
           icon={<Users className="w-4 h-4" />}
         />
       </div>
@@ -241,10 +246,10 @@ export default function AnalyticsPage() {
         </Card>
       </div>
     </motion.div>
-  )
+  );
 
   const renderCommissions = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
@@ -253,22 +258,19 @@ export default function AnalyticsPage() {
         <MetricsCard
           title="待处理佣金"
           value={analyticsData?.commissions?.pending?.toString() || '0'}
-          change="-2.1%"
-          trend="down"
+          change={{ value: -2.1, type: 'decrease', label: '本月变化' }}
           icon={<DollarSign className="w-4 h-4" />}
         />
         <MetricsCard
           title="已完成佣金"
           value={analyticsData?.commissions?.completed?.toString() || '0'}
-          change="+12.5%"
-          trend="up"
+          change={{ value: 12.5, type: 'increase', label: '本月增长' }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <MetricsCard
           title="佣金规则数"
           value={analyticsData?.commissions?.rules?.toString() || '0'}
-          change="+2"
-          trend="up"
+          change={{ value: 2, type: 'increase', label: '新增规则' }}
           icon={<FileText className="w-4 h-4" />}
         />
       </div>
@@ -278,10 +280,10 @@ export default function AnalyticsPage() {
         </div>
       </Card>
     </motion.div>
-  )
+  );
 
   const renderReports = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
@@ -290,22 +292,19 @@ export default function AnalyticsPage() {
         <MetricsCard
           title="计划报告"
           value={analyticsData?.reports?.scheduled?.toString() || '0'}
-          change="+1"
-          trend="up"
+          change={{ value: 1, type: 'increase', label: '新增计划' }}
           icon={<Calendar className="w-4 h-4" />}
         />
         <MetricsCard
           title="已生成报告"
           value={analyticsData?.reports?.generated?.toString() || '0'}
-          change="+45"
-          trend="up"
+          change={{ value: 45, type: 'increase', label: '本月生成' }}
           icon={<FileText className="w-4 h-4" />}
         />
         <MetricsCard
           title="下载次数"
           value={analyticsData?.reports?.downloads?.toString() || '0'}
-          change="+23.4%"
-          trend="up"
+          change={{ value: 23.4, type: 'increase', label: '本月增长' }}
           icon={<Download className="w-4 h-4" />}
         />
       </div>
@@ -315,10 +314,10 @@ export default function AnalyticsPage() {
         </div>
       </Card>
     </motion.div>
-  )
+  );
 
   const renderNotifications = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
@@ -327,22 +326,19 @@ export default function AnalyticsPage() {
         <MetricsCard
           title="待发送通知"
           value={analyticsData?.notifications?.pending?.toString() || '0'}
-          change="+12"
-          trend="up"
+          change={{ value: 12, type: 'increase', label: '待处理' }}
           icon={<Bell className="w-4 h-4" />}
         />
         <MetricsCard
           title="已发送通知"
           value={analyticsData?.notifications?.sent?.toString() || '0'}
-          change="+234"
-          trend="up"
+          change={{ value: 234, type: 'increase', label: '本月发送' }}
           icon={<Activity className="w-4 h-4" />}
         />
         <MetricsCard
           title="活跃推广"
           value={analyticsData?.notifications?.campaigns?.toString() || '0'}
-          change="+1"
-          trend="up"
+          change={{ value: 1, type: 'increase', label: '新增活动' }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
       </div>
@@ -352,11 +348,11 @@ export default function AnalyticsPage() {
         </div>
       </Card>
     </motion.div>
-  )
+  );
 
   const renderAudit = () => (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
@@ -391,11 +387,11 @@ export default function AnalyticsPage() {
         </div>
       </Card>
     </motion.div>
-  )
+  );
 
   const renderCompliance = () => (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
@@ -431,26 +427,33 @@ export default function AnalyticsPage() {
         </div>
       </Card>
     </motion.div>
-  )
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'overview':
-        return renderOverview()
-      case 'commissions':
-        return renderCommissions()
-      case 'reports':
-        return renderReports()
-      case 'notifications':
-        return renderNotifications()
-      case 'audit':
-        return renderAudit()
-      case 'compliance':
-        return renderCompliance()
-      default:
-        return renderOverview()
+      case 'overview': {
+        return renderOverview();
+      }
+      case 'commissions': {
+        return renderCommissions();
+      }
+      case 'reports': {
+        return renderReports();
+      }
+      case 'notifications': {
+        return renderNotifications();
+      }
+      case 'audit': {
+        return renderAudit();
+      }
+      case 'compliance': {
+        return renderCompliance();
+      }
+      default: {
+        return renderOverview();
+      }
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -468,17 +471,20 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <FilterPanel config={filterConfig} />
-      
-      <TabContainer 
+      <FilterPanel
+        filters={filterConfigs}
+        values={filterValues}
+        onChange={setFilterValues}
+      />
+
+      <TabContainer
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-      />
-
-      <Separator />
-
-      {renderTabContent()}
+      >
+        <Separator />
+        {renderTabContent()}
+      </TabContainer>
     </div>
-  )
+  );
 }

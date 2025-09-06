@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Web3性能优化工具
@@ -6,8 +6,8 @@
  */
 
 // 全局状态跟踪
-let walletConnectInitialized = false;
-let walletConnectCore: any = null;
+const walletConnectInitialized = false;
+const walletConnectCore: any = null;
 
 // WalletConnect初始化锁
 const walletConnectLock = {
@@ -23,11 +23,11 @@ export function getWalletConnectCore() {
   if (walletConnectLock.initialized && walletConnectLock.instance) {
     return walletConnectLock.instance;
   }
-  
+
   if (walletConnectLock.isInitializing) {
     return null; // 正在初始化中，避免重复
   }
-  
+
   return null;
 }
 
@@ -61,14 +61,14 @@ export function cleanupWalletConnect() {
  */
 export function preloadCriticalResources() {
   if (typeof window === 'undefined') return;
-  
+
   // 预加载关键CSS和JS资源
   const criticalResources = [
     '/fonts/inter-var.woff2',
     '/_next/static/css/app/globals.css',
   ];
-  
-  criticalResources.forEach(resource => {
+
+  for (const resource of criticalResources) {
     const link = document.createElement('link');
     link.rel = 'preload';
     link.href = resource;
@@ -77,8 +77,8 @@ export function preloadCriticalResources() {
       link.type = 'font/woff2';
       link.crossOrigin = 'anonymous';
     }
-    document.head.appendChild(link);
-  });
+    document.head.append(link);
+  }
 }
 
 /**
@@ -87,32 +87,32 @@ export function preloadCriticalResources() {
 export class MemoryOptimizer {
   private cleanupTasks: (() => void)[] = [];
   private intervalId: NodeJS.Timeout | null = null;
-  
+
   constructor() {
     this.startMemoryMonitoring();
   }
-  
+
   // 添加清理任务
   addCleanupTask(task: () => void) {
     this.cleanupTasks.push(task);
   }
-  
+
   // 执行内存清理
   cleanup() {
-    this.cleanupTasks.forEach(task => {
+    for (const task of this.cleanupTasks) {
       try {
         task();
       } catch (error) {
         console.warn('内存清理任务执行失败:', error);
       }
-    });
+    }
     this.cleanupTasks = [];
   }
-  
+
   // 开始内存监控
   private startMemoryMonitoring() {
     if (typeof window === 'undefined') return;
-    
+
     this.intervalId = setInterval(() => {
       // @ts-ignore
       if ((performance as any).memory) {
@@ -120,12 +120,12 @@ export class MemoryOptimizer {
         const memInfo = (performance as any).memory;
         const usedMB = Math.round(memInfo.usedJSHeapSize / 1024 / 1024);
         const limitMB = Math.round(memInfo.jsHeapSizeLimit / 1024 / 1024);
-        
+
         // 如果内存使用超过限制的70%，执行清理
         if (usedMB > limitMB * 0.7) {
           console.warn(`内存使用率过高: ${usedMB}MB / ${limitMB}MB，执行清理...`);
           this.cleanup();
-          
+
           // 触发垃圾回收（如果支持）
           if ('gc' in window) {
             // @ts-ignore
@@ -133,9 +133,9 @@ export class MemoryOptimizer {
           }
         }
       }
-    }, 30000); // 每30秒检查一次
+    }, 30_000); // 每30秒检查一次
   }
-  
+
   // 停止监控
   destroy() {
     if (this.intervalId) {
@@ -164,13 +164,13 @@ export function getMemoryOptimizer(): MemoryOptimizer {
  */
 export function usePerformanceOptimization() {
   if (typeof window === 'undefined') return;
-  
+
   // 预加载资源
   preloadCriticalResources();
-  
+
   // 获取内存优化器
   const optimizer = getMemoryOptimizer();
-  
+
   // 返回清理函数
   return () => {
     cleanupWalletConnect();
@@ -183,12 +183,12 @@ export function usePerformanceOptimization() {
  */
 export class PerformanceMonitor {
   private metrics: Map<string, number> = new Map();
-  
+
   // 开始测量
   startMeasure(name: string) {
     this.metrics.set(`${name}_start`, performance.now());
   }
-  
+
   // 结束测量
   endMeasure(name: string): number {
     const startTime = this.metrics.get(`${name}_start`);
@@ -199,23 +199,23 @@ export class PerformanceMonitor {
     }
     return 0;
   }
-  
+
   // 获取测量结果
   getMeasure(name: string): number {
     return this.metrics.get(name) || 0;
   }
-  
+
   // 获取所有指标
   getAllMetrics(): Record<string, number> {
     const result: Record<string, number> = {};
-    this.metrics.forEach((value, key) => {
+    for (const [key, value] of this.metrics.entries()) {
       if (!key.endsWith('_start')) {
         result[key] = value;
       }
-    });
+    }
     return result;
   }
-  
+
   // 清理指标
   clear() {
     this.metrics.clear();
@@ -232,28 +232,32 @@ export { globalPerformanceMonitor as performanceMonitor };
  */
 export function trackWebVitals() {
   if (typeof window === 'undefined') return;
-  
+
   // 监听性能指标
   const observer = new PerformanceObserver((list) => {
-    list.getEntries().forEach((entry) => {
+    for (const entry of list.getEntries()) {
       // 记录关键性能指标
       switch (entry.entryType) {
-        case 'paint':
+        case 'paint': {
           console.log(`${entry.name}: ${entry.startTime.toFixed(2)}ms`);
           break;
-        case 'largest-contentful-paint':
+        }
+        case 'largest-contentful-paint': {
           console.log(`LCP: ${entry.startTime.toFixed(2)}ms`);
           break;
-        case 'first-input':
+        }
+        case 'first-input': {
           console.log(`FID: ${(entry as any).processingStart - entry.startTime}ms`);
           break;
-        case 'layout-shift':
+        }
+        case 'layout-shift': {
           console.log(`CLS: ${(entry as any).value}`);
           break;
+        }
       }
-    });
+    }
   });
-  
+
   try {
     observer.observe({ entryTypes: ['paint', 'largest-contentful-paint', 'first-input', 'layout-shift'] });
   } catch (error) {

@@ -1,26 +1,9 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Badge, 
-  Button, 
-  Alert, 
-  AlertDescription, 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger, 
-  Input 
-} from '@/components/ui'
-import { toast } from 'react-hot-toast'
-import { 
-  TrendingUp, 
-  Clock, 
-  DollarSign, 
+import {
+  TrendingUp,
+  Clock,
+  DollarSign,
   Calendar,
   Target,
   Award,
@@ -33,10 +16,28 @@ import {
   Info,
   ArrowRight,
   Plus,
-  Eye
-} from 'lucide-react'
-import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses'
-import apiClient from '@/lib/api-client'
+  Eye,
+} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Button,
+  Alert,
+  AlertDescription,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Input,
+} from '@/components/ui';
+import apiClient from '@/lib/api-client';
+import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses';
 
 // 类型定义 (整合自 positions 和 products)
 interface Position {
@@ -78,57 +79,57 @@ interface PortfolioSummary {
   monthlyIncome: number
 }
 
-interface PortfolioManagerProps {
+interface PortfolioManagerProperties {
   userId?: string
   showProductCatalog?: boolean
   showPositionDetails?: boolean
   className?: string
 }
 
-export function PortfolioManager({ 
-  userId, 
+export function PortfolioManager({
+  userId,
   showProductCatalog = true,
   showPositionDetails = true,
-  className = '' 
-}: PortfolioManagerProps) {
-  const [positions, setPositions] = useState<Position[]>([])
-  const [products, setProducts] = useState<Product[]>([])
-  const [summary, setSummary] = useState<PortfolioSummary | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('overview')
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  className = '',
+}: PortfolioManagerProperties) {
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [summary, setSummary] = useState<PortfolioSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // API 服务（使用统一 apiClient）
   const fetchUserPositions = async () => {
-    const { data } = await apiClient.get('/finance/positions')
-    return (data as any)?.data || []
-  }
+    const { data } = await apiClient.get('/finance/positions');
+    return (data)?.data || [];
+  };
 
   const fetchProducts = async () => {
-    const { data } = await apiClient.get('/finance/products')
-    return (data as any)?.data || []
-  }
+    const { data } = await apiClient.get('/finance/products');
+    return (data)?.data || [];
+  };
 
   const fetchPortfolioSummary = async () => {
-    const { data } = await apiClient.get('/users/me/portfolio')
-    return data
-  }
+    const { data } = await apiClient.get('/users/me/portfolio');
+    return data;
+  };
 
   const createOrder = async (productId: string, amount: number) => {
     const { data } = await apiClient.post('/finance/orders', {
       productId,
-      usdtAmount: amount
-    })
-    return data
-  }
+      usdtAmount: amount,
+    });
+    return data;
+  };
 
   const loadData = async () => {
     if (!localStorage.getItem('token')) {
-      console.error('No auth token found')
-      return
+      console.error('No auth token found');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [positionsData, productsData, summaryData] = await Promise.all([
         fetchUserPositions().catch(() => []),
@@ -138,51 +139,51 @@ export function PortfolioManager({
           totalEarnings: 0,
           activePositions: 0,
           averageReturn: 0,
-          monthlyIncome: 0
-        }))
-      ])
-      
-      setPositions(positionsData)
-      setProducts(productsData)
-      setSummary(summaryData)
+          monthlyIncome: 0,
+        })),
+      ]);
+
+      setPositions(positionsData);
+      setProducts(productsData);
+      setSummary(summaryData);
     } catch (error: any) {
-      console.error('Failed to load portfolio data:', error)
+      console.error('Failed to load portfolio data:', error);
+
       // Set empty states to avoid errors
-      setPositions([])
-      setProducts([])
+      setPositions([]);
+      setProducts([]);
       setSummary({
         totalValue: 0,
         totalEarnings: 0,
         activePositions: 0,
         averageReturn: 0,
-        monthlyIncome: 0
-      })
+        monthlyIncome: 0,
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [userId])
+    loadData();
+  }, [userId]);
 
   const handleProductPurchase = async (product: Product, amount: number) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await createOrder(product.id, amount)
-      
-      toast.success(`成功投资 ¥${amount.toLocaleString()} 到 ${product.name}`)
-      
+      await createOrder(product.id, amount);
+
+      toast.success(`成功投资 ¥${amount.toLocaleString()} 到 ${product.name}`);
+
       // 刷新数据
-      await loadData()
-      
+      await loadData();
     } catch (error: any) {
-      console.error('Investment failed:', error)
-      toast.error(`投资失败: ${error.message}`)
+      console.error('Investment failed:', error);
+      toast.error(`投资失败: ${error.message}`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -199,7 +200,7 @@ export function PortfolioManager({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -211,7 +212,7 @@ export function PortfolioManager({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -223,7 +224,7 @@ export function PortfolioManager({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -235,7 +236,7 @@ export function PortfolioManager({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -250,11 +251,12 @@ export function PortfolioManager({
         </div>
       )}
     </div>
-  )
+  );
 
   const renderPositions = () => (
     <div className="space-y-4">
-      {isLoading ? (
+      {isLoading
+? (
         <Card>
           <CardContent className="p-8 text-center">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" />
@@ -263,7 +265,9 @@ export function PortfolioManager({
             </div>
           </CardContent>
         </Card>
-      ) : positions.length === 0 ? (
+      )
+: (positions.length === 0
+? (
         <Card>
           <CardContent className="p-8 text-center">
             <div className="text-muted-foreground">
@@ -271,7 +275,8 @@ export function PortfolioManager({
             </div>
           </CardContent>
         </Card>
-      ) : (
+      )
+: (
         positions.map((position) => (
           <Card key={position.id}>
             <CardContent className="p-6">
@@ -281,14 +286,16 @@ export function PortfolioManager({
                   <p className="text-sm text-muted-foreground">{position.product.description}</p>
                   <div className="mt-2">
                     <Badge variant={
-                      position.status === 'active' ? 'default' :
-                      position.status === 'matured' ? 'secondary' : 'destructive'
-                    }>
+                      position.status === 'active'
+? 'default'
+                      : (position.status === 'matured' ? 'secondary' : 'destructive')
+                    }
+                    >
                       {position.status}
                     </Badge>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">本金:</span>
@@ -303,7 +310,7 @@ export function PortfolioManager({
                     <span className="font-medium text-green-600">+¥{position.totalEarnings.toLocaleString()}</span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">开始日期:</span>
@@ -328,9 +335,9 @@ export function PortfolioManager({
             </CardContent>
           </Card>
         ))
-      )}
+      ))}
     </div>
-  )
+  );
 
   const renderProducts = () => (
     <div className="space-y-4">
@@ -347,7 +354,7 @@ export function PortfolioManager({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">{product.description}</p>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-muted-foreground">预期年化收益</div>
@@ -358,7 +365,7 @@ export function PortfolioManager({
                   <div className="text-xl font-bold">{product.duration}天</div>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">最小投资:</span>
@@ -371,30 +378,33 @@ export function PortfolioManager({
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">风险等级:</span>
                   <Badge variant={
-                    product.riskLevel === 'low' ? 'secondary' :
-                    product.riskLevel === 'medium' ? 'outline' : 'destructive'
-                  }>
-                    {product.riskLevel === 'low' ? '低风险' : 
-                     product.riskLevel === 'medium' ? '中风险' : '高风险'}
+                    product.riskLevel === 'low'
+? 'secondary'
+                    : (product.riskLevel === 'medium' ? 'outline' : 'destructive')
+                  }
+                  >
+                    {product.riskLevel === 'low'
+? '低风险'
+                     : (product.riskLevel === 'medium' ? '中风险' : '高风险')}
                   </Badge>
                 </div>
               </div>
-              
+
               <div className="pt-2">
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span>投资进度</span>
                   <span>{((product.totalInvested / (product.totalInvested + product.availableCapacity)) * 100).toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
+                  <div
+                    className="bg-blue-600 h-2 rounded-full"
                     style={{ width: `${(product.totalInvested / (product.totalInvested + product.availableCapacity)) * 100}%` }}
                   />
                 </div>
               </div>
-              
+
               <div className="flex space-x-2">
-                <Button 
+                <Button
                   className="flex-1"
                   onClick={() => setSelectedProduct(product)}
                   disabled={!product.isActive}
@@ -410,16 +420,16 @@ export function PortfolioManager({
           </Card>
         ))}
       </div>
-      
+
       {selectedProduct && (
-        <ProductInvestmentModal 
+        <ProductInvestmentModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
           onInvest={handleProductPurchase}
         />
       )}
     </div>
-  )
+  );
 
   const renderAnalytics = () => (
     <div className="space-y-6">
@@ -434,21 +444,21 @@ export function PortfolioManager({
           <CardContent>
             <div className="space-y-3">
               {products.map((product) => {
-                const userPosition = positions.find(p => p.productId === product.id)
-                const percentage = userPosition ? ((userPosition.currentValue / (summary?.totalValue || 1)) * 100) : 0
-                
+                const userPosition = positions.find(p => p.productId === product.id);
+                const percentage = userPosition ? ((userPosition.currentValue / (summary?.totalValue || 1)) * 100) : 0;
+
                 return (
                   <div key={product.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: product.type === 'FIXED_INCOME' ? '#3b82f6' : '#10b981' }}
+                        style={{ backgroundColor: product.type === ProductType.SILVER ? '#3b82f6' : '#10b981' }}
                       />
                       <span className="text-sm">{product.name}</span>
                     </div>
                     <span className="text-sm font-medium">{percentage.toFixed(1)}%</span>
                   </div>
-                )
+                );
               })}
             </div>
           </CardContent>
@@ -469,7 +479,7 @@ export function PortfolioManager({
         </Card>
       </div>
     </div>
-  )
+  );
 
   // This function is now defined above in the component
 
@@ -477,7 +487,10 @@ export function PortfolioManager({
     <div className={`space-y-6 ${className}`}>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold tracking-tight">投资组合管理</h2>
-        <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading}>
+        <Button
+variant="outline" size="sm" onClick={loadData}
+disabled={isLoading}
+        >
           <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
           刷新数据
         </Button>
@@ -489,14 +502,14 @@ export function PortfolioManager({
             <PieChart className="w-4 h-4" />
             <span>总览</span>
           </TabsTrigger>
-          
+
           {showPositionDetails && (
             <TabsTrigger value="positions" className="flex items-center space-x-2">
               <Target className="w-4 h-4" />
               <span>持仓</span>
             </TabsTrigger>
           )}
-          
+
           {showProductCatalog && (
             <TabsTrigger value="products" className="flex items-center space-x-2">
               <Package className="w-4 h-4" />
@@ -504,50 +517,50 @@ export function PortfolioManager({
             </TabsTrigger>
           )}
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-6">
           {renderOverview()}
         </TabsContent>
-        
+
         {showPositionDetails && (
           <TabsContent value="positions" className="space-y-6">
             {renderPositions()}
           </TabsContent>
         )}
-        
+
         {showProductCatalog && (
           <TabsContent value="products" className="space-y-6">
             {renderProducts()}
           </TabsContent>
         )}
-        
+
         <TabsContent value="analytics" className="space-y-6">
           {renderAnalytics()}
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
 
 // Modal for product investment (简化版本)
-function ProductInvestmentModal({ 
-  product, 
-  onClose, 
-  onInvest 
-}: { 
+function ProductInvestmentModal({
+  product,
+  onClose,
+  onInvest,
+}: {
   product: Product
   onClose: () => void
   onInvest: (product: Product, amount: number) => void
 }) {
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount] = useState('');
 
   const handleInvest = () => {
-    const investAmount = parseFloat(amount)
+    const investAmount = Number.parseFloat(amount);
     if (investAmount >= product.minInvestment && investAmount <= product.maxInvestment) {
-      onInvest(product, investAmount)
-      onClose()
+      onInvest(product, investAmount);
+      onClose();
     }
-  }
+  };
 
   return (
     <Card className="fixed inset-4 z-50 bg-white shadow-xl">
@@ -563,7 +576,7 @@ function ProductInvestmentModal({
           min={product.minInvestment}
           max={product.maxInvestment}
         />
-        
+
         <div className="flex space-x-2">
           <Button onClick={handleInvest} disabled={!amount}>
             确认投资
@@ -574,12 +587,12 @@ function ProductInvestmentModal({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Hook for portfolio management
 export function usePortfolioManager(userId?: string) {
-  const [isEnabled, setIsEnabled] = useState(true)
-  
-  return { isEnabled }
+  const [isEnabled, setIsEnabled] = useState(true);
+
+  return { isEnabled };
 }

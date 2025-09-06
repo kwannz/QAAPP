@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { MetricsService } from '../common/metrics/metrics.service';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 @Controller('health')
 export class HealthController {
@@ -54,11 +55,11 @@ export class HealthController {
           cache: 'healthy'
         }
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         timestamp: new Date().toISOString(),
         overall: 'unhealthy',
-        error: error.message,
+        error: getErrorMessage(error),
         system: {
           uptime: `${Math.floor(process.uptime())}s`,
           version: '1.0.0',
@@ -79,10 +80,10 @@ export class HealthController {
         system: systemStatus,
         metrics: allMetrics.slice(0, 20), // 最近20个指标
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         timestamp: new Date().toISOString(),
-        error: error.message,
+        error: getErrorMessage(error),
       };
     }
   }

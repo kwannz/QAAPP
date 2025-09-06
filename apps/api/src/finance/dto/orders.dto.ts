@@ -25,12 +25,12 @@ export enum PaymentType {
 export class CreateOrderDto {
   @ApiProperty({ example: 'prod-silver-001' })
   @IsString()
-  productId: string;
+  productId!: string;
 
   @ApiProperty({ example: 1000, description: 'Investment amount in USDT' })
   @IsNumber()
   @Min(1)
-  usdtAmount: number;
+  usdtAmount!: number;
 
   @ApiPropertyOptional({ example: 'REFER123', description: 'Referrer code for commission' })
   @IsOptional()
@@ -45,7 +45,7 @@ export class ConfirmOrderDto {
   })
   @IsString()
   @IsHexadecimal()
-  txHash: string;
+  txHash!: string;
 
   @ApiPropertyOptional({ 
     example: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab',
@@ -100,25 +100,25 @@ export class OrderQueryDto {
 
 export class OrderResponseDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  userId: string;
+  userId!: string;
 
   @ApiProperty()
-  productId: string;
+  productId!: string;
 
   @ApiProperty()
-  usdtAmount: number;
+  usdtAmount!: number;
 
   @ApiProperty()
-  platformFee: number;
+  platformFee!: number;
 
   @ApiProperty()
   txHash?: string;
 
   @ApiProperty({ enum: OrderStatus })
-  status: OrderStatus;
+  status!: OrderStatus;
 
   @ApiProperty()
   referrerId?: string;
@@ -133,13 +133,13 @@ export class OrderResponseDto {
   metadata?: any;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
   confirmedAt?: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty()
   product?: {
@@ -177,36 +177,36 @@ export class OrderResponseDto {
 
 export class OrderListResponseDto {
   @ApiProperty({ type: [OrderResponseDto] })
-  orders: OrderResponseDto[];
+  orders!: OrderResponseDto[];
 
   @ApiProperty()
-  total: number;
+  total!: number;
 
   @ApiProperty()
-  page: number;
+  page!: number;
 
   @ApiProperty()
-  limit: number;
+  limit!: number;
 
   @ApiProperty()
-  totalPages: number;
+  totalPages!: number;
 
   @ApiProperty()
-  hasNextPage: boolean;
+  hasNextPage!: boolean;
 
   @ApiProperty()
-  hasPreviousPage: boolean;
+  hasPreviousPage!: boolean;
 }
 
 export class BatchUpdateOrdersDto {
   @ApiProperty({ example: ['order-id-1', 'order-id-2'], description: 'Array of order IDs to update' })
   @IsArray()
   @IsUUID('all', { each: true })
-  orderIds: string[];
+  orderIds!: string[];
 
   @ApiProperty({ enum: ['approve', 'reject'], example: 'approve', description: 'Action to perform' })
   @IsEnum(['approve', 'reject'])
-  action: 'approve' | 'reject';
+  action!: 'approve' | 'reject';
 
   @ApiPropertyOptional({ example: 'Bulk approval for Q4 orders', description: 'Reason for batch action' })
   @IsOptional()
@@ -221,37 +221,37 @@ export class BatchUpdateOrdersDto {
 
 export class OrderStatsResponseDto {
   @ApiProperty({ description: 'Total number of orders' })
-  total: number;
+  total!: number;
 
   @ApiProperty({ description: 'Number of pending orders' })
-  pending: number;
+  pending!: number;
 
   @ApiProperty({ description: 'Number of successful orders' })
-  success: number;
+  success!: number;
 
   @ApiProperty({ description: 'Number of failed orders' })
-  failed: number;
+  failed!: number;
 
   @ApiProperty({ description: 'Number of canceled orders' })
-  canceled: number;
+  canceled!: number;
 
   @ApiProperty({ description: 'Total investment volume in USDT' })
-  totalVolume: number;
+  totalVolume!: number;
 
   @ApiProperty({ description: 'Average order value in USDT' })
-  averageOrderValue: number;
+  averageOrderValue!: number;
 
   @ApiProperty({ description: 'Today orders count' })
-  todayOrders: number;
+  todayOrders!: number;
 
   @ApiProperty({ description: 'This week orders count' })
-  weekOrders: number;
+  weekOrders!: number;
 
   @ApiProperty({ description: 'This month orders count' })
-  monthOrders: number;
+  monthOrders!: number;
 
   @ApiProperty({ description: 'Orders by payment type' })
-  paymentTypes: {
+  paymentTypes!: {
     [key in PaymentType]: {
       count: number;
       volume: number;
@@ -259,7 +259,7 @@ export class OrderStatsResponseDto {
   };
 
   @ApiProperty({ description: 'Top products by order count' })
-  topProducts: Array<{
+  topProducts!: Array<{
     productId: string;
     productName: string;
     orderCount: number;
@@ -267,7 +267,7 @@ export class OrderStatsResponseDto {
   }>;
 
   @ApiProperty({ description: 'Daily order trends (last 30 days)' })
-  dailyTrends: Array<{
+  dailyTrends!: Array<{
     date: string;
     orderCount: number;
     volume: number;

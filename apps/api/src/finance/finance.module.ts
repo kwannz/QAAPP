@@ -31,6 +31,7 @@ import { YieldDistributionController } from './controllers/yield-distribution.co
 import { PrismaService } from '../prisma/prisma.service'
 import { RiskEngineService } from '../risk/risk-engine.service'
 import { DatabaseModule } from '../database/database.module'
+import { DatabaseOptimizationModule } from '../common/database/database-optimization.module'
 import { BlockchainModule } from '../blockchain/blockchain.module'
 
 @Module({
@@ -38,6 +39,7 @@ import { BlockchainModule } from '../blockchain/blockchain.module'
     ConfigModule,
     ScheduleModule.forRoot(),
     DatabaseModule,
+    DatabaseOptimizationModule,
     BlockchainModule
   ],
   providers: [

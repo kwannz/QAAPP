@@ -24,12 +24,12 @@ export class AddWalletDto {
   @ApiProperty({ example: '0x742d35Cc6634C0532925a3b8D25c5B6DDD5c4f2fb' })
   @IsEthereumAddress()
   @Transform(({ value }) => value?.toLowerCase())
-  address: string;
+  address!: string;
 
   @ApiProperty({ example: 1, description: 'Chain ID (1 for mainnet, 11155111 for Sepolia)' })
   @IsInt()
   @Min(1)
-  chainId: number;
+  chainId!: number;
 
   @ApiPropertyOptional({ example: 'My Trading Wallet' })
   @IsOptional()
@@ -45,7 +45,7 @@ export class AddWalletDto {
 export class UpdateKycStatusDto {
   @ApiProperty({ enum: KycStatus })
   @IsEnum(KycStatus)
-  kycStatus: KycStatus;
+  kycStatus!: KycStatus;
 
   @ApiPropertyOptional({ 
     example: { reason: 'Documents verified successfully' },
@@ -58,7 +58,7 @@ export class UpdateKycStatusDto {
 export class UpdateUserRoleDto {
   @ApiProperty({ enum: UserRole })
   @IsEnum(UserRole)
-  role: UserRole;
+  role!: UserRole;
 }
 
 export class UserQueryDto {
@@ -118,25 +118,25 @@ export class UserStatsDto {
 
 export class UserResponseDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
   email?: string;
 
   @ApiProperty({ enum: UserRole })
-  role: UserRole;
+  role!: UserRole;
 
   @ApiProperty()
-  referralCode: string;
+  referralCode!: string;
 
   @ApiProperty({ enum: KycStatus })
-  kycStatus: KycStatus;
+  kycStatus!: KycStatus;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
   lastLoginAt?: Date;
@@ -154,7 +154,13 @@ export class UserResponseDto {
       }
     }
   })
-  wallets: any[];
+  wallets!: Array<{
+    id: string;
+    address: string;
+    chainId: number;
+    isPrimary: boolean;
+    label?: string;
+  }>;
 
   @ApiProperty()
   referredBy?: {
@@ -173,19 +179,19 @@ export class UserResponseDto {
 
 export class UserStatsResponseDto {
   @ApiProperty()
-  totalUsers: number;
+  totalUsers!: number;
 
   @ApiProperty()
-  activeUsers: number;
+  activeUsers!: number;
 
   @ApiProperty()
-  newUsersToday: number;
+  newUsersToday!: number;
 
   @ApiProperty()
-  newUsersThisWeek: number;
+  newUsersThisWeek!: number;
 
   @ApiProperty()
-  newUsersThisMonth: number;
+  newUsersThisMonth!: number;
 
   @ApiProperty({
     type: 'object',
@@ -195,7 +201,7 @@ export class UserStatsResponseDto {
       ADMIN: { type: 'number' }
     }
   })
-  usersByRole: Record<string, number>;
+  usersByRole!: Record<string, number>;
 
   @ApiProperty({
     type: 'object',
@@ -206,5 +212,5 @@ export class UserStatsResponseDto {
       EXPIRED: { type: 'number' }
     }
   })
-  usersByKycStatus: Record<string, number>;
+  usersByKycStatus!: Record<string, number>;
 }

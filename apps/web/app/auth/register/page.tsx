@@ -1,48 +1,50 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Eye, EyeOff, ArrowLeft, Mail, Lock, Users } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import toast from 'react-hot-toast'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, ArrowLeft, Mail, Lock, Users } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useSafeToast } from '../../../lib/use-safe-toast';
+import { z } from 'zod';
 
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
-import { authApi } from '../../../lib/api-client'
-import { useAuthStore } from '../../../lib/auth-context'
-import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
-import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton'
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+
+import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton';
+import { Web3LoginSection } from '../../../components/auth/Web3LoginSection';
+import { authApi } from '../../../lib/api-client';
+import { useAuthStore } from '../../../lib/auth-context';
 
 const registerSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z
     .string()
     .min(8, '密码至少8位')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!$%&*?@])[\d!$%&*?@A-Za-z]/,
       '密码必须包含大小写字母、数字和特殊字符'),
   confirmPassword: z.string(),
   referralCode: z.string().optional(),
-  agreeTerms: z.boolean().refine(val => val === true, '请同意服务条款'),
+  agreeTerms: z.boolean().refine(value => value === true, '请同意服务条款'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: '两次输入的密码不一致',
   path: ['confirmPassword'],
-})
+});
 
 type RegisterForm = z.infer<typeof registerSchema>
 
 export default function RegisterPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { setUser, setTokens } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
+  const searchParameters = useSearchParams();
+  const { setUser, setTokens } = useAuthStore();
+  const toast = useSafeToast();
 
   // 从URL获取推荐码
-  const urlReferralCode = searchParams.get('ref')
+  const urlReferralCode = searchParameters.get('ref');
 
   const {
     register,
@@ -54,33 +56,33 @@ export default function RegisterPage() {
     defaultValues: {
       referralCode: urlReferralCode || '',
     },
-  })
+  });
 
   const onSubmit = async (data: RegisterForm) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const { confirmPassword, agreeTerms, ...registerData } = data
-      
-      const response = await authApi.register({
-        email: registerData.email!,
-        password: registerData.password!,
-        referralCode: registerData.referralCode
-      })
-      const { user, accessToken, refreshToken } = response.data
+      const { confirmPassword, agreeTerms, ...registerData } = data;
 
-      setUser(user)
-      setTokens(accessToken, refreshToken)
-      
-      toast.success('注册成功！欢迎加入QA App')
-      
+      const response = await authApi.register({
+        email: registerData.email,
+        password: registerData.password,
+        referralCode: registerData.referralCode,
+      });
+      const { user, accessToken, refreshToken } = response.data;
+
+      setUser(user);
+      setTokens(accessToken, refreshToken);
+
+      toast.success('注册成功！欢迎加入QA App');
+
       // 跳转到仪表板
-      router.push('/dashboard')
+      router.push('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || '注册失败，请稍后重试')
+      toast.error(error.response?.data?.message || '注册失败，请稍后重试');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
@@ -97,7 +99,7 @@ export default function RegisterPage() {
           animate={{ opacity: 1, x: 0 }}
           className="mb-6"
         >
-          <Link 
+          <Link
             href="/"
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -119,7 +121,7 @@ export default function RegisterPage() {
                   <span className="text-white font-bold text-lg">QA</span>
                 </div>
               </div>
-              
+
               <CardTitle className="text-2xl font-bold">创建账户</CardTitle>
               <p className="text-muted-foreground mt-2">
                 加入QA App，开始您的Web3投资之旅
@@ -241,23 +243,23 @@ export default function RegisterPage() {
               </div>
 
               {/* Google 注册 */}
-              <GoogleLoginButton 
+              <GoogleLoginButton
                 onSuccess={() => {
-                  toast.success('注册成功！欢迎加入QA App')
-                  router.push('/dashboard')
+                  toast.success('注册成功！欢迎加入QA App');
+                  router.push('/dashboard');
                 }}
               />
 
               {/* Web3 注册 */}
-              <Web3LoginSection 
-                isRegister={true} 
+              <Web3LoginSection
+                isRegister
                 referralCode={urlReferralCode || undefined}
               />
 
               {/* 登录链接 */}
               <div className="text-center text-sm">
                 <span className="text-muted-foreground">已有账户？</span>{' '}
-                <Link 
+                <Link
                   href="/auth/login"
                   className="font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -277,5 +279,5 @@ export default function RegisterPage() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }

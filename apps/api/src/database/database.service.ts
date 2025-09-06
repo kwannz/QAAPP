@@ -1,6 +1,8 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@qa-app/database';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
+import { PrismaQueryEvent, PrismaErrorEvent, PrismaInfoEvent, PrismaWarnEvent, AppWithShutdownHook } from './interfaces/database.interface';
 
 @Injectable()
 export class DatabaseService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
@@ -8,6 +10,7 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
 
   constructor(private configService: ConfigService) {
     const databaseUrl = configService.get<string>('DATABASE_URL');
+    const nodeEnv = configService.get<string>('NODE_ENV', 'development');
     
     super({
       datasources: {
@@ -15,7 +18,7 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
           url: databaseUrl,
         },
       },
-      log: [
+      log: nodeEnv === 'development' ? [
         {
           emit: 'event',
           level: 'query',
@@ -32,24 +35,33 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
           emit: 'event',
           level: 'warn',
         },
+      ] : [
+        {
+          emit: 'event',
+          level: 'error',
+        },
+        {
+          emit: 'event',
+          level: 'warn',
+        },
       ],
     });
 
     // 记录数据库查询日志
-    this.$on('query' as never, (e: any) => {
+    this.$on('query' as never, (e: PrismaQueryEvent) => {
       this.logger.debug(`Query: ${e.query}`);
       this.logger.debug(`Duration: ${e.duration}ms`);
     });
 
-    this.$on('error' as never, (e: any) => {
+    this.$on('error' as never, (e: PrismaErrorEvent) => {
       this.logger.error(e);
     });
 
-    this.$on('info' as never, (e: any) => {
+    this.$on('info' as never, (e: PrismaInfoEvent) => {
       this.logger.log(e);
     });
 
-    this.$on('warn' as never, (e: any) => {
+    this.$on('warn' as never, (e: PrismaWarnEvent) => {
       this.logger.warn(e);
     });
   }
@@ -62,7 +74,7 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
       // 测试数据库连接
       const result = await this.$queryRaw`SELECT 1 as test`;
       this.logger.log('🔍 Database health check passed', result);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('❌ Failed to connect to database:', error);
       throw error;
     }
@@ -77,9 +89,9 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
     try {
       await this.$queryRaw`SELECT 1`;
       return { status: 'healthy', timestamp: new Date().toISOString() };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Database health check failed:', error);
-      return { status: 'unhealthy', error: error.message, timestamp: new Date().toISOString() };
+      return { status: 'unhealthy', error: getErrorMessage(error), timestamp: new Date().toISOString() };
     }
   }
 }

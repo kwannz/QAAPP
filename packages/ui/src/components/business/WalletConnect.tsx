@@ -1,10 +1,11 @@
-import * as React from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { cn } from "../../utils/cn"
-import { Button } from "../ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { motion, AnimatePresence } from 'framer-motion';
+import * as React from 'react';
 
-export interface WalletConnectProps {
+import { cn } from '../../utils/cn';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+
+export interface WalletConnectProperties {
   isConnected?: boolean
   address?: string
   balance?: string
@@ -17,7 +18,7 @@ export interface WalletConnectProps {
   className?: string
 }
 
-const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProps>(
+const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProperties>(
   ({
     isConnected = false,
     address,
@@ -25,66 +26,38 @@ const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProps>(
     onConnect,
     onDisconnect,
     onSwitchNetwork,
-    networkName = "以太坊",
+    networkName = '以太坊',
     isCorrectNetwork = true,
     loading = false,
     className,
-    ...props
-  }, ref) => {
-    const truncatedAddress = address 
-      ? `${address.slice(0, 6)}...${address.slice(-4)}`
-      : ""
+    ...properties
+  }, reference) => {
+    // Constants for address formatting
+    const ADDRESS_START_LENGTH = 6;
+    const ADDRESS_END_LENGTH = 4;
+    const truncatedAddress = address
+      ? `${address.slice(0, ADDRESS_START_LENGTH)}...${address.slice(-ADDRESS_END_LENGTH)}`
+      : '';
 
     const copyToClipboard = async () => {
-      if (address) {
+      if (address && globalThis.navigator?.clipboard) {
         try {
-          await navigator.clipboard.writeText(address)
+          await globalThis.navigator.clipboard.writeText(address);
+
           // Toast notification implementation ready for UI framework integration
-        } catch (err) {
-          console.error('复制失败:', err)
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('复制失败:', error);
         }
       }
-    }
+    };
 
     return (
-      <div ref={ref} className={cn("w-full", className)} {...props}>
+      <div ref={reference} className={cn('w-full', className)} {...properties}>
         <AnimatePresence mode="wait">
-          {!isConnected ? (
-            <motion.div
-              key="disconnected"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Card className="border-dashed border-2 border-primary/20">
-                <CardHeader className="text-center">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <span className="text-2xl">🔗</span>
-                    连接钱包
-                  </CardTitle>
-                  <CardDescription>
-                    连接您的Web3钱包以开始投资
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button
-                    onClick={onConnect}
-                    loading={loading}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {loading ? "连接中..." : "连接钱包"}
-                  </Button>
-                  
-                  <div className="text-xs text-muted-foreground text-center">
-                    支持 MetaMask、WalletConnect 等主流钱包
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : (
-            <motion.div
+          {isConnected
+            ? (
+              <motion.div
               key="connected"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -92,8 +65,8 @@ const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProps>(
               transition={{ duration: 0.2 }}
             >
               <Card className={cn(
-                "border-green-200 bg-green-50/50",
-                !isCorrectNetwork && "border-yellow-200 bg-yellow-50/50"
+                'border-green-200 bg-green-50/50',
+                !isCorrectNetwork && 'border-yellow-200 bg-yellow-50/50',
               )}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
@@ -111,13 +84,13 @@ const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProps>(
                     </Button>
                   </CardTitle>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   {/* 网络状态 */}
                   {!isCorrectNetwork && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
+                      animate={{ opacity: 1, height: 'auto' }}
                       className="p-3 bg-yellow-100 border border-yellow-200 rounded-lg"
                     >
                       <div className="flex items-center justify-between">
@@ -187,13 +160,48 @@ const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProps>(
                 </CardContent>
               </Card>
             </motion.div>
+            )
+          : (
+            <motion.div
+              key="disconnected"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="border-dashed border-2 border-primary/20">
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <span className="text-2xl">🔗</span>
+                    连接钱包
+                  </CardTitle>
+                  <CardDescription>
+                    连接您的Web3钱包以开始投资
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button
+                    onClick={onConnect}
+                    loading={loading}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {loading ? '连接中...' : '连接钱包'}
+                  </Button>
+
+                  <div className="text-xs text-muted-foreground text-center">
+                    支持 MetaMask、WalletConnect 等主流钱包
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
-    )
-  }
-)
+    );
+  },
+);
 
-WalletConnect.displayName = "WalletConnect"
+WalletConnect.displayName = 'WalletConnect';
 
-export { WalletConnect }
+export { WalletConnect };

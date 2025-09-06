@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { MultiLayerCacheService } from './multi-layer-cache.service';
 
@@ -19,7 +19,7 @@ interface InvalidationRule {
 }
 
 @Injectable()
-export class CacheInvalidationService {
+export class CacheInvalidationService implements OnModuleDestroy {
   private readonly logger = new Logger(CacheInvalidationService.name);
   private readonly invalidationRules: Map<string, InvalidationRule> = new Map();
   private readonly delayedInvalidations = new Map<string, NodeJS.Timeout>();
@@ -29,6 +29,18 @@ export class CacheInvalidationService {
     private eventEmitter: EventEmitter2
   ) {
     this.setupInvalidationRules();
+  }
+
+  onModuleDestroy() {
+    this.logger.log('Cleaning up Cache Invalidation Service...');
+    
+    // Clear all pending delayed invalidations
+    for (const [key, timeout] of this.delayedInvalidations.entries()) {
+      clearTimeout(timeout);
+    }
+    this.delayedInvalidations.clear();
+    
+    this.logger.log('Cache Invalidation Service cleanup completed');
   }
 
   private setupInvalidationRules(): void {

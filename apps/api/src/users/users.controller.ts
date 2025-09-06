@@ -29,6 +29,7 @@ import {
   UserStatsResponseDto
 } from './dto/users.dto';
 import { UserRole } from '@qa-app/database';
+import { AuthenticatedRequest } from '../common/types/express.types';
 
 @ApiTags('Users')
 @Controller('users')
@@ -40,7 +41,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully', type: UserResponseDto })
   @Get('me')
-  async getProfile(@Req() req: any): Promise<UserResponseDto> {
+  async getProfile(@Req() req: AuthenticatedRequest): Promise<UserResponseDto> {
     return this.usersService.findById(req.user.id);
   }
 
@@ -49,7 +50,7 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @Put('me')
   async updateProfile(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Body() updateDto: UpdateUserProfileDto,
   ): Promise<UserResponseDto> {
     return this.usersService.updateProfile(req.user.id, updateDto);
@@ -75,7 +76,7 @@ export class UsersController {
     }
   })
   @Get('me/wallets')
-  async getMyWallets(@Req() req: any) {
+  async getMyWallets(@Req() req: AuthenticatedRequest) {
     const user = await this.usersService.findById(req.user.id);
     return user.wallets;
   }
@@ -85,7 +86,7 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Wallet address already registered' })
   @Post('me/wallets')
   async addWallet(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Body() walletDto: AddWalletDto,
   ) {
     return this.usersService.addWallet(req.user.id, walletDto);
@@ -97,7 +98,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Delete('me/wallets/:walletId')
   async removeWallet(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Param('walletId', ParseUUIDPipe) walletId: string,
   ) {
     return this.usersService.removeWallet(req.user.id, walletId);
@@ -150,7 +151,7 @@ export class UsersController {
   async updateKycStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() kycDto: UpdateKycStatusDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
     return this.usersService.updateKycStatus(id, kycDto, req.user.id);
   }
@@ -163,7 +164,7 @@ export class UsersController {
   async updateUserRole(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() roleDto: UpdateUserRoleDto,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
     return this.usersService.updateUserRole(id, roleDto, req.user.id);
   }
@@ -176,7 +177,7 @@ export class UsersController {
   @Post(':id/toggle-status')
   async toggleUserStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ): Promise<UserResponseDto> {
     return this.usersService.toggleUserStatus(id, req.user.id);
   }

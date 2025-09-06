@@ -1,61 +1,64 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuthStore } from '../../lib/auth-context'
-import { Card, CardContent } from '@/components/ui'
-import { Shield, ShieldAlert } from 'lucide-react'
+import { Shield, ShieldAlert } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-interface AdminGuardProps {
+import { Card, CardContent } from '@/components/ui';
+
+import { useAuthStore } from '../../lib/auth-context';
+
+
+interface AdminGuardProperties {
   children: React.ReactNode
   allowedRoles?: string[]
 }
 
-export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardProps) {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
-  const [isChecking, setIsChecking] = useState(true)
-  const router = useRouter()
+export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardProperties) {
+  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const [isChecking, setIsChecking] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // 设置超时，防止无限等待
     const timeout = setTimeout(() => {
       if (isChecking) {
-        console.warn('AdminGuard: Auth check timeout, assuming not authenticated')
-        setIsChecking(false)
+        console.warn('AdminGuard: Auth check timeout, assuming not authenticated');
+        setIsChecking(false);
       }
-    }, 5000) // 5秒超时
+    }, 5000); // 5秒超时
 
     const checkAccess = async () => {
       // 等待认证状态加载完成
       if (isLoading) {
-        return
+        return;
       }
 
       // 清除超时定时器
-      clearTimeout(timeout)
+      clearTimeout(timeout);
 
       // 未登录，跳转到登录页
       if (!isAuthenticated || !user) {
-        router.replace('/auth/login?redirect=/admin')
-        return
+        router.replace('/auth/login?redirect=/admin');
+        return;
       }
 
       // 检查用户角色权限
       if (!allowedRoles.includes(user.role || '')) {
-        router.replace('/dashboard') // 跳转到普通用户页面
-        return
+        router.replace('/dashboard'); // 跳转到普通用户页面
+        return;
       }
 
-      setIsChecking(false)
-    }
+      setIsChecking(false);
+    };
 
-    checkAccess()
+    checkAccess();
 
     // 清理函数
     return () => {
-      clearTimeout(timeout)
-    }
-  }, [isAuthenticated, user, isLoading, router, allowedRoles, isChecking])
+      clearTimeout(timeout);
+    };
+  }, [isAuthenticated, user, isLoading, router, allowedRoles, isChecking]);
 
   // 加载中状态
   if (isLoading || isChecking) {
@@ -73,12 +76,12 @@ export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardPro
               正在验证您的访问权限，请稍候...
             </p>
             <div className="mt-4 flex justify-center">
-              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   // 权限不足提示
@@ -109,20 +112,20 @@ export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardPro
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 // 高级权限检查hook
-export function useAdminAccess(requiredRole: string = 'ADMIN') {
-  const { user, isAuthenticated } = useAuthStore()
-  
-  const hasAccess = isAuthenticated && user?.role === requiredRole
-  const isAdmin = user?.role === 'ADMIN'
-  const isAgent = user?.role === 'AGENT'
-  
+export function useAdminAccess(requiredRole = 'ADMIN') {
+  const { user, isAuthenticated } = useAuthStore();
+
+  const hasAccess = isAuthenticated && user?.role === requiredRole;
+  const isAdmin = user?.role === 'ADMIN';
+  const isAgent = user?.role === 'AGENT';
+
   return {
     hasAccess,
     isAdmin,
@@ -133,5 +136,5 @@ export function useAdminAccess(requiredRole: string = 'ADMIN') {
     canViewAuditLogs: isAdmin || isAgent,
     canApproveKYC: isAdmin,
     canApproveWithdrawals: isAdmin,
-  }
+  };
 }

@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { fn } from '@storybook/test'
-import { Button } from './button'
+import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from '@storybook/test';
+
+import { Button } from './button';
 
 const meta = {
   title: 'UI/Button',
@@ -25,16 +26,16 @@ const meta = {
     },
   },
   args: { onClick: fn() },
-} satisfies Meta<typeof Button>
+} satisfies Meta<typeof Button>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
     children: '默认按钮',
   },
-}
+};
 
 export const Variants: Story = {
   render: () => (
@@ -51,7 +52,7 @@ export const Variants: Story = {
       <Button variant="premium">高级</Button>
     </div>
   ),
-}
+};
 
 export const Sizes: Story = {
   render: () => (
@@ -63,21 +64,21 @@ export const Sizes: Story = {
       <Button size="icon">🎯</Button>
     </div>
   ),
-}
+};
 
 export const Loading: Story = {
   args: {
     loading: true,
     children: '加载中...',
   },
-}
+};
 
 export const Disabled: Story = {
   args: {
     disabled: true,
     children: '禁用状态',
   },
-}
+};
 
 export const Investment: Story = {
   name: '投资场景示例',
@@ -103,4 +104,4 @@ export const Investment: Story = {
       </div>
     </div>
   ),
-}
+};

@@ -1,7 +1,11 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { DatabaseService } from '../../database/database.service'
-import { TransactionQueryWhere, TransactionStatusFilter, UnifiedTransaction, PaginatedTransactionResult } from '../interfaces/transaction.interface'
+import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { WithdrawalStatus } from '@qa-app/database';
+
+import { DatabaseService } from '../../database/database.service';
+import { PerformanceOptimizerService } from '../../common/performance/performance-optimizer.service';
+import { TransactionQueryWhere, TransactionStatusFilter, UnifiedTransaction, PaginatedTransactionResult } from '../interfaces/transaction.interface';
+import { FinanceMappingUtils } from '../interfaces/mapping.interface';
 
 export interface TransactionQuery {
   userId?: string
@@ -16,11 +20,12 @@ export interface TransactionQuery {
 
 @Injectable()
 export class TransactionsService {
-  private readonly logger = new Logger(TransactionsService.name)
+  private readonly logger = new Logger(TransactionsService.name);
 
   constructor(
     private configService: ConfigService,
-    private database: DatabaseService
+    private database: DatabaseService,
+    private performanceOptimizer: PerformanceOptimizerService,
   ) {}
 
   /**
@@ -28,103 +33,125 @@ export class TransactionsService {
    * Phase 1: 基础实现，提供接口标准
    */
   async findAll(query: TransactionQuery = {}): Promise<PaginatedTransactionResult> {
+    // 使用性能优化器缓存查询结果
+    const cacheKey = `transactions:${JSON.stringify(query)}`;
+    
+    return this.performanceOptimizer.optimizeQuery(
+      cacheKey,
+      async () => {
+        const limit = query.limit || 50;
+        const offset = query.offset || 0;
+
+        // 构建查询条件
+        const where: TransactionQueryWhere = {};
+
+        if (query.userId) {
+          where.userId = query.userId;
+        }
+
+        if (query.startDate || query.endDate) {
+          where.createdAt = {};
+          if (query.startDate) {
+            where.createdAt.gte = query.startDate;
+          }
+          if (query.endDate) {
+            where.createdAt.lte = query.endDate;
+          }
+        }
+
+        return this.executeTransactionQuery(where, query, limit, offset);
+      },
+      { 
+        ttl: 2 * 60 * 1000, // 2分钟缓存，交易数据变化频繁
+        tags: ['transactions', `user_${query.userId}`]
+      }
+    );
+  }
+
+  private async executeTransactionQuery(
+    where: TransactionQueryWhere, 
+    query: TransactionQuery, 
+    limit: number, 
+    offset: number
+  ): Promise<PaginatedTransactionResult> {
     try {
-      const limit = query.limit || 50
-      const offset = query.offset || 0
-      
-      // 构建查询条件
-      const where: TransactionQueryWhere = {}
-      
-      if (query.userId) {
-        where.userId = query.userId
-      }
-      
-      if (query.startDate || query.endDate) {
-        where.createdAt = {}
-        if (query.startDate) {
-          where.createdAt.gte = query.startDate
-        }
-        if (query.endDate) {
-          where.createdAt.lte = query.endDate
-        }
-      }
 
       // 构建状态筛选
-      const statusFilter: TransactionStatusFilter = {}
+      const statusFilter: TransactionStatusFilter = {};
       if (query.status) {
-        statusFilter.status = query.status
+        statusFilter.status = query.status;
       }
 
-      // 查询 payouts（收益记录作为 PAYOUT 交易）
-      const payoutsQuery = query.type === 'WITHDRAWAL' ? [] : this.database.payout.findMany({
-        where: {
+      // 优化后的单一查询策略：减少数据库往返次数
+      let payouts: any[] = [];
+      let withdrawals: any[] = [];
+      let totalCount = 0;
+
+      if (query.type === 'PAYOUT' || !query.type) {
+        // 查询 payouts 并同时计算数量
+        const payoutWhere = {
           ...where,
-          ...(query.status && query.status !== 'PENDING' ? { claimedAt: query.status === 'COMPLETED' ? { not: null } : null } : {})
-        },
-        include: {
-          user: {
-            select: { id: true, email: true }
-          },
-          position: {
-            select: { id: true }
+          ...(query.status && query.status !== 'PENDING' ? { claimedAt: query.status === 'COMPLETED' ? { not: null } : null } : {}),
+        };
+
+        const [payoutData, payoutCount] = await Promise.all([
+          this.database.payout.findMany({
+            where: payoutWhere,
+            include: {
+              user: { select: { id: true, email: true } },
+              position: { select: { id: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: query.type === 'PAYOUT' ? limit : undefined,
+            skip: query.type === 'PAYOUT' ? offset : undefined,
+          }),
+          this.database.payout.count({ where: payoutWhere }),
+        ]);
+
+        payouts = payoutData;
+        totalCount += payoutCount;
+      }
+
+      if (query.type === 'WITHDRAWAL' || !query.type) {
+        // 查询 withdrawals 并同时计算数量
+        const withdrawalWhere: any = {
+          ...where,
+        };
+        
+        if (query.status) {
+          const withdrawalStatus = query.status === 'COMPLETED'
+            ? WithdrawalStatus.COMPLETED
+            : query.status === 'PENDING'
+              ? WithdrawalStatus.PENDING
+              : query.status === 'PROCESSING'
+                ? WithdrawalStatus.PROCESSING
+                : query.status === 'FAILED' ? WithdrawalStatus.FAILED : null;
+          
+          if (withdrawalStatus) {
+            withdrawalWhere.status = withdrawalStatus;
           }
-        },
-        orderBy: { createdAt: 'desc' },
-        take: query.type === 'PAYOUT' ? limit : undefined,
-        skip: query.type === 'PAYOUT' ? offset : undefined
-      })
-
-      // 查询 withdrawals（提现记录作为 WITHDRAWAL 交易）
-      const withdrawalsQuery = query.type === 'PAYOUT' ? [] : this.database.withdrawal.findMany({
-        where: {
-          ...where,
-          ...(query.status && {
-            status: query.status === 'COMPLETED' ? 'COMPLETED' : 
-                   query.status === 'PENDING' ? 'PENDING' : 
-                   query.status === 'PROCESSING' ? 'PROCESSING' : 
-                   query.status === 'FAILED' ? 'FAILED' : undefined
-          })
-        },
-        include: {
-          user: {
-            select: { id: true, email: true }
-          }
-        },
-        orderBy: { createdAt: 'desc' },
-        take: query.type === 'WITHDRAWAL' ? limit : undefined,
-        skip: query.type === 'WITHDRAWAL' ? offset : undefined
-      })
-
-      // 计算总数
-      const payoutCountQuery = query.type === 'WITHDRAWAL' ? 0 : this.database.payout.count({
-        where: {
-          ...where,
-          ...(query.status && query.status !== 'PENDING' ? { claimedAt: query.status === 'COMPLETED' ? { not: null } : null } : {})
         }
-      })
 
-      const withdrawalCountQuery = query.type === 'PAYOUT' ? 0 : this.database.withdrawal.count({
-        where: {
-          ...where,
-          ...(query.status && {
-            status: query.status === 'COMPLETED' ? 'COMPLETED' : 
-                   query.status === 'PENDING' ? 'PENDING' : 
-                   query.status === 'PROCESSING' ? 'PROCESSING' : 
-                   query.status === 'FAILED' ? 'FAILED' : undefined
-          })
-        }
-      })
+        const [withdrawalData, withdrawalCount] = await Promise.all([
+          this.database.withdrawal.findMany({
+            where: withdrawalWhere,
+            include: {
+              user: { select: { id: true, email: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: query.type === 'WITHDRAWAL' ? limit : undefined,
+            skip: query.type === 'WITHDRAWAL' ? offset : undefined,
+          }),
+          this.database.withdrawal.count({ where: withdrawalWhere }),
+        ]);
 
-      // 并行执行查询
-      const [payouts, withdrawals, payoutCount, withdrawalCount] = await Promise.all([
-        payoutsQuery,
-        withdrawalsQuery,
-        payoutCountQuery,
-        withdrawalCountQuery
-      ])
+        withdrawals = withdrawalData;
+        totalCount += withdrawalCount;
+      }
 
       // 转换 payouts 为统一格式
-      const payoutTransactions: UnifiedTransaction[] = Array.isArray(payouts) ? payouts.map(payout => ({
+      const payoutTransactions: UnifiedTransaction[] = Array.isArray(payouts)
+? payouts.map(payout => ({
         id: payout.id,
         type: 'PAYOUT' as const,
         userId: payout.userId,
@@ -138,16 +165,18 @@ export class TransactionsService {
           periodStart: payout.periodStart,
           periodEnd: payout.periodEnd,
           claimTxHash: payout.claimTxHash,
-          originalType: 'PAYOUT'
+          originalType: 'PAYOUT',
         },
         createdAt: payout.createdAt,
         updatedAt: payout.updatedAt,
         completedAt: payout.claimedAt,
-        failureReason: undefined
-      })) : []
+        failureReason: undefined,
+      }))
+: [];
 
       // 转换 withdrawals 为统一格式
-      const withdrawalTransactions: UnifiedTransaction[] = Array.isArray(withdrawals) ? withdrawals.map(withdrawal => ({
+      const withdrawalTransactions: UnifiedTransaction[] = Array.isArray(withdrawals)
+? withdrawals.map(withdrawal => ({
         id: withdrawal.id,
         type: 'WITHDRAWAL' as const,
         userId: withdrawal.userId,
@@ -163,35 +192,36 @@ export class TransactionsService {
           actualAmount: withdrawal.actualAmount,
           txHash: withdrawal.txHash,
           riskScore: withdrawal.riskScore,
-          originalType: 'WITHDRAWAL'
+          originalType: 'WITHDRAWAL',
         },
         createdAt: withdrawal.createdAt,
         updatedAt: withdrawal.updatedAt,
-        completedAt: withdrawal.completedAt,
-        failureReason: withdrawal.rejectionReason
-      })) : []
+        completedAt: FinanceMappingUtils.nullToUndefined(withdrawal.completedAt),
+        failureReason: FinanceMappingUtils.nullToUndefined(withdrawal.rejectionReason),
+      }))
+: [];
 
       // 合并和排序数据
-      let allTransactions = [...payoutTransactions, ...withdrawalTransactions]
-      allTransactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      const allTransactions = [...payoutTransactions, ...withdrawalTransactions];
+      allTransactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       // 应用分页（如果是查询所有类型）
-      let paginatedData = allTransactions
-      let total = (typeof payoutCount === 'number' ? payoutCount : 0) + (typeof withdrawalCount === 'number' ? withdrawalCount : 0)
-      
+      let paginatedData = allTransactions;
+      const total = totalCount;
+
       if (query.type === 'ALL' || !query.type) {
-        paginatedData = allTransactions.slice(offset, offset + limit)
+        paginatedData = allTransactions.slice(offset, offset + limit);
       }
 
       return {
         data: paginatedData,
         total,
         page: Math.floor(offset / limit) + 1,
-        pageSize: limit
-      }
+        pageSize: limit,
+      };
     } catch (error) {
-      this.logger.error('Failed to get transactions', error)
-      throw error
+      this.logger.error('Failed to get transactions', error);
+      throw error;
     }
   }
 
@@ -205,10 +235,10 @@ export class TransactionsService {
         where: { id },
         include: {
           user: { select: { id: true, email: true } },
-          position: { select: { id: true } }
-        }
-      })
-      
+          position: { select: { id: true } },
+        },
+      });
+
       if (payout) {
         return {
           id: payout.id,
@@ -224,23 +254,23 @@ export class TransactionsService {
             periodStart: payout.periodStart,
             periodEnd: payout.periodEnd,
             claimTxHash: payout.claimTxHash,
-            originalType: 'PAYOUT'
+            originalType: 'PAYOUT',
           },
           createdAt: payout.createdAt,
           updatedAt: payout.updatedAt,
-          completedAt: payout.claimedAt,
-          failureReason: undefined
-        }
+          completedAt: FinanceMappingUtils.nullToUndefined(payout.claimedAt),
+          failureReason: undefined,
+        };
       }
-      
+
       // 尝试查找 withdrawal 记录
       const withdrawal = await this.database.withdrawal.findUnique({
         where: { id },
         include: {
-          user: { select: { id: true, email: true } }
-        }
-      })
-      
+          user: { select: { id: true, email: true } },
+        },
+      });
+
       if (withdrawal) {
         return {
           id: withdrawal.id,
@@ -258,22 +288,22 @@ export class TransactionsService {
             actualAmount: withdrawal.actualAmount,
             txHash: withdrawal.txHash,
             riskScore: withdrawal.riskScore,
-            originalType: 'WITHDRAWAL'
+            originalType: 'WITHDRAWAL',
           },
           createdAt: withdrawal.createdAt,
           updatedAt: withdrawal.updatedAt,
-          completedAt: withdrawal.completedAt,
-          failureReason: withdrawal.rejectionReason
-        }
+          completedAt: FinanceMappingUtils.nullToUndefined(withdrawal.completedAt),
+          failureReason: FinanceMappingUtils.nullToUndefined(withdrawal.rejectionReason),
+        };
       }
-      
-      throw new NotFoundException(`Transaction with ID ${id} not found`)
+
+      throw new NotFoundException(`Transaction with ID ${id} not found`);
     } catch (error) {
       if (error instanceof NotFoundException) {
-        throw error
+        throw error;
       }
-      this.logger.error('Failed to get transaction', error)
-      throw error
+      this.logger.error('Failed to get transaction', error);
+      throw error;
     }
   }
 
@@ -283,22 +313,22 @@ export class TransactionsService {
   async updateStatus(id: string, status: string, metadata?: any): Promise<UnifiedTransaction> {
     try {
       // 尝试更新 payout 记录
-      const payout = await this.database.payout.findUnique({ where: { id } })
+      const payout = await this.database.payout.findUnique({ where: { id } });
       if (payout) {
         const updatedPayout = await this.database.payout.update({
           where: { id },
           data: {
             ...(status === 'COMPLETED' && { claimedAt: new Date() }),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           include: {
             user: { select: { id: true, email: true } },
-            position: { select: { id: true } }
-          }
-        })
-        
-        this.logger.log(`Payout transaction ${id} status updated to ${status}`)
-        
+            position: { select: { id: true } },
+          },
+        });
+
+        this.logger.log(`Payout transaction ${id} status updated to ${status}`);
+
         return {
           id: updatedPayout.id,
           type: 'PAYOUT',
@@ -314,34 +344,34 @@ export class TransactionsService {
             periodStart: updatedPayout.periodStart,
             periodEnd: updatedPayout.periodEnd,
             claimTxHash: updatedPayout.claimTxHash,
-            originalType: 'PAYOUT'
+            originalType: 'PAYOUT',
           },
           createdAt: updatedPayout.createdAt,
           updatedAt: updatedPayout.updatedAt,
-          completedAt: updatedPayout.claimedAt,
-          failureReason: undefined
-        }
+          completedAt: FinanceMappingUtils.nullToUndefined(updatedPayout.claimedAt),
+          failureReason: undefined,
+        };
       }
-      
+
       // 尝试更新 withdrawal 记录
-      const withdrawal = await this.database.withdrawal.findUnique({ where: { id } })
+      const withdrawal = await this.database.withdrawal.findUnique({ where: { id } });
       if (withdrawal) {
-        const mappedStatus = this.mapStatusToWithdrawal(status) as any
+        const mappedStatus = this.mapStatusToWithdrawal(status);
         const updatedWithdrawal = await this.database.withdrawal.update({
           where: { id },
           data: {
             status: mappedStatus,
             ...(status === 'COMPLETED' && { completedAt: new Date() }),
             ...(status === 'FAILED' && metadata?.failureReason && { rejectionReason: metadata.failureReason }),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           include: {
-            user: { select: { id: true, email: true } }
-          }
-        })
-        
-        this.logger.log(`Withdrawal transaction ${id} status updated to ${status}`)
-        
+            user: { select: { id: true, email: true } },
+          },
+        });
+
+        this.logger.log(`Withdrawal transaction ${id} status updated to ${status}`);
+
         return {
           id: updatedWithdrawal.id,
           type: 'WITHDRAWAL',
@@ -355,19 +385,19 @@ export class TransactionsService {
             ...(typeof updatedWithdrawal.metadata === 'object' && updatedWithdrawal.metadata !== null ? updatedWithdrawal.metadata : {}),
             ...metadata,
             walletAddress: updatedWithdrawal.walletAddress,
-            originalType: 'WITHDRAWAL'
+            originalType: 'WITHDRAWAL',
           },
           createdAt: updatedWithdrawal.createdAt,
           updatedAt: updatedWithdrawal.updatedAt,
-          completedAt: updatedWithdrawal.completedAt,
-          failureReason: updatedWithdrawal.rejectionReason
-        }
+          completedAt: FinanceMappingUtils.nullToUndefined(updatedWithdrawal.completedAt),
+          failureReason: FinanceMappingUtils.nullToUndefined(updatedWithdrawal.rejectionReason),
+        };
       }
-      
-      throw new NotFoundException(`Transaction with ID ${id} not found`)
+
+      throw new NotFoundException(`Transaction with ID ${id} not found`);
     } catch (error) {
-      this.logger.error('Failed to update transaction status', error)
-      throw error
+      this.logger.error('Failed to update transaction status', error);
+      throw error;
     }
   }
 
@@ -375,34 +405,34 @@ export class TransactionsService {
    * 批量更新交易状态
    */
   async bulkUpdateStatus(
-    ids: string[], 
-    status: string, 
-    metadata?: any
+    ids: string[],
+    status: string,
+    metadata?: any,
   ): Promise<UnifiedTransaction[]> {
     try {
-      const updatePromises = ids.map(id => this.updateStatus(id, status, metadata))
-      const results = await Promise.allSettled(updatePromises)
-      
-      const successful: UnifiedTransaction[] = []
-      const failed: string[] = []
+      const updatePromises = ids.map(async id => this.updateStatus(id, status, metadata));
+      const results = await Promise.allSettled(updatePromises);
 
-      results.forEach((result, index) => {
+      const successful: UnifiedTransaction[] = [];
+      const failed: string[] = [];
+
+      for (const [index, result] of results.entries()) {
         if (result.status === 'fulfilled') {
-          successful.push(result.value)
+          successful.push(result.value);
         } else {
-          failed.push(ids[index])
-          this.logger.error(`Failed to update transaction ${ids[index]}:`, result.reason)
+          failed.push(ids[index]);
+          this.logger.error(`Failed to update transaction ${ids[index]}:`, result.reason);
         }
-      })
-
-      if (failed.length > 0) {
-        this.logger.warn(`Bulk update partially failed for IDs: ${failed.join(', ')}`)
       }
 
-      return successful
+      if (failed.length > 0) {
+        this.logger.warn(`Bulk update partially failed for IDs: ${failed.join(', ')}`);
+      }
+
+      return successful;
     } catch (error) {
-      this.logger.error('Failed to bulk update transactions', error)
-      throw error
+      this.logger.error('Failed to bulk update transactions', error);
+      throw error;
     }
   }
 
@@ -410,30 +440,34 @@ export class TransactionsService {
    * 处理交易（批准、拒绝等）
    */
   async processTransaction(
-    id: string, 
+    id: string,
     action: 'APPROVE' | 'REJECT' | 'PROCESS',
-    reason?: string
+    reason?: string,
   ): Promise<UnifiedTransaction> {
     try {
-      let newStatus: string
+      let newStatus: string;
       switch (action) {
-        case 'APPROVE':
-          newStatus = 'PROCESSING'
-          break
-        case 'REJECT':
-          newStatus = 'FAILED'
-          break
-        case 'PROCESS':
-          newStatus = 'COMPLETED'
-          break
-        default:
-          throw new BadRequestException(`Invalid action: ${action}`)
+        case 'APPROVE': {
+          newStatus = 'PROCESSING';
+          break;
+        }
+        case 'REJECT': {
+          newStatus = 'FAILED';
+          break;
+        }
+        case 'PROCESS': {
+          newStatus = 'COMPLETED';
+          break;
+        }
+        default: {
+          throw new BadRequestException(`Invalid action: ${action}`);
+        }
       }
 
-      return this.updateStatus(id, newStatus, { action, reason, processedAt: new Date() })
+      return this.updateStatus(id, newStatus, { action, reason, processedAt: new Date() });
     } catch (error) {
-      this.logger.error('Failed to process transaction', error)
-      throw error
+      this.logger.error('Failed to process transaction', error);
+      throw error;
     }
   }
 
@@ -442,30 +476,30 @@ export class TransactionsService {
    */
   async getStatistics(query: TransactionQuery = {}) {
     try {
-      const { data: transactions } = await this.findAll({ ...query, limit: 10000 })
-      
+      const { data: transactions } = await this.findAll({ ...query, limit: 10_000 });
+
       const stats = {
         totalCount: transactions.length,
         totalAmount: transactions.reduce((sum, tx) => sum + tx.amount, 0),
         byStatus: {} as Record<string, number>,
         byType: {} as Record<string, number>,
         avgAmount: 0,
-        recentTrend: [] as Array<{ date: string; count: number; amount: number }>
-      }
+        recentTrend: [] as Array<{ date: string; count: number; amount: number }>,
+      };
 
       // 统计状态分布
-      transactions.forEach(tx => {
-        stats.byStatus[tx.status] = (stats.byStatus[tx.status] || 0) + 1
-        stats.byType[tx.type] = (stats.byType[tx.type] || 0) + 1
-      })
+      for (const tx of transactions) {
+        stats.byStatus[tx.status] = (stats.byStatus[tx.status] || 0) + 1;
+        stats.byType[tx.type] = (stats.byType[tx.type] || 0) + 1;
+      }
 
       // 计算平均金额
-      stats.avgAmount = stats.totalCount > 0 ? stats.totalAmount / stats.totalCount : 0
+      stats.avgAmount = stats.totalCount > 0 ? stats.totalAmount / stats.totalCount : 0;
 
-      return stats
+      return stats;
     } catch (error) {
-      this.logger.error('Failed to get transaction statistics', error)
-      throw error
+      this.logger.error('Failed to get transaction statistics', error);
+      throw error;
     }
   }
 
@@ -474,24 +508,28 @@ export class TransactionsService {
    */
   async exportTransactions(
     query: TransactionQuery = {},
-    format: 'csv' | 'excel' | 'json' = 'csv'
+    format: 'csv' | 'excel' | 'json' = 'csv',
   ): Promise<string | Buffer> {
     try {
-      const { data: transactions } = await this.findAll({ ...query, limit: 10000 })
-      
+      const { data: transactions } = await this.findAll({ ...query, limit: 10_000 });
+
       switch (format) {
-        case 'csv':
-          return this.generateCSV(transactions)
-        case 'json':
-          return JSON.stringify(transactions, null, 2)
-        case 'excel':
-          return Buffer.from('Excel placeholder')
-        default:
-          throw new BadRequestException(`Unsupported format: ${format}`)
+        case 'csv': {
+          return this.generateCSV(transactions);
+        }
+        case 'json': {
+          return JSON.stringify(transactions, null, 2);
+        }
+        case 'excel': {
+          return Buffer.from('Excel placeholder');
+        }
+        default: {
+          throw new BadRequestException(`Unsupported format: ${format}`);
+        }
       }
     } catch (error) {
-      this.logger.error('Failed to export transactions', error)
-      throw error
+      this.logger.error('Failed to export transactions', error);
+      throw error;
     }
   }
 
@@ -499,28 +537,31 @@ export class TransactionsService {
    * 获取交易概览
    */
   async getOverview(timeRange: '24h' | '7d' | '30d' = '24h') {
-    const endDate = new Date()
-    const startDate = new Date()
+    const endDate = new Date();
+    const startDate = new Date();
 
     switch (timeRange) {
-      case '24h':
-        startDate.setDate(endDate.getDate() - 1)
-        break
-      case '7d':
-        startDate.setDate(endDate.getDate() - 7)
-        break
-      case '30d':
-        startDate.setDate(endDate.getDate() - 30)
-        break
+      case '24h': {
+        startDate.setDate(endDate.getDate() - 1);
+        break;
+      }
+      case '7d': {
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      }
+      case '30d': {
+        startDate.setDate(endDate.getDate() - 30);
+        break;
+      }
     }
 
-    const stats = await this.getStatistics({ startDate, endDate })
+    const stats = await this.getStatistics({ startDate, endDate });
 
     return {
       overall: stats,
       timeRange,
-      lastUpdated: new Date()
-    }
+      lastUpdated: new Date(),
+    };
   }
 
   /**
@@ -528,38 +569,48 @@ export class TransactionsService {
    */
   private mapWithdrawalStatus(status: string): UnifiedTransaction['status'] {
     switch (status) {
-      case 'COMPLETED':
-        return 'COMPLETED'
+      case 'COMPLETED': {
+        return 'COMPLETED';
+      }
       case 'PENDING':
       case 'REVIEWING':
-      case 'APPROVED':
-        return 'PENDING'
-      case 'PROCESSING':
-        return 'PROCESSING'
+      case 'APPROVED': {
+        return 'PENDING';
+      }
+      case 'PROCESSING': {
+        return 'PROCESSING';
+      }
       case 'FAILED':
       case 'REJECTED':
-      case 'CANCELED':
-        return 'FAILED'
-      default:
-        return 'PENDING'
+      case 'CANCELED': {
+        return 'FAILED';
+      }
+      default: {
+        return 'PENDING';
+      }
     }
   }
 
   /**
    * 映射统一状态到提现状态
    */
-  private mapStatusToWithdrawal(status: string): string {
+  private mapStatusToWithdrawal(status: string): WithdrawalStatus {
     switch (status) {
-      case 'COMPLETED':
-        return 'COMPLETED'
-      case 'PENDING':
-        return 'PENDING'
-      case 'PROCESSING':
-        return 'PROCESSING'
-      case 'FAILED':
-        return 'FAILED'
-      default:
-        return 'PENDING'
+      case 'COMPLETED': {
+        return WithdrawalStatus.COMPLETED;
+      }
+      case 'PENDING': {
+        return WithdrawalStatus.PENDING;
+      }
+      case 'PROCESSING': {
+        return WithdrawalStatus.PROCESSING;
+      }
+      case 'FAILED': {
+        return WithdrawalStatus.FAILED;
+      }
+      default: {
+        return WithdrawalStatus.PENDING;
+      }
     }
   }
 
@@ -568,16 +619,21 @@ export class TransactionsService {
    */
   private getWithdrawalMethod(chainId: number): string {
     switch (chainId) {
-      case 1: // Ethereum
-        return 'ETHEREUM'
-      case 56: // BSC
-        return 'BSC'
-      case 137: // Polygon
-        return 'POLYGON'
-      case 42161: // Arbitrum
-        return 'ARBITRUM'
-      default:
-        return 'CRYPTO'
+      case 1: { // Ethereum
+        return 'ETHEREUM';
+      }
+      case 56: { // BSC
+        return 'BSC';
+      }
+      case 137: { // Polygon
+        return 'POLYGON';
+      }
+      case 42_161: { // Arbitrum
+        return 'ARBITRUM';
+      }
+      default: {
+        return 'CRYPTO';
+      }
     }
   }
 
@@ -585,7 +641,7 @@ export class TransactionsService {
    * 生成CSV格式数据
    */
   private generateCSV(transactions: UnifiedTransaction[]): string {
-    const headers = ['ID', '类型', '用户邮箱', '金额', '币种', '方式', '状态', '创建时间', '完成时间']
+    const headers = ['ID', '类型', '用户邮箱', '金额', '币种', '方式', '状态', '创建时间', '完成时间'];
     const csvContent = [
       headers.join(','),
       ...transactions.map(tx => [
@@ -597,10 +653,10 @@ export class TransactionsService {
         tx.method,
         tx.status,
         tx.createdAt.toISOString(),
-        tx.completedAt?.toISOString() || ''
-      ].join(','))
-    ].join('\n')
+        tx.completedAt?.toISOString() || '',
+      ].join(',')),
+    ].join('\n');
 
-    return csvContent
+    return csvContent;
   }
 }
