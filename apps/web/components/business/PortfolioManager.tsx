@@ -19,7 +19,6 @@ import {
   Eye,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 
 import {
   Card,
@@ -38,6 +37,7 @@ import {
 } from '@/components/ui';
 import apiClient from '@/lib/api-client';
 import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses';
+import { useSafeToast } from '@/lib/use-safe-toast';
 
 // 类型定义 (整合自 positions 和 products)
 interface Position {
@@ -98,6 +98,7 @@ export function PortfolioManager({
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const toast = useSafeToast();
 
   // API 服务（使用统一 apiClient）
   const fetchUserPositions = async () => {

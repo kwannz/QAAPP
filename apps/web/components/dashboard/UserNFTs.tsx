@@ -11,7 +11,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 import { formatUnits } from 'viem';
 
 import {
@@ -30,6 +29,7 @@ import type { ProductType } from '../../lib/contracts/addresses';
 import { PRODUCT_CONFIG } from '../../lib/contracts/addresses';
 import { useQACard } from '../../lib/hooks/use-contracts';
 import { useSafeWalletStatus } from '../../lib/hooks/useSafeWalletConnection';
+import { useSafeToast } from '../../lib/use-safe-toast';
 
 interface NFTCardProperties {
   tokenId: bigint
@@ -45,6 +45,7 @@ function NFTCard({ tokenId, onClaim }: NFTCardProperties) {
   const qaCard = useQACard();
   const { data: cardInfo } = qaCard.getCardInfo(tokenId);
   const { data: pendingReward } = qaCard.getPendingReward(tokenId);
+  const toast = useSafeToast();
 
   if (!cardInfo) return null;
 
@@ -198,6 +199,7 @@ function NFTCard({ tokenId, onClaim }: NFTCardProperties) {
 function PositionCard({ position, onClaim }: PositionCardProperties) {
   const qaCard = useQACard();
   const [isClaimingReward, setIsClaimingReward] = useState(false);
+  const toast = useSafeToast();
 
   // 使用API数据，如果没有cardInfo则使用position数据
   const productType = position.product?.type || position.productType;
@@ -386,6 +388,7 @@ export function UserNFTs() {
   const qaCard = useQACard();
   const [userPositions, setUserPositions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const toast = useSafeToast();
 
   // 获取用户持有的所有投资持仓
   useEffect(() => {

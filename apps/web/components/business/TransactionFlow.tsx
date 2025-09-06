@@ -17,7 +17,6 @@ import {
   History,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 import { parseUnits, formatEther, formatUnits } from 'viem';
 import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi';
 
@@ -40,6 +39,7 @@ import apiClient from '@/lib/api-client';
 import type { ProductType } from '@/lib/contracts/addresses';
 import { PRODUCT_CONFIG } from '@/lib/contracts/addresses';
 import { useTreasury } from '@/lib/hooks/use-contracts';
+import { useSafeToast } from '@/lib/use-safe-toast';
 
 
 export type TransactionType = 'payment' | 'payout'
@@ -97,6 +97,7 @@ export function TransactionFlow({
 
   const { address, isConnected } = useAccount();
   const { data: balance } = useBalance({ address });
+  const toast = useSafeToast();
 
   const treasury = useTreasury();
 

@@ -4,9 +4,9 @@ import {
   User, Mail, Check, Camera, Edit, Save, X, Link as LinkIcon,
 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/components/ui';
+import { useSafeToast } from '@/lib/use-safe-toast';
 
 
 interface UserProfile {
@@ -73,6 +73,7 @@ export function ProfileSection() {
   const [profile, setProfile] = useState<UserProfile>(mockProfile);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile);
+  const toast = useSafeToast();
 
   const handleSaveProfile = () => {
     setProfile(editedProfile);
