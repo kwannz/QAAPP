@@ -1,5 +1,7 @@
 import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -10,7 +12,6 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 
 import { BlockchainModule } from './blockchain/blockchain.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MonitoringInterceptor } from './common/interceptors/monitoring.interceptor';
 // import { PrismaModule } from './prisma/prisma.module'; // Disabled - using mock services
 import { CacheModule } from './cache/cache.module';
@@ -28,6 +29,24 @@ import { DatabaseOptimizationModule } from './common/database/database-optimizat
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
+    }),
+
+    // 速率限制模块
+    ThrottlerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ([{
+        name: 'default',
+        ttl: 60 * 1000, // 1分钟
+        limit: 100, // 默认100次请求/分钟
+      }, {
+        name: 'auth',
+        ttl: 60 * 1000, // 1分钟  
+        limit: 10, // 认证端点10次请求/分钟
+      }, {
+        name: 'sensitive',
+        ttl: 60 * 1000, // 1分钟
+        limit: 5, // 敏感操作5次请求/分钟
+      }]),
+      inject: [ConfigService],
     }),
 
     // 全局日志模块
@@ -75,6 +94,10 @@ import { DatabaseOptimizationModule } from './common/database/database-optimizat
     {
       provide: APP_INTERCEPTOR,
       useClass: MonitoringInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

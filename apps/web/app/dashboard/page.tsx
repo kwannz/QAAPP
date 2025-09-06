@@ -1,12 +1,11 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  PlusCircle, 
-  Wallet, 
-  TrendingUp, 
-  Gift, 
+import { motion } from 'framer-motion';
+import {
+  PlusCircle,
+  Wallet,
+  TrendingUp,
+  Gift,
   MoreHorizontal,
   User,
   Mail,
@@ -53,28 +52,31 @@ import {
   MessageSquare,
   Info,
   Volume2,
-  VolumeX
-} from 'lucide-react'
-import Link from 'next/link'
-import { formatUnits } from 'viem'
-import { toast } from 'react-hot-toast'
+  VolumeX,
+} from 'lucide-react';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { safeToast } from '../../lib/toast';
+import { formatUnits } from 'viem';
 
-import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui'
-import { Header } from '../../components/layout/Header'
-import { useAuthStore } from '../../lib/auth-context'
-import { ProtectedRoute } from '../../components/auth/ProtectedRoute'
-import dynamic from 'next/dynamic'
+import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui';
 
-const LazyUserNFTs = dynamic(() => import('../../components/dashboard/UserNFTs').then(mod => ({ default: mod.UserNFTs })), {
+import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
+import { TabContainer } from '../../components/common/TabContainer';
+import { Header } from '../../components/layout/Header';
+import { useAuthStore } from '../../lib/auth-context';
+
+
+const LazyUserNFTs = dynamic(async () => import('../../components/dashboard/UserNFTs').then(module_ => ({ default: module_.UserNFTs })), {
   loading: () => <div className="animate-pulse bg-gray-200 rounded h-64" />,
-  ssr: false
-})
-import { TabContainer } from '../../components/common/TabContainer'
-import { useFeatureFlag } from '../../lib/feature-flags'
-import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../lib/hooks/use-safe-wagmi'
-import { useUSDT } from '../../lib/hooks/use-contracts'
-import { getContractAddresses } from '../../lib/contracts/addresses'
-import { notificationApi } from '../../lib/api-client'
+  ssr: false,
+});
+import { getContractAddresses } from '../../lib/contracts/addresses';
+import { useFeatureFlag } from '../../lib/feature-flags';
+import { useUSDT } from '../../lib/hooks/use-contracts';
+import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../lib/hooks/use-safe-wagmi';
+import { notificationApi } from '../../lib/api-client';
 
 // 用户资料类型定义
 interface UserProfile {
@@ -176,20 +178,20 @@ interface NotificationSettings {
 
 // 模拟数据
 const mockStats = {
-  totalInvested: 25000,
-  currentValue: 27850,
+  totalInvested: 25_000,
+  currentValue: 27_850,
   totalEarnings: 2850,
-  claimableRewards: 125.50,
+  claimableRewards: 125.5,
   activePositions: 3,
-}
+};
 
 const mockPositions = [
   {
     id: 'pos-1',
     productName: 'QA黄金卡',
     productType: 'gold' as const,
-    principal: 10000,
-    currentValue: 11250,
+    principal: 10_000,
+    currentValue: 11_250,
     apr: 15,
     startDate: '2024-01-15',
     endDate: '2024-03-15',
@@ -201,8 +203,8 @@ const mockPositions = [
     id: 'pos-2',
     productName: 'QA钻石卡',
     productType: 'diamond' as const,
-    principal: 15000,
-    currentValue: 16600,
+    principal: 15_000,
+    currentValue: 16_600,
     apr: 18,
     startDate: '2024-01-01',
     endDate: '2024-04-01',
@@ -210,7 +212,7 @@ const mockPositions = [
     nextPayoutAmount: 74.18,
     status: 'active' as const,
   },
-]
+];
 
 const mockProfile: UserProfile = {
   id: 'user-001',
@@ -228,7 +230,7 @@ const mockProfile: UserProfile = {
     state: '北京市',
     city: '北京市',
     street: '朝阳区建国门外大街1号',
-    postalCode: '100020'
+    postalCode: '100020',
   },
   occupation: '软件工程师',
   company: 'TechCorp Inc.',
@@ -239,8 +241,8 @@ const mockProfile: UserProfile = {
   lastLoginAt: '2024-02-01T10:30:00Z',
   emailVerified: true,
   phoneVerified: true,
-  twoFactorEnabled: false
-}
+  twoFactorEnabled: false,
+};
 
 const mockKYCDocuments: KYCDocument[] = [
   {
@@ -251,7 +253,7 @@ const mockKYCDocuments: KYCDocument[] = [
     reviewedAt: '2024-01-03T14:30:00Z',
     expiresAt: '2034-05-15T23:59:59Z',
     fileName: 'id-card-front.jpg',
-    fileSize: 2.3
+    fileSize: 2.3,
   },
   {
     id: 'kyc-2',
@@ -260,7 +262,7 @@ const mockKYCDocuments: KYCDocument[] = [
     uploadedAt: '2024-01-02T10:15:00Z',
     reviewedAt: '2024-01-03T14:35:00Z',
     fileName: 'utility-bill.pdf',
-    fileSize: 1.8
+    fileSize: 1.8,
   },
   {
     id: 'kyc-3',
@@ -268,9 +270,9 @@ const mockKYCDocuments: KYCDocument[] = [
     status: 'PENDING',
     uploadedAt: '2024-02-01T09:00:00Z',
     fileName: 'passport.jpg',
-    fileSize: 3.1
-  }
-]
+    fileSize: 3.1,
+  },
+];
 
 const mockSecuritySettings: SecuritySettings = {
   twoFactorEnabled: false,
@@ -280,8 +282,8 @@ const mockSecuritySettings: SecuritySettings = {
   withdrawalConfirmation: true,
   ipWhitelist: [],
   lastPasswordChange: '2024-01-15T00:00:00Z',
-  sessionTimeout: 30
-}
+  sessionTimeout: 30,
+};
 
 const mockLoginDevices: LoginDevice[] = [
   {
@@ -293,7 +295,7 @@ const mockLoginDevices: LoginDevice[] = [
     ip: '192.168.1.100',
     location: '北京, 中国',
     lastLoginAt: '2024-02-01T10:30:00Z',
-    isCurrentSession: true
+    isCurrentSession: true,
   },
   {
     id: 'device-2',
@@ -304,7 +306,7 @@ const mockLoginDevices: LoginDevice[] = [
     ip: '192.168.1.101',
     location: '北京, 中国',
     lastLoginAt: '2024-01-31T18:45:00Z',
-    isCurrentSession: false
+    isCurrentSession: false,
   },
   {
     id: 'device-3',
@@ -315,9 +317,9 @@ const mockLoginDevices: LoginDevice[] = [
     ip: '203.0.113.45',
     location: '上海, 中国',
     lastLoginAt: '2024-01-28T14:20:00Z',
-    isCurrentSession: false
-  }
-]
+    isCurrentSession: false,
+  },
+];
 
 const mockNotifications: UserNotification[] = [
   {
@@ -335,8 +337,8 @@ const mockNotifications: UserNotification[] = [
     createdAt: '2024-02-01T10:30:00Z',
     metadata: {
       amount: 41.67,
-      productName: 'QA黄金卡'
-    }
+      productName: 'QA黄金卡',
+    },
   },
   {
     id: 'notif-2',
@@ -349,7 +351,7 @@ const mockNotifications: UserNotification[] = [
     priority: 'MEDIUM',
     channel: 'EMAIL',
     createdAt: '2024-02-01T08:15:00Z',
-    expiresAt: '2024-02-02T00:00:00Z'
+    expiresAt: '2024-02-02T00:00:00Z',
   },
   {
     id: 'notif-3',
@@ -364,9 +366,9 @@ const mockNotifications: UserNotification[] = [
     priority: 'CRITICAL',
     channel: 'SMS',
     createdAt: '2024-01-31T16:45:00Z',
-    readAt: '2024-01-31T17:00:00Z'
-  }
-]
+    readAt: '2024-01-31T17:00:00Z',
+  },
+];
 
 const mockNotificationSettings: NotificationSettings = {
   pushNotifications: true,
@@ -375,8 +377,8 @@ const mockNotificationSettings: NotificationSettings = {
   marketingEmails: true,
   transactionAlerts: true,
   securityAlerts: true,
-  promotionNotices: false
-}
+  promotionNotices: false,
+};
 
 const quickActions = [
   {
@@ -395,308 +397,339 @@ const quickActions = [
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
   },
-]
+];
 
 export default function DashboardPage() {
-  const { user } = useAuthStore()
-  const unifiedDashboard = useFeatureFlag('unifiedDashboard')
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'wallets' | 'notifications'>('overview')
+  const { user } = useAuthStore();
+  const unifiedDashboard = useFeatureFlag('unifiedDashboard');
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'wallets' | 'notifications'>('overview');
 
   // State for all integrated features
-  const [profile, setProfile] = useState<UserProfile>(mockProfile)
-  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(mockSecuritySettings)
-  const [kycDocuments] = useState<KYCDocument[]>(mockKYCDocuments)
-  const [loginDevices] = useState<LoginDevice[]>(mockLoginDevices)
-  const [notifications, setNotifications] = useState<UserNotification[]>(mockNotifications)
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(mockNotificationSettings)
-  
+  const [profile, setProfile] = useState<UserProfile>(mockProfile);
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(mockSecuritySettings);
+  const [kycDocuments] = useState<KYCDocument[]>(mockKYCDocuments);
+  const [loginDevices] = useState<LoginDevice[]>(mockLoginDevices);
+  const [notifications, setNotifications] = useState<UserNotification[]>(mockNotifications);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(mockNotificationSettings);
+
   // Profile editing state
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile)
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
-  })
-  
+    confirmPassword: '',
+  });
+
   // Wallet state
-  const [isCopied, setIsCopied] = useState(false)
-  const { address, isConnected, chainId, chain } = useSafeAccount()
-  const { connect, connectors, isPending: isConnecting } = useSafeConnect()
-  const { disconnect } = useSafeDisconnect()
-  const usdt = useUSDT()
-  const { data: ethBalance, refetch: refetchEthBalance } = useSafeBalance({ address })
-  const { data: ensName } = useSafeEnsName({ address })
-  
+  const [isCopied, setIsCopied] = useState(false);
+  const { address, isConnected, chainId, chain } = useSafeAccount();
+  const { connect, connectors, isPending: isConnecting } = useSafeConnect();
+  const { disconnect } = useSafeDisconnect();
+  const usdt = useUSDT();
+  const { data: ethBalance, refetch: refetchEthBalance } = useSafeBalance({ address });
+  const { data: ensName } = useSafeEnsName({ address });
+
   // Notification state
-  const [selectedNotificationType, setSelectedNotificationType] = useState<'all' | 'SYSTEM' | 'TRANSACTION' | 'MARKETING' | 'SECURITY' | 'PROMOTION'>('all')
-  const [notificationSearchTerm, setNotificationSearchTerm] = useState('')
-  const [selectedNotificationItems, setSelectedNotificationItems] = useState<string[]>([])
+  const [selectedNotificationType, setSelectedNotificationType] = useState<'all' | 'SYSTEM' | 'TRANSACTION' | 'MARKETING' | 'SECURITY' | 'PROMOTION'>('all');
+  const [notificationSearchTerm, setNotificationSearchTerm] = useState('');
+  const [selectedNotificationItems, setSelectedNotificationItems] = useState<string[]>([]);
 
   useEffect(() => {
     // 模拟数据加载
     const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+      setIsLoading(false);
+    }, 1000);
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleClaimRewards = () => {
-    console.log('Claiming rewards...')
-    toast.success('收益领取成功!')
-  }
+    console.log('Claiming rewards...');
+    safeToast.success('收益领取成功!');
+  };
 
   const handleViewPosition = (positionId: string) => {
-    console.log('Viewing position:', positionId)
-  }
+    console.log('Viewing position:', positionId);
+  };
 
   // Profile handlers
   const handleSaveProfile = () => {
-    setProfile(editedProfile)
-    setIsEditing(false)
-    toast.success('个人资料已更新')
-  }
+    setProfile(editedProfile);
+    setIsEditing(false);
+    safeToast.success('个人资料已更新');
+  };
 
   const handleCancelEdit = () => {
-    setEditedProfile(profile)
-    setIsEditing(false)
-  }
+    setEditedProfile(profile);
+    setIsEditing(false);
+  };
 
   const handlePasswordChange = () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('新密码确认不匹配')
-      return
+      safeToast.error('新密码确认不匹配');
+      return;
     }
-    console.log('Changing password...')
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-    toast.success('密码修改成功')
-  }
+    console.log('Changing password...');
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    safeToast.success('密码修改成功');
+  };
 
   const handleToggle2FA = () => {
-    setSecuritySettings(prev => ({
-      ...prev,
-      twoFactorEnabled: !prev.twoFactorEnabled
-    }))
-    toast.success(securitySettings.twoFactorEnabled ? '双重认证已禁用' : '双重认证已启用')
-  }
+    setSecuritySettings(previous => ({
+      ...previous,
+      twoFactorEnabled: !previous.twoFactorEnabled,
+    }));
+    safeToast.success(securitySettings.twoFactorEnabled ? '双重认证已禁用' : '双重认证已启用');
+  };
 
   const handleUploadDocument = (type: string) => {
-    console.log('Uploading document type:', type)
-    toast.success('文档上传成功')
-  }
+    console.log('Uploading document type:', type);
+    safeToast.success('文档上传成功');
+  };
 
   const handleRevokeDevice = (deviceId: string) => {
-    console.log('Revoking device:', deviceId)
-    toast.success('设备会话已撤销')
-  }
+    console.log('Revoking device:', deviceId);
+    safeToast.success('设备会话已撤销');
+  };
 
   // Wallet handlers
   const copyAddress = async () => {
-    if (!address) return
-    
+    if (!address) return;
+
     try {
-      await navigator.clipboard.writeText(address)
-      setIsCopied(true)
-      toast.success('地址已复制到剪贴板')
-      setTimeout(() => setIsCopied(false), 2000)
-    } catch (error) {
-      toast.error('复制失败')
+      await navigator.clipboard.writeText(address);
+      setIsCopied(true);
+      safeToast.success('地址已复制到剪贴板');
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      safeToast.error('复制失败');
     }
-  }
-  
+  };
+
   const refreshBalances = () => {
-    refetchEthBalance()
-    usdt.refetchBalance()
-    toast.success('余额已刷新')
-  }
-  
+    refetchEthBalance();
+    usdt.refetchBalance();
+    safeToast.success('余额已刷新');
+  };
+
   // Notification handlers
   const handleMarkAsRead = async (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id 
+    setNotifications(previous =>
+      previous.map(notif =>
+        notif.id === id
           ? { ...notif, isRead: true, readAt: new Date().toISOString() }
-          : notif
-      )
-    )
-    toast.success('已标记为已读')
-  }
+          : notif,
+      ),
+    );
+    safeToast.success('已标记为已读');
+  };
 
   const handleToggleStar = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id 
+    setNotifications(previous =>
+      previous.map(notif =>
+        notif.id === id
           ? { ...notif, isStarred: !notif.isStarred }
-          : notif
-      )
-    )
-  }
+          : notif,
+      ),
+    );
+  };
 
   const handleDeleteNotification = async (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id))
-    setSelectedNotificationItems(prev => prev.filter(itemId => itemId !== id))
-    toast.success('通知已删除')
-  }
+    setNotifications(previous => previous.filter(notif => notif.id !== id));
+    setSelectedNotificationItems(previous => previous.filter(itemId => itemId !== id));
+    safeToast.success('通知已删除');
+  };
 
   // Utility functions
   const getExplorerUrl = () => {
-    if (!address || !chainId) return '#'
-    
+    if (!address || !chainId) return '#';
+
     const explorers: Record<number, string> = {
       1: 'https://etherscan.io',
       137: 'https://polygonscan.com',
-      42161: 'https://arbiscan.io',
-      11155111: 'https://sepolia.etherscan.io',
-    }
-    
-    return `${explorers[chainId] || 'https://etherscan.io'}/address/${address}`
-  }
-  
+      42_161: 'https://arbiscan.io',
+      11_155_111: 'https://sepolia.etherscan.io',
+    };
+
+    return `${explorers[chainId] || 'https://etherscan.io'}/address/${address}`;
+  };
+
   const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
 
   const getKYCStatusColor = (status: string) => {
     switch (status) {
-      case 'APPROVED': return 'text-green-600 bg-green-100'
-      case 'REJECTED': return 'text-red-600 bg-red-100'
-      case 'PENDING': return 'text-orange-600 bg-orange-100'
-      case 'EXPIRED': return 'text-gray-600 bg-gray-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'APPROVED': { return 'text-green-600 bg-green-100';
+      }
+      case 'REJECTED': { return 'text-red-600 bg-red-100';
+      }
+      case 'PENDING': { return 'text-orange-600 bg-orange-100';
+      }
+      case 'EXPIRED': { return 'text-gray-600 bg-gray-100';
+      }
+      default: { return 'text-gray-600 bg-gray-100';
+      }
     }
-  }
+  };
 
   const getDocumentTypeName = (type: string) => {
     switch (type) {
-      case 'ID_CARD': return '身份证'
-      case 'PASSPORT': return '护照'
-      case 'DRIVER_LICENSE': return '驾驶证'
-      case 'PROOF_OF_ADDRESS': return '地址证明'
-      default: return '文档'
+      case 'ID_CARD': { return '身份证';
+      }
+      case 'PASSPORT': { return '护照';
+      }
+      case 'DRIVER_LICENSE': { return '驾驶证';
+      }
+      case 'PROOF_OF_ADDRESS': { return '地址证明';
+      }
+      default: { return '文档';
+      }
     }
-  }
+  };
 
   const getDeviceIcon = (type: string) => {
     switch (type) {
-      case 'MOBILE': return Smartphone
-      case 'TABLET': return Smartphone
-      case 'DESKTOP': return Monitor
-      default: return Laptop
+      case 'MOBILE': { return Smartphone;
+      }
+      case 'TABLET': { return Smartphone;
+      }
+      case 'DESKTOP': { return Monitor;
+      }
+      default: { return Laptop;
+      }
     }
-  }
+  };
 
   const formatFileSize = (sizeInMB: number) => {
-    return `${sizeInMB.toFixed(1)} MB`
-  }
+    return `${sizeInMB.toFixed(1)} MB`;
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    })
-  }
+      day: 'numeric',
+    });
+  };
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN')
-  }
+    return new Date(dateString).toLocaleString('zh-CN');
+  };
 
   const formatNotificationDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
     if (diffInHours < 1) {
-      return '刚刚'
+      return '刚刚';
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}小时前`
+      return `${Math.floor(diffInHours)}小时前`;
     } else if (diffInHours < 48) {
-      return '1天前'
-    } else {
-      return date.toLocaleDateString('zh-CN')
+      return '1天前';
     }
-  }
+      return date.toLocaleDateString('zh-CN');
+  };
 
   const getNotificationTypeIcon = (type: string) => {
     switch (type) {
-      case 'TRANSACTION': return CheckCircle
-      case 'SYSTEM': return Settings
-      case 'SECURITY': return AlertTriangle
-      case 'MARKETING': return Star
-      case 'PROMOTION': return Star
-      default: return Bell
+      case 'TRANSACTION': { return CheckCircle;
+      }
+      case 'SYSTEM': { return Settings;
+      }
+      case 'SECURITY': { return AlertTriangle;
+      }
+      case 'MARKETING': { return Star;
+      }
+      case 'PROMOTION': { return Star;
+      }
+      default: { return Bell;
+      }
     }
-  }
+  };
 
   const getChannelIcon = (channel: string) => {
     switch (channel) {
-      case 'EMAIL': return Mail
-      case 'SMS': return Smartphone
-      case 'PUSH': return Bell
-      default: return Globe
+      case 'EMAIL': { return Mail;
+      }
+      case 'SMS': { return Smartphone;
+      }
+      case 'PUSH': { return Bell;
+      }
+      default: { return Globe;
+      }
     }
-  }
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'SUCCESS': return 'text-green-600 bg-green-100'
-      case 'WARNING': return 'text-orange-600 bg-orange-100'
-      case 'ERROR': return 'text-red-600 bg-red-100'
-      default: return 'text-blue-600 bg-blue-100'
+      case 'SUCCESS': { return 'text-green-600 bg-green-100';
+      }
+      case 'WARNING': { return 'text-orange-600 bg-orange-100';
+      }
+      case 'ERROR': { return 'text-red-600 bg-red-100';
+      }
+      default: { return 'text-blue-600 bg-blue-100';
+      }
     }
-  }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'CRITICAL': return 'border-l-4 border-red-500'
-      case 'HIGH': return 'border-l-4 border-orange-500'
-      case 'MEDIUM': return 'border-l-4 border-yellow-500'
-      default: return 'border-l-4 border-gray-300'
+      case 'CRITICAL': { return 'border-l-4 border-red-500';
+      }
+      case 'HIGH': { return 'border-l-4 border-orange-500';
+      }
+      case 'MEDIUM': { return 'border-l-4 border-yellow-500';
+      }
+      default: { return 'border-l-4 border-gray-300';
+      }
     }
-  }
+  };
 
   // Filter notifications
   const filteredNotifications = notifications.filter(notification => {
-    const matchesType = selectedNotificationType === 'all' || notification.type === selectedNotificationType
-    const matchesSearch = notification.title.toLowerCase().includes(notificationSearchTerm.toLowerCase()) ||
-                         notification.message.toLowerCase().includes(notificationSearchTerm.toLowerCase())
-    return matchesType && matchesSearch
-  })
+    const matchesType = selectedNotificationType === 'all' || notification.type === selectedNotificationType;
+    const matchesSearch = notification.title.toLowerCase().includes(notificationSearchTerm.toLowerCase())
+                         || notification.message.toLowerCase().includes(notificationSearchTerm.toLowerCase());
+    return matchesType && matchesSearch;
+  });
 
-  const unreadNotificationCount = notifications.filter(n => !n.isRead).length
-  const contracts = getContractAddresses(chainId || 1)
+  const unreadNotificationCount = notifications.filter(n => !n.isRead).length;
+  const contracts = getContractAddresses(chainId || 1);
 
   // Tab configuration
   const tabs = [
-    { 
-      id: 'overview', 
-      label: '投资概览', 
-      icon: <TrendingUp className="w-4 h-4" />, 
-      badge: null 
+    {
+      id: 'overview',
+      label: '投资概览',
+      icon: <TrendingUp className="w-4 h-4" />,
+      badge: null,
     },
-    { 
-      id: 'profile', 
-      label: '个人资料', 
-      icon: <User className="w-4 h-4" />, 
-      badge: null 
+    {
+      id: 'profile',
+      label: '个人资料',
+      icon: <User className="w-4 h-4" />,
+      badge: null,
     },
-    { 
-      id: 'wallets', 
-      label: '钱包管理', 
-      icon: <Wallet className="w-4 h-4" />, 
-      badge: isConnected ? 'connected' : null 
+    {
+      id: 'wallets',
+      label: '钱包管理',
+      icon: <Wallet className="w-4 h-4" />,
+      badge: isConnected ? 'connected' : null,
     },
-    { 
-      id: 'notifications', 
-      label: '通知中心', 
-      icon: <Bell className="w-4 h-4" />, 
-      badge: unreadNotificationCount > 0 ? unreadNotificationCount : null 
-    }
-  ]
+    {
+      id: 'notifications',
+      label: '通知中心',
+      icon: <Bell className="w-4 h-4" />,
+      badge: unreadNotificationCount > 0 ? unreadNotificationCount : null,
+    },
+  ];
 
   const renderOverview = () => (
     <div className="space-y-8">
@@ -715,7 +748,7 @@ export default function DashboardPage() {
             管理您的投资组合，查看收益情况，探索新的投资机会。
           </p>
         </div>
-        
+
         <Link href="/products">
           <Button size="lg" className="group">
             <PlusCircle className="w-4 h-4 mr-2" />
@@ -730,11 +763,7 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <WalletConnect
-          isConnected={isConnected}
-          onConnect={() => {}}
-          onDisconnect={() => {}}
-        />
+        <WalletConnect />
       </motion.div>
 
       {/* 快捷操作 */}
@@ -746,7 +775,7 @@ export default function DashboardPage() {
         <h2 className="text-xl font-semibold mb-4">快捷操作</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {quickActions.map((action, index) => {
-            const Icon = action.icon
+            const Icon = action.icon;
             return (
               <Link key={action.title} href={action.href}>
                 <Card className="qa-card-hover cursor-pointer h-full">
@@ -765,7 +794,7 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </Link>
-            )
+            );
           })}
         </div>
       </motion.div>
@@ -834,12 +863,16 @@ export default function DashboardPage() {
                 <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center space-x-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      activity.type === 'investment' ? 'bg-blue-100 text-blue-600' :
-                      activity.type === 'payout' ? 'bg-green-100 text-green-600' :
-                      'bg-purple-100 text-purple-600'
-                    }`}>
-                      {activity.type === 'investment' ? '💰' :
-                       activity.type === 'payout' ? '📈' : '🎁'}
+                      activity.type === 'investment'
+? 'bg-blue-100 text-blue-600'
+                      : (activity.type === 'payout'
+? 'bg-green-100 text-green-600'
+                      : 'bg-purple-100 text-purple-600')
+                    }`}
+                    >
+                      {activity.type === 'investment'
+? '💰'
+                       : (activity.type === 'payout' ? '📈' : '🎁')}
                     </div>
                     <div>
                       <p className="font-medium text-sm">{activity.title}</p>
@@ -848,7 +881,8 @@ export default function DashboardPage() {
                   </div>
                   <div className={`font-medium text-sm ${
                     activity.amount.startsWith('+') ? 'text-green-600' : 'text-foreground'
-                  }`}>
+                  }`}
+                  >
                     {activity.amount}
                   </div>
                 </div>
@@ -858,7 +892,7 @@ export default function DashboardPage() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 
   if (isLoading) {
     return (
@@ -872,19 +906,19 @@ export default function DashboardPage() {
                 <div className="h-8 bg-gray-200 rounded animate-pulse w-64" />
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-96" />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
                 ))}
               </div>
-              
+
               <div className="h-96 bg-gray-200 rounded-lg animate-pulse" />
             </div>
           </main>
         </div>
       </ProtectedRoute>
-    )
+    );
   }
 
   const renderProfile = () => (
@@ -929,7 +963,8 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardTitle>基本信息</CardTitle>
               <div className="flex items-center space-x-2">
-                {isEditing ? (
+                {isEditing
+? (
                   <>
                     <Button size="sm" onClick={handleSaveProfile}>
                       <Save className="w-4 h-4 mr-2" />
@@ -940,7 +975,8 @@ export default function DashboardPage() {
                       取消
                     </Button>
                   </>
-                ) : (
+                )
+: (
                   <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
                     <Edit className="w-4 h-4 mr-2" />
                     编辑
@@ -955,7 +991,7 @@ export default function DashboardPage() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">姓</label>
                 <Input
                   value={isEditing ? editedProfile.firstName || '' : profile.firstName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, firstName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, firstName: e.target.value }))}
                   disabled={!isEditing}
                   placeholder="请输入姓"
                 />
@@ -964,7 +1000,7 @@ export default function DashboardPage() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">名</label>
                 <Input
                   value={isEditing ? editedProfile.lastName || '' : profile.lastName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, lastName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, lastName: e.target.value }))}
                   disabled={!isEditing}
                   placeholder="请输入名"
                 />
@@ -980,9 +1016,11 @@ export default function DashboardPage() {
                     disabled
                     className="flex-1"
                   />
-                  {profile.emailVerified ? (
+                  {profile.emailVerified
+? (
                     <Check className="w-5 h-5 text-green-600" />
-                  ) : (
+                  )
+: (
                     <Button size="sm">验证</Button>
                   )}
                 </div>
@@ -992,14 +1030,16 @@ export default function DashboardPage() {
                 <div className="flex items-center space-x-2">
                   <Input
                     value={isEditing ? editedProfile.phoneNumber || '' : profile.phoneNumber || ''}
-                    onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                    onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, phoneNumber: e.target.value }))}
                     disabled={!isEditing}
                     placeholder="请输入手机号码"
                     className="flex-1"
                   />
-                  {profile.phoneVerified ? (
+                  {profile.phoneVerified
+? (
                     <Check className="w-5 h-5 text-green-600" />
-                  ) : (
+                  )
+: (
                     <Button size="sm">验证</Button>
                   )}
                 </div>
@@ -1023,54 +1063,11 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 
   const renderWallets = () => (
     <div className="space-y-6">
-      {!isConnected ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="w-6 h-6" />
-              连接钱包
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <p className="text-muted-foreground">
-              请选择一个钱包连接到QA投资平台，开始您的DeFi投资之旅
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {connectors.map((connector) => (
-                <Button
-                  key={connector.id}
-                  onClick={() => connect({ connector })}
-                  disabled={isConnecting}
-                  variant="outline"
-                  className="h-16 justify-start gap-3"
-                >
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Wallet className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium">{connector.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {connector.id === 'injected' ? '浏览器钱包' : '官方钱包'}
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-            
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                连接钱包后，您可以投资我们的固定收益产品并获得NFT投资凭证
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-      ) : (
+      {isConnected ? (
         <div className="space-y-6">
           {/* 钱包信息 */}
           <Card>
@@ -1096,17 +1093,17 @@ export default function DashboardPage() {
                   <p className="text-sm text-muted-foreground">当前网络</p>
                   <p className="font-medium">{chain?.name || '未知网络'}</p>
                 </div>
-                <Badge variant={chain?.id === 1 ? "default" : "secondary"}>
+                <Badge variant={chain?.id === 1 ? 'default' : 'secondary'}>
                   Chain ID: {chainId}
                 </Badge>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">钱包地址</p>
                     <div className="flex items-center gap-2">
-                      <p className="font-mono text-sm">{formatAddress(address!)}</p>
+                      <p className="font-mono text-sm">{formatAddress(address)}</p>
                       {ensName && (
                         <Badge variant="outline">{ensName}</Badge>
                       )}
@@ -1114,9 +1111,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" onClick={copyAddress}>
-                      {isCopied ? (
+                      {isCopied
+? (
                         <CheckCircle className="w-4 h-4 text-green-600" />
-                      ) : (
+                      )
+: (
                         <Copy className="w-4 h-4" />
                       )}
                     </Button>
@@ -1132,7 +1131,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* 资产余额 */}
           <Card>
             <CardHeader>
@@ -1148,12 +1147,12 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">以太坊</p>
                       <p className="font-semibold">
-                        {ethBalance ? parseFloat(formatUnits(ethBalance.value, 18)).toFixed(4) : '0.0000'} ETH
+                        {ethBalance ? Number.parseFloat(formatUnits(ethBalance.value, 18)).toFixed(4) : '0.0000'} ETH
                       </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -1171,9 +1170,52 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="w-6 h-6" />
+              连接钱包
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-muted-foreground">
+              请选择一个钱包连接到QA投资平台，开始您的DeFi投资之旅
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {connectors.map((connector) => (
+                <Button
+                  key={connector.id}
+                  onClick={() => connect({ connector })}
+                  disabled={isConnecting}
+                  variant="outline"
+                  className="h-16 justify-start gap-3"
+                >
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">{connector.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {connector.id === 'injected' ? '浏览器钱包' : '官方钱包'}
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                连接钱包后，您可以投资我们的固定收益产品并获得NFT投资凭证
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
       )}
     </div>
-  )
+  );
 
   const renderNotifications = () => (
     <div className="space-y-6">
@@ -1222,8 +1264,8 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-600">今日新增</p>
                 <p className="text-2xl font-bold text-green-600">
                   {notifications.filter(n => {
-                    const today = new Date().toDateString()
-                    return new Date(n.createdAt).toDateString() === today
+                    const today = new Date().toDateString();
+                    return new Date(n.createdAt).toDateString() === today;
                   }).length}
                 </p>
               </div>
@@ -1263,15 +1305,15 @@ export default function DashboardPage() {
       {/* 通知列表 */}
       <div className="space-y-3">
         {filteredNotifications.slice(0, 10).map((notification) => {
-          const TypeIcon = getNotificationTypeIcon(notification.type)
-          const ChannelIcon = getChannelIcon(notification.channel)
-          const isExpired = notification.expiresAt && new Date(notification.expiresAt) < new Date()
-          
+          const TypeIcon = getNotificationTypeIcon(notification.type);
+          const ChannelIcon = getChannelIcon(notification.channel);
+          const isExpired = notification.expiresAt && new Date(notification.expiresAt) < new Date();
+
           return (
-            <Card 
-              key={notification.id} 
+            <Card
+              key={notification.id}
               className={`transition-all hover:shadow-md ${
-                !notification.isRead ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                notification.isRead ? '' : 'bg-blue-50 border-l-4 border-blue-500'
               } ${getPriorityColor(notification.priority)} ${isExpired ? 'opacity-60' : ''}`}
             >
               <CardContent className="p-4">
@@ -1281,20 +1323,22 @@ export default function DashboardPage() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
                           <TypeIcon className="w-4 h-4 text-gray-600" />
-                          <h3 className={`font-semibold ${!notification.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                          <h3 className={`font-semibold ${notification.isRead ? 'text-gray-700' : 'text-gray-900'}`}>
                             {notification.title}
                           </h3>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(notification.category)}`}>
-                            {notification.category === 'SUCCESS' ? '成功' :
-                             notification.category === 'WARNING' ? '警告' :
-                             notification.category === 'ERROR' ? '错误' : '信息'}
+                            {notification.category === 'SUCCESS'
+? '成功'
+                             : notification.category === 'WARNING'
+? '警告'
+                             : notification.category === 'ERROR' ? '错误' : '信息'}
                           </span>
                         </div>
-                        
+
                         <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                           {notification.message}
                         </p>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4 text-xs text-gray-500">
                             <div className="flex items-center space-x-1">
@@ -1303,7 +1347,7 @@ export default function DashboardPage() {
                             </div>
                             <span>{formatNotificationDate(notification.createdAt)}</span>
                           </div>
-                          
+
                           {notification.actionUrl && !isExpired && (
                             <Button size="sm" variant="outline">
                               {notification.actionText || '查看'}
@@ -1311,7 +1355,7 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-1 ml-4">
                         <Button
                           variant="ghost"
@@ -1321,19 +1365,19 @@ export default function DashboardPage() {
                         >
                           <Star className={`w-4 h-4 ${notification.isStarred ? 'fill-current' : ''}`} />
                         </Button>
-                        
+
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleMarkAsRead(notification.id)}
+                          onClick={async () => handleMarkAsRead(notification.id)}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        
+
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteNotification(notification.id)}
+                          onClick={async () => handleDeleteNotification(notification.id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1344,9 +1388,9 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
-          )
+          );
         })}
-        
+
         {filteredNotifications.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center">
@@ -1360,28 +1404,33 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
-  )
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'overview':
-        return renderOverview()
-      case 'profile':
-        return renderProfile()
-      case 'wallets':
-        return renderWallets()
-      case 'notifications':
-        return renderNotifications()
-      default:
-        return renderOverview()
+      case 'overview': {
+        return renderOverview();
+      }
+      case 'profile': {
+        return renderProfile();
+      }
+      case 'wallets': {
+        return renderWallets();
+      }
+      case 'notifications': {
+        return renderNotifications();
+      }
+      default: {
+        return renderOverview();
+      }
     }
-  }
+  };
 
   return (
     <ProtectedRoute>
       <div className="flex min-h-screen flex-col">
         <Header />
-        
+
         <main className="flex-1 bg-gray-50">
           <div className="qa-container py-8">
             <div className="space-y-8">
@@ -1406,20 +1455,13 @@ export default function DashboardPage() {
                   </motion.div>
 
                   {/* 标签页导航 */}
-                  <TabContainer 
+                  <TabContainer
                     tabs={tabs}
                     activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                  />
-
-                  {/* 标签页内容 */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                    onTabChange={(tabId: string) => setActiveTab(tabId as 'overview' | 'wallets' | 'notifications' | 'profile')}
                   >
                     {renderTabContent()}
-                  </motion.div>
+                  </TabContainer>
                 </>
               ) : (
                 renderOverview()
@@ -1429,5 +1471,5 @@ export default function DashboardPage() {
         </main>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

@@ -2,12 +2,13 @@ import { Injectable, UnauthorizedException, BadRequestException, Logger } from '
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { hash, compare } from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 
 import { DatabaseService } from '../database/database.service';
 import { WalletSignatureService } from './services/wallet-signature.service';
 import { LoginDto, RegisterDto, WalletChallengeDto, WalletVerifyDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
 import { UserData, CreateAuditLogParams } from './interfaces/user.interface';
-import { UserRole, KycStatus } from '@qa-app/database';
+import { UserRole, KycStatus, Prisma } from '@qa-app/database';
 
 @Injectable()
 export class AuthService {
@@ -43,6 +44,9 @@ export class AuthService {
     }
 
     // 验证密码
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('Account has no password set');
+    }
     const isPasswordValid = await compare(password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -62,7 +66,8 @@ export class AuthService {
 
     this.logger.log(`User logged in via email: ${user.email}`);
 
-    return this.generateTokenResponse(user);
+    const userData = this.mapDatabaseUserToUserData(user);
+    return this.generateTokenResponse(userData);
   }
 
   /**
@@ -77,7 +82,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('Email already registered');
+      throw new BadRequestException('Registration failed. Please check your information.');
     }
 
     // 验证推荐码（如果提供）
@@ -99,7 +104,7 @@ export class AuthService {
       });
 
       if (existingWallet) {
-        throw new BadRequestException('Wallet address already registered');
+        throw new BadRequestException('Registration failed. Please check your information.');
       }
     }
 
@@ -146,7 +151,8 @@ export class AuthService {
 
     this.logger.log(`New user registered: ${user.email} (${user.referralCode})`);
 
-    return this.generateTokenResponse(user);
+    const userData = this.mapDatabaseUserToUserData(user);
+    return this.generateTokenResponse(userData);
   }
 
   /**
@@ -247,7 +253,8 @@ export class AuthService {
 
     this.logger.log(`User logged in via wallet: ${address}`);
 
-    return this.generateTokenResponse(user);
+    const userData = this.mapDatabaseUserToUserData(user);
+    return this.generateTokenResponse(userData);
   }
 
   /**
@@ -273,7 +280,8 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      return this.generateTokenResponse(user);
+      const userData = this.mapDatabaseUserToUserData(user);
+      return this.generateTokenResponse(userData);
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -360,24 +368,41 @@ export class AuthService {
    * Google登录
    */
   async googleLogin(googleToken: string): Promise<AuthResponseDto> {
-    // 在实际实现中会验证Google ID Token
-    // 这里为了演示简化处理
     if (!googleToken || googleToken.length < 10) {
       throw new UnauthorizedException('Invalid Google token');
     }
 
-    // 模拟解析Google Token获取用户信息
-    const mockGoogleUser = {
-      id: 'google_' + Math.random().toString(36).substr(2, 9),
-      email: 'user@gmail.com', // 实际中从Google Token解析
-      name: 'Google User',
-      picture: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-      email_verified: true,
-    };
+    // 验证Google ID Token
+    let googleUser: any;
+    try {
+      const client = new OAuth2Client();
+      
+      // 验证ID token
+      const ticket = await client.verifyIdToken({
+        idToken: googleToken,
+        audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      });
+      
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email_verified) {
+        throw new UnauthorizedException('Google token verification failed');
+      }
+      
+      googleUser = {
+        id: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+        email_verified: payload.email_verified,
+      };
+    } catch (error) {
+      this.logger.error('Google token verification failed:', error);
+      throw new UnauthorizedException('Invalid Google token');
+    }
 
     // 查找或创建用户
     let user = await this.database.user.findUnique({
-      where: { email: mockGoogleUser.email.toLowerCase() },
+      where: { email: googleUser.email.toLowerCase() },
       include: { wallets: true },
     });
     
@@ -387,7 +412,7 @@ export class AuthService {
 
       user = await this.database.user.create({
         data: {
-          email: mockGoogleUser.email.toLowerCase(),
+          email: googleUser.email.toLowerCase(),
           role: UserRole.USER,
           referralCode: userReferralCode,
           kycStatus: KycStatus.PENDING,
@@ -396,7 +421,7 @@ export class AuthService {
         include: { wallets: true },
       });
 
-      this.logger.log(`New user created via Google: ${mockGoogleUser.email} (${user.referralCode})`);
+      this.logger.log(`New user created via Google: ${googleUser.email} (${user.referralCode})`);
     }
 
     if (!user.isActive) {
@@ -411,12 +436,13 @@ export class AuthService {
 
     // 记录登录日志
     await this.createAuditLog(user.id, 'GOOGLE_LOGIN', 'AUTH', null, {
-      email: mockGoogleUser.email,
+      email: googleUser.email,
       loginMethod: 'google',
     });
 
-    this.logger.log(`User logged in via Google: ${mockGoogleUser.email}`);
-    return this.generateTokenResponse(user);
+    this.logger.log(`User logged in via Google: ${googleUser.email}`);
+    const userData = this.mapDatabaseUserToUserData(user);
+    return this.generateTokenResponse(userData);
   }
 
   /**
@@ -453,7 +479,7 @@ export class AuthService {
     action: string,
     resourceType: string,
     resourceId: string | null,
-    metadata: any,
+    metadata: Record<string, unknown>,
   ): Promise<void> {
     try {
       await this.database.auditLog.create({
@@ -463,11 +489,31 @@ export class AuthService {
           action,
           resourceType,
           resourceId,
-          metadata,
+          metadata: metadata as Prisma.InputJsonValue,
         },
       });
     } catch (error) {
       this.logger.error('Failed to create audit log:', error);
     }
+  }
+
+  /**
+   * 将数据库用户对象映射为UserData接口
+   */
+  private mapDatabaseUserToUserData(user: any): UserData {
+    return {
+      id: user.id,
+      email: user.email ?? undefined,
+      role: user.role,
+      kycStatus: user.kycStatus,
+      referralCode: user.referralCode,
+      isActive: user.isActive,
+      wallets: user.wallets || [],
+      agentId: user.agentId ?? undefined,
+      referredById: user.referredById ?? undefined,
+      lastLoginAt: user.lastLoginAt ?? undefined,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }

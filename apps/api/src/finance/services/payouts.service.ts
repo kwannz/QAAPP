@@ -1,37 +1,8 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
+import { getErrorMessage, getErrorStack } from '../../common/utils/error.utils';
+import { FinanceMappingUtils, MockPosition, MockPayout } from '../interfaces/mapping.interface';
 
-export interface MockPosition {
-  id: string;
-  userId: string;
-  productId: string;
-  orderId: string;
-  principal: number;
-  startDate: Date;
-  endDate: Date;
-  nextPayoutAt?: Date;
-  nftTokenId?: number;
-  nftTokenUri?: string;
-  status: 'ACTIVE' | 'REDEEMING' | 'CLOSED' | 'DEFAULTED';
-  metadata?: any;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface MockPayout {
-  id: string;
-  userId: string;
-  positionId: string;
-  amount: number;
-  periodStart: Date;
-  periodEnd: Date;
-  status: 'PENDING' | 'CLAIMED' | 'FAILED';
-  isClaimable: boolean;
-  claimedAt?: Date;
-  txHash?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 @Injectable()
 export class PayoutsService {
@@ -100,7 +71,7 @@ export class PayoutsService {
       }
 
       this.logger.log('Daily payout generation completed');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate daily payouts:', error);
       throw error;
     }
@@ -136,7 +107,7 @@ export class PayoutsService {
       }
     });
 
-    return positions.map(pos => ({
+    return positions.map(pos => FinanceMappingUtils.mapDatabasePositionToMock({
       id: pos.id,
       userId: pos.userId,
       productId: pos.productId,
@@ -175,7 +146,7 @@ export class PayoutsService {
 
     if (!payout) return null;
 
-    return {
+    return FinanceMappingUtils.mapDatabasePayoutToMock({
       id: payout.id,
       userId: payout.userId,
       positionId: payout.positionId,
@@ -188,7 +159,7 @@ export class PayoutsService {
       txHash: payout.claimTxHash,
       createdAt: payout.createdAt,
       updatedAt: payout.updatedAt
-    };
+    });
   }
 
   /**
@@ -212,7 +183,7 @@ export class PayoutsService {
       }
     });
 
-    return {
+    return FinanceMappingUtils.mapDatabasePayoutToMock({
       id: createdPayout.id,
       userId: createdPayout.userId,
       positionId: createdPayout.positionId,
@@ -225,7 +196,7 @@ export class PayoutsService {
       txHash: createdPayout.claimTxHash,
       createdAt: createdPayout.createdAt,
       updatedAt: createdPayout.updatedAt
-    };
+    });
   }
 
   /**
@@ -255,7 +226,7 @@ export class PayoutsService {
         }
       });
 
-      const mockPayouts: MockPayout[] = payouts.map(payout => ({
+      const mockPayouts: MockPayout[] = payouts.map(payout => FinanceMappingUtils.mapDatabasePayoutToMock({
         id: payout.id,
         userId: payout.userId,
         positionId: payout.positionId,
@@ -278,7 +249,7 @@ export class PayoutsService {
         payouts: mockPayouts,
         totalAmount,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to get claimable payouts for user ${userId}:`, error);
       throw error;
     }
@@ -347,7 +318,7 @@ export class PayoutsService {
         txHash: mockTxHash,
         claimedPayouts,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to claim payouts for user ${userId}:`, error);
       throw error;
     }
@@ -384,7 +355,7 @@ export class PayoutsService {
         this.database.payout.count({ where: { userId } })
       ]);
 
-      const allPayouts: MockPayout[] = payouts.map(payout => ({
+      const allPayouts: MockPayout[] = payouts.map(payout => FinanceMappingUtils.mapDatabasePayoutToMock({
         id: payout.id,
         userId: payout.userId,
         positionId: payout.positionId,
@@ -431,7 +402,7 @@ export class PayoutsService {
         totalClaimed,
         totalPending,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to get payout history for user ${userId}:`, error);
       throw error;
     }
@@ -485,7 +456,7 @@ export class PayoutsService {
 
       this.logger.log(`System payout stats: distributed: $${stats.totalDistributed}, pending: $${stats.totalPending}`);
       return stats;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get system payout stats:', error);
       throw error;
     }
@@ -516,7 +487,7 @@ export class PayoutsService {
         }
       });
 
-      return payouts.map(payout => ({
+      return payouts.map(payout => FinanceMappingUtils.mapDatabasePayoutToMock({
         id: payout.id,
         userId: payout.userId,
         positionId: payout.positionId,
@@ -530,7 +501,7 @@ export class PayoutsService {
         createdAt: payout.createdAt,
         updatedAt: payout.updatedAt
       }));
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to generate claimable payouts for position ${positionId}:`, error);
       throw error;
     }
@@ -558,7 +529,7 @@ export class PayoutsService {
         }
       });
 
-      return payouts.map(payout => ({
+      return payouts.map(payout => FinanceMappingUtils.mapDatabasePayoutToMock({
         id: payout.id,
         userId: payout.userId,
         positionId: payout.positionId,
@@ -572,7 +543,7 @@ export class PayoutsService {
         createdAt: payout.createdAt,
         updatedAt: payout.updatedAt
       }));
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to get payouts for position ${positionId}:`, error);
       throw error;
     }
@@ -599,7 +570,7 @@ export class PayoutsService {
         return null;
       }
 
-      return {
+      return FinanceMappingUtils.mapDatabasePayoutToMock({
         id: payout.id,
         userId: payout.userId,
         positionId: payout.positionId,
@@ -612,8 +583,8 @@ export class PayoutsService {
         txHash: payout.claimTxHash,
         createdAt: payout.createdAt,
         updatedAt: payout.updatedAt
-      };
-    } catch (error) {
+      });
+    } catch (error: unknown) {
       this.logger.error(`Failed to find payout ${payoutId}:`, error);
       throw error;
     }
@@ -678,13 +649,13 @@ export class PayoutsService {
         totalAmount,
         txHash: mockTxHash,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to claim multiple payouts:`, error);
       return {
         success: false,
         totalAmount: 0,
         txHash: '',
-        message: `领取失败: ${error.message}`,
+        message: `领取失败: ${getErrorMessage(error)}`,
       };
     }
   }

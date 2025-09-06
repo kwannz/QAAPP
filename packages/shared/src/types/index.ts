@@ -49,7 +49,7 @@ export interface Product {
   apr: number; // 年化收益率(百分比)
   lockDays: number;
   nftTokenId?: number;
-  nftMetadata?: any;
+  nftMetadata?: unknown;
   totalSupply?: number;
   currentSupply: number;
   isActive: boolean;
@@ -78,7 +78,7 @@ export interface Order {
   referrerId?: string;
   agentId?: string;
   failureReason?: string;
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
   confirmedAt?: Date;
   updatedAt: Date;
@@ -104,7 +104,7 @@ export interface Position {
   nftTokenId?: number;
   nftTokenUri?: string;
   status: PositionStatus;
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -121,7 +121,7 @@ export interface Payout {
   claimedAt?: Date;
   claimTxHash?: string;
   merkleIndex?: number;
-  merkleProof?: any;
+  merkleProof?: unknown;
   batchId?: string;
   distributionTx?: string;
   createdAt: Date;
@@ -153,19 +153,19 @@ export interface Commission {
   settledAt?: Date;
   settlementTxHash?: string;
   batchId?: string;
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
   updatedAt: Date;
 }
 
 // API响应类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
   meta?: {
     requestId: string;
@@ -226,7 +226,7 @@ export interface ChainConfig {
 
 export interface ContractConfig {
   address: string;
-  abi: any[];
+  abi: unknown[];
   deployedAt: number;
 }
 
@@ -238,7 +238,7 @@ export interface BlockchainEvent {
   contractAddress: string;
   transactionHash: string;
   blockNumber: number;
-  eventData: any;
+  eventData: unknown;
   processed: boolean;
   createdAt: Date;
 }
@@ -248,8 +248,8 @@ export interface BatchJob {
   id: string;
   type: string;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  parameters?: any;
-  result?: any;
+  parameters?: unknown;
+  result?: unknown;
   errorMsg?: string;
   processedAt?: Date;
   createdAt: Date;
@@ -266,7 +266,7 @@ export interface AuditLog {
   resourceId?: string;
   ipAddress?: string;
   userAgent?: string;
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
 }
 

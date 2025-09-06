@@ -1,18 +1,14 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui'
-import { useAuthStore } from '@/lib/auth-context'
-import { toast } from 'sonner'
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
-// 声明 Google API 类型
-declare global {
-  interface Window {
-    google: any;
-  }
-}
+import { Button } from '@/components/ui';
+import { useAuthStore } from '@/lib/auth-context';
 
-interface GoogleLoginButtonProps {
+// Types are now declared in types/global.d.ts
+
+interface GoogleLoginButtonProperties {
   className?: string
   disabled?: boolean
   onSuccess?: () => void
@@ -23,18 +19,18 @@ export function GoogleLoginButton({
   className,
   disabled,
   onSuccess,
-  onError
-}: GoogleLoginButtonProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const { setUser, setTokens } = useAuthStore()
+  onError,
+}: GoogleLoginButtonProperties) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { setUser, setTokens } = useAuthStore();
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
       // 使用 Google Identity Services API
       if (!window.google) {
-        throw new Error('Google SDK 未加载')
+        throw new Error('Google SDK 未加载');
       }
 
       // 初始化 Google OAuth
@@ -48,41 +44,40 @@ export function GoogleLoginButton({
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({ token: response.credential }),
-            })
-            
+            });
+
             if (!backendResponse.ok) {
-              const error = await backendResponse.json()
-              throw new Error(error.message || 'Google登录失败')
+              const error = await backendResponse.json();
+              throw new Error(error.message || 'Google登录失败');
             }
 
-            const data = await backendResponse.json()
-            
+            const data = await backendResponse.json();
+
             // 更新认证状态
-            setUser(data.user)
-            setTokens(data.accessToken, data.refreshToken)
-            
-            toast.success('Google登录成功！')
-            onSuccess?.()
+            setUser(data.user);
+            setTokens(data.accessToken, data.refreshToken);
+
+            toast.success('Google登录成功！');
+            onSuccess?.();
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Google登录失败'
-            toast.error(errorMessage)
-            onError?.(errorMessage)
+            const errorMessage = error instanceof Error ? error.message : 'Google登录失败';
+            toast.error(errorMessage);
+            onError?.(errorMessage);
           } finally {
-            setIsLoading(false)
+            setIsLoading(false);
           }
-        }
-      })
+        },
+      });
 
       // 显示 Google 登录弹窗
-      window.google.accounts.id.prompt()
-
+      window.google.accounts.id.prompt();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Google登录失败'
-      toast.error(errorMessage)
-      onError?.(errorMessage)
-      setIsLoading(false)
+      const errorMessage = error instanceof Error ? error.message : 'Google登录失败';
+      toast.error(errorMessage);
+      onError?.(errorMessage);
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Button
@@ -91,12 +86,14 @@ export function GoogleLoginButton({
       onClick={handleGoogleLogin}
       disabled={disabled || isLoading}
     >
-      {isLoading ? (
+      {isLoading
+? (
         <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
           <span>登录中...</span>
         </div>
-      ) : (
+      )
+: (
         <div className="flex items-center space-x-2">
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -120,5 +117,5 @@ export function GoogleLoginButton({
         </div>
       )}
     </Button>
-  )
+  );
 }

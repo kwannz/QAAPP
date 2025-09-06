@@ -28,8 +28,8 @@ export class NotificationsController {
     @Param('userId') userId: string,
     @Query('type') type?: string,
     @Query('status') status?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20'
   ) {
     return this.notificationsService.getUserNotifications(userId, {
       type,
@@ -116,15 +116,13 @@ export class NotificationsController {
     @Query('recipient') recipient?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20'
   ) {
     return this.notificationsService.getAdminNotifications({
       type,
       status,
       recipient,
-      dateFrom,
-      dateTo,
       page,
       limit
     });
@@ -148,7 +146,11 @@ export class NotificationsController {
       scheduledFor?: string;
     }
   ) {
-    return this.notificationsService.sendNotification(notificationData);
+    return this.notificationsService.sendNotification({
+      ...notificationData,
+      userId: notificationData.recipientId || '',
+      scheduledFor: notificationData.scheduledFor ? new Date(notificationData.scheduledFor) : undefined
+    });
   }
 
   @ApiOperation({ summary: 'Send bulk notifications' })
@@ -250,9 +252,6 @@ export class NotificationsController {
     @Query('channel') channel?: string
   ) {
     return this.notificationsService.getDeliveryReport({
-      notificationId,
-      dateFrom,
-      dateTo,
       channel
     });
   }
@@ -270,7 +269,10 @@ export class NotificationsController {
       maxRetries?: number;
     }
   ) {
-    return this.notificationsService.retryFailedNotifications(retryData);
+    return this.notificationsService.retryFailedNotifications({
+      ...retryData,
+      notificationIds: retryData.notificationIds || []
+    });
   }
 
   @ApiOperation({ summary: 'Schedule notification campaign' })
@@ -289,7 +291,10 @@ export class NotificationsController {
       variables?: Record<string, any>;
     }
   ) {
-    return this.notificationsService.scheduleCampaign(campaignData);
+    return this.notificationsService.scheduleCampaign({
+      ...campaignData,
+      scheduledFor: new Date(campaignData.scheduledFor)
+    });
   }
 
   @ApiOperation({ summary: 'Get notification campaigns' })
@@ -299,8 +304,8 @@ export class NotificationsController {
   @Get('admin/campaigns')
   async getCampaigns(
     @Query('status') status?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20'
   ) {
     return this.notificationsService.getCampaigns({ status, page, limit });
   }

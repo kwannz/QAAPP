@@ -1,33 +1,38 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Eye, EyeOff, ArrowLeft, Mail, Lock } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import toast from 'react-hot-toast'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, ArrowLeft, Mail, Lock } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useSafeToast } from '../../../lib/use-safe-toast';
+import { z } from 'zod';
 
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
-import { authApi } from '../../../lib/api-client'
-import { useAuthStore } from '../../../lib/auth-context'
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { ClientOnly } from '@/components/ClientOnly';
+import { DeveloperLogin } from '@/components/auth/DeveloperLogin';
+
+import { authApi } from '../../../lib/api-client';
+import { useAuthStore } from '../../../lib/auth-context';
+
 // import { Web3LoginSection } from '../../../components/auth/Web3LoginSection'
 // import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton'
 
 const loginSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z.string().min(8, '密码至少8位'),
-})
+});
 
 type LoginForm = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
-  const { setUser, setTokens } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { setUser, setTokens } = useAuthStore();
+  const toast = useSafeToast();
 
   const {
     register,
@@ -35,34 +40,39 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-  })
+  });
 
   const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const response = await authApi.login({
         email: data.email,
-        password: data.password
-      })
-      const { user, accessToken, refreshToken } = response.data
+        password: data.password,
+      });
+      
+      // Fix: The API returns response.data.data structure, not response.data directly
+      const responseData = response.data?.data || response.data;
+      const { user, accessToken, refreshToken } = responseData;
 
-      setUser(user)
-      setTokens(accessToken, refreshToken)
-      
-      toast.success('登录成功！')
-      
+      setUser(user);
+      setTokens(accessToken, refreshToken);
+
+      toast.success('登录成功！');
+
       // 跳转到仪表板或者用户之前访问的页面
-      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/dashboard'
-      router.push(redirectUrl)
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
+      router.push(redirectUrl);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || '登录失败，请检查邮箱和密码')
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || '登录失败，请检查邮箱和密码');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <ClientOnly>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
       {/* 背景装饰 */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 blur-3xl" />
@@ -76,7 +86,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, x: 0 }}
           className="mb-6"
         >
-          <Link 
+          <Link
             href="/"
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -98,7 +108,7 @@ export default function LoginPage() {
                   <span className="text-white font-bold text-lg">QA</span>
                 </div>
               </div>
-              
+
               <CardTitle className="text-2xl font-bold">欢迎回来</CardTitle>
               <p className="text-muted-foreground mt-2">
                 登录您的账户以继续投资之旅
@@ -156,6 +166,9 @@ export default function LoginPage() {
                 </Button>
               </form>
 
+              {/* 开发者快速登录 */}
+              <DeveloperLogin />
+
               {/* 分隔线 */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -167,7 +180,7 @@ export default function LoginPage() {
               </div>
 
               {/* Google 登录 - 暂时禁用 */}
-              {/* <GoogleLoginButton 
+              {/* <GoogleLoginButton
                 onSuccess={() => {
                   const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/dashboard'
                   router.push(redirectUrl)
@@ -180,7 +193,7 @@ export default function LoginPage() {
               {/* 注册链接 */}
               <div className="text-center text-sm">
                 <span className="text-muted-foreground">还没有账户？</span>{' '}
-                <Link 
+                <Link
                   href="/auth/register"
                   className="font-medium text-primary hover:text-primary/80 transition-colors"
                 >
@@ -192,5 +205,6 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
-  )
+    </ClientOnly>
+  );
 }

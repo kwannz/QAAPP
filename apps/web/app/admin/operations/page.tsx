@@ -1,12 +1,11 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  UserCheck, 
+import { motion } from 'framer-motion';
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  UserCheck,
   CreditCard,
   Settings,
   BarChart3,
@@ -27,22 +26,22 @@ import {
   DollarSign,
   Plus,
   RefreshCw,
-  Building2
-} from 'lucide-react'
+  Building2,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
-import { useFeatureFlag } from '@/lib/feature-flags'
-import { AdminLayout } from '@/components/admin/AdminLayout'
-import { AdminGuard } from '@/components/admin/AdminGuard'
-import { TabContainer } from '@/components/common/TabContainer'
-import { FilterPanel } from '@/components/common/FilterPanel'
-import { MetricsCard } from '@/components/ui'
-import { 
-  Button, 
-  Input, 
-  Badge, 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import { AdminGuard } from '@/components/admin/AdminGuard';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { FilterPanel } from '@/components/common/FilterPanel';
+import { TabContainer } from '@/components/common/TabContainer';
+import { MetricsCard, Alert, AlertDescription,
+  Button,
+  Input,
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
   Dialog,
   DialogContent,
@@ -54,10 +53,10 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui'
-import Link from 'next/link'
-import apiClient from '@/lib/api-client'
+  SelectValue,
+} from '@/components/ui';
+import apiClient from '@/lib/api-client';
+import { useFeatureFlag } from '@/lib/feature-flags';
 
 // 类型定义
 interface User {
@@ -141,68 +140,68 @@ interface Withdrawal {
 // API 服务（使用统一 apiClient）
 const apiService = {
   async fetchUsers(filters: Record<string, any> = {}) {
-    const { data } = await apiClient.get('/users', { params: filters })
-    return data
+    const { data } = await apiClient.get('/users', { params: filters });
+    return data;
   },
   async fetchProducts(filters: Record<string, any> = {}) {
-    const { data } = await apiClient.get('/finance/products', { params: filters })
-    return data
+    const { data } = await apiClient.get('/finance/products', { params: filters });
+    return data;
   },
   async fetchOrders(filters: Record<string, any> = {}) {
-    const { data } = await apiClient.get('/finance/orders', { params: filters })
-    return data
+    const { data } = await apiClient.get('/finance/orders', { params: filters });
+    return data;
   },
   async fetchAgents(filters: Record<string, any> = {}) {
-    const { data } = await apiClient.get('/agents/admin/list', { params: filters })
-    return data
+    const { data } = await apiClient.get('/agents/admin/list', { params: filters });
+    return data;
   },
   async fetchWithdrawals(filters: Record<string, any> = {}) {
     // 新统一端点建议：/finance/transactions?type=WITHDRAWAL
-    const { data } = await apiClient.get('/finance/transactions', { params: { ...filters, type: 'WITHDRAWAL' } })
-    return data
+    const { data } = await apiClient.get('/finance/transactions', { params: { ...filters, type: 'WITHDRAWAL' } });
+    return data;
   },
   async fetchUserStats() {
-    const { data } = await apiClient.get('/users/admin/stats')
-    return data
+    const { data } = await apiClient.get('/users/admin/stats');
+    return data;
   },
   async fetchAgentStats() {
-    const { data } = await apiClient.get('/agents/admin/stats')
-    return data
+    const { data } = await apiClient.get('/agents/admin/stats');
+    return data;
   },
   async fetchDashboardStats() {
-    const { data } = await apiClient.get('/monitoring/dashboard')
-    return data
+    const { data } = await apiClient.get('/monitoring/dashboard');
+    return data;
   },
-}
+};
 
 export default function OperationsCenter() {
-  const isEnabled = useFeatureFlag('newOperationsCenter')
-  const [activeTab, setActiveTab] = useState('users')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<Record<string, any>>({})
-  const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const isEnabled = useFeatureFlag('newOperationsCenter');
+  const [activeTab, setActiveTab] = useState('users');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showDetail, setShowDetail] = useState<{open: boolean; type: string; item: any}>({
     open: false,
     type: '',
-    item: null
-  })
-  
+    item: null,
+  });
+
   // 数据状态
   const [data, setData] = useState({
     users: [],
     products: [],
     orders: [],
-    withdrawals: []
-  })
+    withdrawals: [],
+  });
   const [stats, setStats] = useState({
     users: { total: 0, active: 0, kyc: 0, risk: 0 },
     products: { total: 0, active: 0, totalValue: 0 },
     orders: { total: 0, pending: 0, success: 0, failed: 0, volume: 0 },
-    withdrawals: { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 }
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
+    withdrawals: { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 },
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   // 如果功能开关未启用，显示重定向页面
   if (!isEnabled) {
     return (
@@ -227,7 +226,7 @@ export default function OperationsCenter() {
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Link 
+                <Link
                   href="/admin/users"
                   className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
                 >
@@ -240,7 +239,7 @@ export default function OperationsCenter() {
                   <p className="text-gray-600 text-sm">管理用户账户、KYC状态和权限设置</p>
                 </Link>
 
-                <Link 
+                <Link
                   href="/admin/products"
                   className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
                 >
@@ -253,7 +252,7 @@ export default function OperationsCenter() {
                   <p className="text-gray-600 text-sm">管理投资产品、收益率和供应配置</p>
                 </Link>
 
-                <Link 
+                <Link
                   href="/admin/orders"
                   className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
                 >
@@ -266,7 +265,7 @@ export default function OperationsCenter() {
                   <p className="text-gray-600 text-sm">处理订单状态、风险评估和交易审核</p>
                 </Link>
 
-                <Link 
+                <Link
                   href="/admin/agents"
                   className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
                 >
@@ -279,7 +278,7 @@ export default function OperationsCenter() {
                   <p className="text-gray-600 text-sm">管理代理商账户、佣金结算和业绩</p>
                 </Link>
 
-                <Link 
+                <Link
                   href="/admin/withdrawals"
                   className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
                 >
@@ -296,7 +295,7 @@ export default function OperationsCenter() {
           </div>
         </AdminLayout>
       </AdminGuard>
-    )
+    );
   }
 
   const tabs = [
@@ -304,40 +303,40 @@ export default function OperationsCenter() {
       id: 'users',
       label: '用户管理',
       icon: <Users className="w-4 h-4" />,
-      badge: stats.users.total
+      badge: stats.users.total,
     },
     {
       id: 'products',
       label: '产品管理',
       icon: <Package className="w-4 h-4" />,
-      badge: stats.products.total
+      badge: stats.products.total,
     },
     {
       id: 'orders',
       label: '订单管理',
       icon: <ShoppingCart className="w-4 h-4" />,
-      badge: stats.orders.pending
+      badge: stats.orders.pending,
     },
     {
       id: 'withdrawals',
       label: '提现管理',
       icon: <CreditCard className="w-4 h-4" />,
-      badge: stats.withdrawals.pending
-    }
-  ]
+      badge: stats.withdrawals.pending,
+    },
+  ];
 
   const handleAction = async (action: string, entityType: string, id: string, data?: any) => {
     try {
-      console.log(`${action} ${entityType}:`, { id, data })
-      alert(`${action} 操作成功`)
-    } catch (error) {
-      alert(`${action} 操作失败`)
+      console.log(`${action} ${entityType}:`, { id, data });
+      alert(`${action} 操作成功`);
+    } catch {
+      alert(`${action} 操作失败`);
     }
-  }
+  };
 
   const renderEntityCard = (entity: any, type: string) => {
     switch (type) {
-      case 'users':
+      case 'users': {
         return (
           <div key={entity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className="flex items-center space-x-4">
@@ -349,14 +348,20 @@ export default function OperationsCenter() {
               <div>
                 <div className="flex items-center space-x-2">
                   <h3 className="font-semibold">{entity.email}</h3>
-                  <Badge className={entity.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 
-                                   entity.role === 'AGENT' ? 'bg-blue-100 text-blue-800' : 
-                                   'bg-gray-100 text-gray-800'}>
+                  <Badge className={entity.role === 'ADMIN'
+? 'bg-purple-100 text-purple-800'
+                                   : (entity.role === 'AGENT'
+? 'bg-blue-100 text-blue-800'
+                                   : 'bg-gray-100 text-gray-800')}
+                  >
                     {entity.role}
                   </Badge>
-                  <Badge className={entity.kycStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                   entity.kycStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                   'bg-red-100 text-red-800'}>
+                  <Badge className={entity.kycStatus === 'APPROVED'
+? 'bg-green-100 text-green-800'
+                                   : (entity.kycStatus === 'PENDING'
+? 'bg-yellow-100 text-yellow-800'
+                                   : 'bg-red-100 text-red-800')}
+                  >
                     {entity.kycStatus}
                   </Badge>
                 </div>
@@ -369,21 +374,22 @@ export default function OperationsCenter() {
               <Badge className={entity.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
                 {entity.isActive ? '活跃' : '封禁'}
               </Badge>
-              <Button variant="outline" size="sm" onClick={() => setShowDetail({open: true, type: 'user', item: entity})}>
+              <Button variant="outline" size="sm" onClick={() => setShowDetail({ open: true, type: 'user', item: entity })}>
                 <Eye className="w-4 h-4" />
               </Button>
-              <Button 
-                variant={entity.isActive ? "destructive" : "default"} 
+              <Button
+                variant={entity.isActive ? 'destructive' : 'default'}
                 size="sm"
-                onClick={() => handleAction(entity.isActive ? 'ban' : 'unban', 'user', entity.id)}
+                onClick={async () => handleAction(entity.isActive ? 'ban' : 'unban', 'user', entity.id)}
               >
                 {entity.isActive ? <Ban className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
               </Button>
             </div>
           </div>
-        )
+        );
+      }
 
-      case 'products':
+      case 'products': {
         return (
           <div key={entity.id} className="border rounded-lg p-4">
             <div className="flex items-start justify-between mb-3">
@@ -419,7 +425,7 @@ export default function OperationsCenter() {
                 投资范围: ${entity.minAmount.toLocaleString()} - ${entity.maxAmount?.toLocaleString() || '无限制'}
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={() => setShowDetail({open: true, type: 'product', item: entity})}>
+                <Button variant="outline" size="sm" onClick={() => setShowDetail({ open: true, type: 'product', item: entity })}>
                   <Eye className="w-4 h-4" />
                 </Button>
                 <Button variant="outline" size="sm">
@@ -428,17 +434,21 @@ export default function OperationsCenter() {
               </div>
             </div>
           </div>
-        )
+        );
+      }
 
-      case 'orders':
+      case 'orders': {
         return (
           <div key={entity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <span className="font-mono text-sm">{entity.id}</span>
-                <Badge className={entity.status === 'SUCCESS' ? 'bg-green-100 text-green-800' :
-                               entity.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                               'bg-red-100 text-red-800'}>
+                <Badge className={entity.status === 'SUCCESS'
+? 'bg-green-100 text-green-800'
+                               : (entity.status === 'PENDING'
+? 'bg-yellow-100 text-yellow-800'
+                               : 'bg-red-100 text-red-800')}
+                >
                   {entity.status}
                 </Badge>
                 {entity.riskScore && entity.riskScore >= 4 && (
@@ -461,33 +471,38 @@ export default function OperationsCenter() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={() => setShowDetail({open: true, type: 'order', item: entity})}>
+              <Button variant="outline" size="sm" onClick={() => setShowDetail({ open: true, type: 'order', item: entity })}>
                 <Eye className="w-4 h-4" />
               </Button>
               {entity.status === 'PENDING' && (
                 <>
-                  <Button variant="default" size="sm" onClick={() => handleAction('approve', 'order', entity.id)}>
+                  <Button variant="default" size="sm" onClick={async () => handleAction('approve', 'order', entity.id)}>
                     <Check className="w-4 h-4" />
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleAction('reject', 'order', entity.id)}>
+                  <Button variant="destructive" size="sm" onClick={async () => handleAction('reject', 'order', entity.id)}>
                     <X className="w-4 h-4" />
                   </Button>
                 </>
               )}
             </div>
           </div>
-        )
+        );
+      }
 
-      case 'withdrawals':
+      case 'withdrawals': {
         return (
           <div key={entity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
               <div className="flex items-center space-x-3 mb-2">
                 <span className="font-mono text-sm">{entity.id}</span>
-                <Badge className={entity.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                               entity.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
-                               entity.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                               'bg-red-100 text-red-800'}>
+                <Badge className={entity.status === 'COMPLETED'
+? 'bg-green-100 text-green-800'
+                               : entity.status === 'APPROVED'
+? 'bg-blue-100 text-blue-800'
+                               : entity.status === 'PENDING'
+? 'bg-yellow-100 text-yellow-800'
+                               : 'bg-red-100 text-red-800'}
+                >
                   {entity.status}
                 </Badge>
               </div>
@@ -503,134 +518,150 @@ export default function OperationsCenter() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={() => setShowDetail({open: true, type: 'withdrawal', item: entity})}>
+              <Button variant="outline" size="sm" onClick={() => setShowDetail({ open: true, type: 'withdrawal', item: entity })}>
                 <Eye className="w-4 h-4" />
               </Button>
               {entity.status === 'PENDING' && (
                 <>
-                  <Button variant="default" size="sm" onClick={() => handleAction('approve', 'withdrawal', entity.id)}>
+                  <Button variant="default" size="sm" onClick={async () => handleAction('approve', 'withdrawal', entity.id)}>
                     <Check className="w-4 h-4" />
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleAction('reject', 'withdrawal', entity.id)}>
+                  <Button variant="destructive" size="sm" onClick={async () => handleAction('reject', 'withdrawal', entity.id)}>
                     <X className="w-4 h-4" />
                   </Button>
                 </>
               )}
             </div>
           </div>
-        )
+        );
+      }
 
-      default:
-        return null
+      default: {
+        return null;
+      }
     }
-  }
+  };
 
   // 加载数据函数
   const loadData = async (tab: string) => {
     if (!localStorage.getItem('token')) {
-      setError('请先登录')
-      return
+      setError('请先登录');
+      return;
     }
 
-    setLoading(true)
-    setError(null)
-    
+    setLoading(true);
+    setError(null);
+
     try {
-      let result
+      let result;
       switch (tab) {
-        case 'users':
-          result = await apiService.fetchUsers({ ...filters, search: searchTerm })
-          setData(prev => ({ ...prev, users: result.data || [] }))
-          break
-        case 'products':
-          result = await apiService.fetchProducts({ ...filters, search: searchTerm })
-          setData(prev => ({ ...prev, products: result.data || [] }))
-          break
-        case 'orders':
-          result = await apiService.fetchOrders({ ...filters, search: searchTerm })
-          setData(prev => ({ ...prev, orders: result.data || [] }))
-          break
-        case 'withdrawals':
-          result = await apiService.fetchWithdrawals({ ...filters, search: searchTerm })
-          setData(prev => ({ ...prev, withdrawals: result.data || [] }))
-          break
+        case 'users': {
+          result = await apiService.fetchUsers({ ...filters, search: searchTerm });
+          setData(previous => ({ ...previous, users: result.data || [] }));
+          break;
+        }
+        case 'products': {
+          result = await apiService.fetchProducts({ ...filters, search: searchTerm });
+          setData(previous => ({ ...previous, products: result.data || [] }));
+          break;
+        }
+        case 'orders': {
+          result = await apiService.fetchOrders({ ...filters, search: searchTerm });
+          setData(previous => ({ ...previous, orders: result.data || [] }));
+          break;
+        }
+        case 'withdrawals': {
+          result = await apiService.fetchWithdrawals({ ...filters, search: searchTerm });
+          setData(previous => ({ ...previous, withdrawals: result.data || [] }));
+          break;
+        }
       }
     } catch (error: any) {
-      console.error(`Failed to load ${tab}:`, error)
-      setError(error.message || `加载${tab}数据失败`)
+      console.error(`Failed to load ${tab}:`, error);
+      setError(error.message || `加载${tab}数据失败`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 加载统计数据
   const loadStats = async () => {
-    if (!localStorage.getItem('token')) return
-    
+    if (!localStorage.getItem('token')) return;
+
     try {
       const [userStats, agentStats, dashboardStats] = await Promise.all([
         apiService.fetchUserStats(),
         apiService.fetchAgentStats(),
-        apiService.fetchDashboardStats()
-      ])
-      
+        apiService.fetchDashboardStats(),
+      ]);
+
       setStats({
         users: userStats || { total: 0, active: 0, kyc: 0, risk: 0 },
         products: dashboardStats?.products || { total: 0, active: 0, totalValue: 0 },
         orders: dashboardStats?.orders || { total: 0, pending: 0, success: 0, failed: 0, volume: 0 },
-        withdrawals: dashboardStats?.withdrawals || { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 }
-      })
+        withdrawals: dashboardStats?.withdrawals || { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 },
+      });
     } catch (error) {
-      console.error('Failed to load stats:', error)
+      console.error('Failed to load stats:', error);
     }
-  }
+  };
 
   // 数据加载effect
   useEffect(() => {
     if (isEnabled) {
-      loadStats()
-      loadData(activeTab)
+      loadStats();
+      loadData(activeTab);
     }
-  }, [isEnabled, activeTab, filters, searchTerm])
+  }, [isEnabled, activeTab, filters, searchTerm]);
 
   const getCurrentData = () => {
     switch (activeTab) {
-      case 'users': return data.users
-      case 'products': return data.products
-      case 'orders': return data.orders
-      case 'withdrawals': return data.withdrawals
-      default: return []
+      case 'users': { return data.users;
+      }
+      case 'products': { return data.products;
+      }
+      case 'orders': { return data.orders;
+      }
+      case 'withdrawals': { return data.withdrawals;
+      }
+      default: { return [];
+      }
     }
-  }
+  };
 
   const getCurrentStats = () => {
     switch (activeTab) {
-      case 'users': return [
-        { title: '总用户数', value: stats.users.total, icon: Users, color: 'blue' },
-        { title: '活跃用户', value: stats.users.active, icon: TrendingUp, color: 'green' },
-        { title: 'KYC通过', value: stats.users.kyc, icon: CheckCircle, color: 'green' },
-        { title: '高风险用户', value: stats.users.risk, icon: AlertTriangle, color: 'red' }
-      ]
-      case 'products': return [
-        { title: '总产品数', value: stats.products.total, icon: Package, color: 'blue' },
-        { title: '活跃产品', value: stats.products.active, icon: TrendingUp, color: 'green' },
-        { title: '总价值', value: `$${(stats.products.totalValue / 1000000).toFixed(1)}M`, icon: DollarSign, color: 'green' }
-      ]
-      case 'orders': return [
-        { title: '总订单', value: stats.orders.total, icon: ShoppingCart, color: 'blue' },
-        { title: '待处理', value: stats.orders.pending, icon: Clock, color: 'yellow' },
-        { title: '成功订单', value: stats.orders.success, icon: CheckCircle, color: 'green' },
-        { title: '总成交额', value: `$${(stats.orders.volume / 1000000).toFixed(1)}M`, icon: DollarSign, color: 'green' }
-      ]
-      case 'withdrawals': return [
-        { title: '总申请', value: stats.withdrawals.total, icon: CreditCard, color: 'blue' },
-        { title: '待处理', value: stats.withdrawals.pending, icon: Clock, color: 'yellow' },
-        { title: '已批准', value: stats.withdrawals.approved, icon: CheckCircle, color: 'green' },
-        { title: '总金额', value: `$${(stats.withdrawals.amount / 1000000).toFixed(1)}M`, icon: DollarSign, color: 'green' }
-      ]
-      default: return []
+      case 'users': { return [
+        { title: '总用户数', value: stats.users.total, icon: <Users className="h-5 w-5" />, color: 'blue' },
+        { title: '活跃用户', value: stats.users.active, icon: <TrendingUp className="h-5 w-5" />, color: 'green' },
+        { title: 'KYC通过', value: stats.users.kyc, icon: <CheckCircle className="h-5 w-5" />, color: 'green' },
+        { title: '高风险用户', value: stats.users.risk, icon: <AlertTriangle className="h-5 w-5" />, color: 'red' },
+      ];
+      }
+      case 'products': { return [
+        { title: '总产品数', value: stats.products.total, icon: <Package className="h-5 w-5" />, color: 'blue' },
+        { title: '活跃产品', value: stats.products.active, icon: <TrendingUp className="h-5 w-5" />, color: 'green' },
+        { title: '总价值', value: `$${(stats.products.totalValue / 1_000_000).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
+      ];
+      }
+      case 'orders': { return [
+        { title: '总订单', value: stats.orders.total, icon: <ShoppingCart className="h-5 w-5" />, color: 'blue' },
+        { title: '待处理', value: stats.orders.pending, icon: <Clock className="h-5 w-5" />, color: 'yellow' },
+        { title: '成功订单', value: stats.orders.success, icon: <CheckCircle className="h-5 w-5" />, color: 'green' },
+        { title: '总成交额', value: `$${(stats.orders.volume / 1_000_000).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
+      ];
+      }
+      case 'withdrawals': { return [
+        { title: '总申请', value: stats.withdrawals.total, icon: <CreditCard className="h-5 w-5" />, color: 'blue' },
+        { title: '待处理', value: stats.withdrawals.pending, icon: <Clock className="h-5 w-5" />, color: 'yellow' },
+        { title: '已批准', value: stats.withdrawals.approved, icon: <CheckCircle className="h-5 w-5" />, color: 'green' },
+        { title: '总金额', value: `$${(stats.withdrawals.amount / 1_000_000).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
+      ];
+      }
+      default: { return [];
+      }
     }
-  }
+  };
 
   return (
     <AdminGuard allowedRoles={['ADMIN']}>
@@ -651,7 +682,7 @@ export default function OperationsCenter() {
                 统一管理用户、产品、订单、代理和提现
               </p>
             </div>
-            <Button onClick={() => { loadStats(); loadData(activeTab) }} disabled={loading}>
+            <Button onClick={() => { loadStats(); loadData(activeTab); }} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               刷新数据
             </Button>
@@ -670,7 +701,7 @@ export default function OperationsCenter() {
                 title={stat.title}
                 value={stat.value.toString()}
                 icon={stat.icon}
-                trend={{ value: 12, isPositive: true }}
+                change={{ value: 12, type: 'increase' }}
               />
             ))}
           </motion.div>
@@ -693,21 +724,21 @@ export default function OperationsCenter() {
                     id: 'status',
                     label: '状态',
                     type: 'select',
-                    options: activeTab === 'users' 
+                    options: activeTab === 'users'
                       ? [
                           { value: 'active', label: '活跃' },
-                          { value: 'inactive', label: '封禁' }
+                          { value: 'inactive', label: '封禁' },
                         ]
-                      : activeTab === 'orders'
+                      : (activeTab === 'orders'
                       ? [
                           { value: 'PENDING', label: '待处理' },
                           { value: 'SUCCESS', label: '成功' },
-                          { value: 'FAILED', label: '失败' }
+                          { value: 'FAILED', label: '失败' },
                         ]
                       : [
                           { value: 'active', label: '活跃' },
-                          { value: 'inactive', label: '停用' }
-                        ]
+                          { value: 'inactive', label: '停用' },
+                        ]),
                   },
                   {
                     id: 'dateRange',
@@ -717,22 +748,25 @@ export default function OperationsCenter() {
                       { value: 'today', label: '今天' },
                       { value: 'week', label: '本周' },
                       { value: 'month', label: '本月' },
-                      { value: 'quarter', label: '本季度' }
-                    ]
-                  }
+                      { value: 'quarter', label: '本季度' },
+                    ],
+                  },
                 ]}
                 values={filters}
                 onChange={setFilters}
                 onSearch={(term) => setSearchTerm(term)}
                 searchPlaceholder={
-                  activeTab === 'users' ? '搜索用户邮箱或推荐码...' :
-                  activeTab === 'products' ? '搜索产品名称或代码...' :
-                  activeTab === 'orders' ? '搜索订单ID或交易哈希...' :
-                  '搜索...'
+                  activeTab === 'users'
+? '搜索用户邮箱或推荐码...'
+                  : activeTab === 'products'
+? '搜索产品名称或代码...'
+                  : activeTab === 'orders'
+? '搜索订单ID或交易哈希...'
+                  : '搜索...'
                 }
                 onExport={() => {
                   // Export functionality now available via monitoring API
-                  window.open(`/api/monitoring/export?format=csv&type=${activeTab}`, '_blank')
+                  window.open(`/api/monitoring/export?format=csv&type=${activeTab}`, '_blank');
                 }}
               />
 
@@ -777,9 +811,9 @@ export default function OperationsCenter() {
                         <p className="text-gray-500">加载中...</p>
                       </div>
                     )}
-                    
+
                     {!loading && getCurrentData().map((entity) => renderEntityCard(entity, activeTab))}
-                    
+
                     {!loading && getCurrentData().length === 0 && (
                       <div className="text-center py-12">
                         <div className="text-gray-400 mb-4">
@@ -800,7 +834,7 @@ export default function OperationsCenter() {
           </motion.div>
 
           {/* 详情对话框 */}
-          <Dialog open={showDetail.open} onOpenChange={(open) => !open && setShowDetail({open: false, type: '', item: null})}>
+          <Dialog open={showDetail.open} onOpenChange={(open) => !open && setShowDetail({ open: false, type: '', item: null })}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
@@ -811,7 +845,7 @@ export default function OperationsCenter() {
                   {showDetail.type === 'withdrawal' && '提现详情'}
                 </DialogTitle>
               </DialogHeader>
-              
+
               {showDetail.item && (
                 <div className="space-y-4">
                   {showDetail.type === 'user' && (
@@ -834,7 +868,7 @@ export default function OperationsCenter() {
                       </div>
                     </div>
                   )}
-                  
+
                   {showDetail.type === 'order' && (
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
@@ -855,7 +889,7 @@ export default function OperationsCenter() {
                       </div>
                     </div>
                   )}
-                  
+
                   {showDetail.type === 'product' && (
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
@@ -878,9 +912,9 @@ export default function OperationsCenter() {
                   )}
                 </div>
               )}
-              
+
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDetail({open: false, type: '', item: null})}>
+                <Button variant="outline" onClick={() => setShowDetail({ open: false, type: '', item: null })}>
                   关闭
                 </Button>
                 <Button>
@@ -892,5 +926,5 @@ export default function OperationsCenter() {
         </div>
       </AdminLayout>
     </AdminGuard>
-  )
+  );
 }

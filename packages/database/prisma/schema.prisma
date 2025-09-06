@@ -196,6 +196,10 @@ model Order {
   @@index([txHash])
   @@index([createdAt])
   @@index([status])
+  // 性能优化：复合索引用于常见查询模式
+  @@index([userId, status, createdAt])
+  @@index([productId, status, createdAt])
+  @@index([status, createdAt, userId])
 }
 
 // 持仓表
@@ -258,6 +262,10 @@ model Payout {
   @@index([batchId])
   @@index([periodStart])
   @@index([isClaimable])
+  // 性能优化：复合索引用于分红查询
+  @@index([userId, isClaimable, periodStart])
+  @@index([isClaimable, createdAt, userId])
+  @@index([positionId, isClaimable, createdAt])
 }
 
 // 佣金表
@@ -386,6 +394,14 @@ model Withdrawal {
   @@index([batchId])
   @@index([walletAddress])
   @@index([txHash])
+  // 性能优化：复合索引用于提现管理
+  @@index([status, riskLevel, requestedAt])
+  @@index([userId, status, requestedAt])
+  @@index([reviewerId, status, requestedAt])
+  // 新增索引用于统计查询优化
+  @@index([status, createdAt]) // 用于按状态和时间统计
+  @@index([createdAt]) // 用于时间范围查询（如最近24小时统计）
+  @@index([status]) // 用于状态聚合查询优化
 }
 
 // 批次处理记录表

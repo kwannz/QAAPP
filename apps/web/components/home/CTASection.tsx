@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import Link from 'next/link'
-import { ArrowRight, Gift, Users, TrendingUp } from 'lucide-react'
+import { motion } from 'framer-motion';
+import { ArrowRight, Gift, Users, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 
-import { Button } from '@/components/ui'
+import { Button } from '@/components/ui';
 
 export function CTASection() {
   return (
@@ -96,7 +96,7 @@ export function CTASection() {
                     <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                
+
                 <Link href="/products">
                   <Button variant="outline" size="xl" className="w-full sm:w-auto">
                     先看看产品
@@ -125,5 +125,5 @@ export function CTASection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

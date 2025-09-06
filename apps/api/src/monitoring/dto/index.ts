@@ -38,16 +38,16 @@ export class GetMetricsDto {
 
 export class CreateAlertDto {
   @IsString()
-  title: string
+  title!: string
 
   @IsString()
-  message: string
+  message!: string
 
   @IsEnum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  severity!: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 
   @IsString()
-  module: string
+  module!: string
 
   @IsOptional()
   metadata?: any
@@ -55,7 +55,7 @@ export class CreateAlertDto {
 
 export class ResolveAlertDto {
   @IsString()
-  resolution: string
+  resolution!: string
 }
 
 export class ExportDataDto {
@@ -76,5 +76,5 @@ export class ExportDataDto {
   module?: string
 
   @IsEnum(['csv', 'json', 'excel'])
-  format: 'csv' | 'json' | 'excel'
+  format!: 'csv' | 'json' | 'excel'
 }

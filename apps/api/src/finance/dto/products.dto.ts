@@ -5,11 +5,11 @@ import { Transform } from 'class-transformer';
 export class CreateProductDto {
   @ApiProperty({ example: 'QASILVER' })
   @IsString()
-  symbol: string;
+  symbol!: string;
 
   @ApiProperty({ example: 'QA白银卡' })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ example: '30天期固定收益产品，年化收益率12%' })
   @IsOptional()
@@ -19,7 +19,7 @@ export class CreateProductDto {
   @ApiProperty({ example: 100, description: 'Minimum investment amount in USDT' })
   @IsNumber()
   @Min(1)
-  minAmount: number;
+  minAmount!: number;
 
   @ApiPropertyOptional({ example: 10000, description: 'Maximum investment amount in USDT' })
   @IsOptional()
@@ -31,12 +31,12 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  apr: number;
+  apr!: number;
 
   @ApiProperty({ example: 30, description: 'Lock period in days' })
   @IsInt()
   @Min(1)
-  lockDays: number;
+  lockDays!: number;
 
   @ApiPropertyOptional({ example: 1, description: 'NFT Token ID for this product' })
   @IsOptional()
@@ -120,28 +120,28 @@ export class ProductQueryDto {
 
 export class ProductResponseDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  symbol: string;
+  symbol!: string;
 
   @ApiProperty()
-  name: string;
+  name!: string;
 
   @ApiProperty()
   description?: string;
 
   @ApiProperty()
-  minAmount: number;
+  minAmount!: number;
 
   @ApiProperty()
   maxAmount?: number;
 
   @ApiProperty()
-  apr: number;
+  apr!: number;
 
   @ApiProperty()
-  lockDays: number;
+  lockDays!: number;
 
   @ApiProperty()
   nftTokenId?: number;
@@ -153,28 +153,28 @@ export class ProductResponseDto {
   totalSupply?: number;
 
   @ApiProperty()
-  currentSupply: number;
+  currentSupply!: number;
 
   @ApiProperty()
   availableSupply?: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty()
-  startsAt: Date;
+  startsAt!: Date;
 
   @ApiProperty()
   endsAt?: Date;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty()
-  stats: {
+  stats!: {
     totalSales: number;
     totalInvestments: number;
     soldCount: number;
@@ -185,17 +185,17 @@ export class ProductResponseDto {
 export class ProductAvailabilityDto {
   @ApiProperty({ example: 'product-id' })
   @IsString()
-  productId: string;
+  productId!: string;
 
   @ApiProperty({ example: 1000, description: 'Investment amount to check' })
   @IsNumber()
   @Min(1)
-  amount: number;
+  amount!: number;
 }
 
 export class ProductAvailabilityResponseDto {
   @ApiProperty()
-  available: boolean;
+  available!: boolean;
 
   @ApiProperty()
   reason?: string;
@@ -203,23 +203,23 @@ export class ProductAvailabilityResponseDto {
 
 export class ProductListResponseDto {
   @ApiProperty({ type: [ProductResponseDto] })
-  products: ProductResponseDto[];
+  products!: ProductResponseDto[];
 
   @ApiProperty()
-  total: number;
+  total!: number;
 
   @ApiProperty()
-  page: number;
+  page!: number;
 
   @ApiProperty()
-  limit: number;
+  limit!: number;
 
   @ApiProperty()
-  totalPages: number;
+  totalPages!: number;
 
   @ApiProperty()
-  hasNextPage: boolean;
+  hasNextPage!: boolean;
 
   @ApiProperty()
-  hasPreviousPage: boolean;
+  hasPreviousPage!: boolean;
 }

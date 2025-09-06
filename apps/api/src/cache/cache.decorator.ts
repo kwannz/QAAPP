@@ -1,5 +1,5 @@
 import { SetMetadata, applyDecorators } from '@nestjs/common';
-import { CacheLayer } from '@qa-app/shared';
+import { CacheLayer } from '../../../../packages/shared/src/types/cache.types';
 
 export interface CacheOptions {
   key?: string | ((args: any[]) => string);

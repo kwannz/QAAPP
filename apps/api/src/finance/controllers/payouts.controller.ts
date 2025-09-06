@@ -19,44 +19,45 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PayoutsService } from '../services/payouts.service';
 import { PositionsService } from '../services/positions.service';
 import { Deprecated } from '../../common/decorators/deprecated.decorator';
+import { getErrorMessage, getErrorStack } from '../../common/utils/error.utils';
 
 // DTO定义
 class ClaimPayoutsDto {
-  userId: string;
-  payoutIds: string[];
+  userId!: string;
+  payoutIds!: string[];
 }
 
 class PayoutDto {
-  id: string;
-  userId: string;
-  positionId: string;
-  amount: number;
-  periodStart: string;
-  periodEnd: string;
-  isClaimable: boolean;
+  id!: string;
+  userId!: string;
+  positionId!: string;
+  amount!: number;
+  periodStart!: string;
+  periodEnd!: string;
+  isClaimable!: boolean;
   claimedAt?: string;
   claimTxHash?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt!: string;
+  updatedAt!: string;
 }
 
 class ClaimablePayoutsResponseDto {
-  payouts: PayoutDto[];
-  totalAmount: number;
+  payouts!: PayoutDto[];
+  totalAmount!: number;
 }
 
 class PayoutHistoryResponseDto {
-  payouts: PayoutDto[];
-  total: number;
-  totalClaimed: number;
-  totalPending: number;
+  payouts!: PayoutDto[];
+  total!: number;
+  totalClaimed!: number;
+  totalPending!: number;
 }
 
 class ClaimResponseDto {
-  success: boolean;
-  claimedAmount: number;
-  txHash: string;
-  claimedPayouts: string[];
+  success!: boolean;
+  claimedAmount!: number;
+  txHash!: string;
+  claimedPayouts!: string[];
 }
 
 @ApiTags('Payouts')
@@ -140,9 +141,9 @@ export class PayoutsController {
         payouts: allPayouts,
         totalAmount,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to get claimable payouts for user ${userId}:`, error);
-      throw new BadRequestException(`获取可领取收益失败: ${error.message}`);
+      throw new BadRequestException(`获取可领取收益失败: ${getErrorMessage(error)}`);
     }
   }
 
@@ -226,9 +227,9 @@ export class PayoutsController {
         totalClaimed,
         totalPending,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to get payout history for user ${userId}:`, error);
-      throw new BadRequestException(`获取收益历史失败: ${error.message}`);
+      throw new BadRequestException(`获取收益历史失败: ${getErrorMessage(error)}`);
     }
   }
 
@@ -294,7 +295,7 @@ export class PayoutsController {
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(`收益领取失败: ${error.message}`);
+      throw new BadRequestException(`收益领取失败: ${getErrorMessage(error)}`);
     }
   }
 
@@ -329,12 +330,12 @@ export class PayoutsController {
         createdAt: payout.createdAt.toISOString(),
         updatedAt: payout.updatedAt.toISOString(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to get payout ${payoutId}:`, error);
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(`获取收益详情失败: ${error.message}`);
+      throw new BadRequestException(`获取收益详情失败: ${getErrorMessage(error)}`);
     }
   }
 }

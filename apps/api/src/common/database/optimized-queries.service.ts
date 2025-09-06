@@ -509,12 +509,7 @@ export class OptimizedQueriesService {
         }
 
         // 使用原生SQL查询提高性能
-        const [
-          userStats,
-          orderStats,
-          withdrawalStats,
-          auditStats
-        ] = await Promise.all([
+        const results = await Promise.all([
           // 用户统计
           this.database.$queryRaw`
             SELECT 
@@ -562,10 +557,10 @@ export class OptimizedQueriesService {
         return {
           timeRange,
           period: { startDate, endDate: now },
-          users: userStats[0],
-          orders: orderStats[0],
-          withdrawals: withdrawalStats[0],
-          audit: auditStats[0],
+          users: (results[0] as any[])[0] as any,
+          orders: (results[1] as any[])[0] as any,
+          withdrawals: (results[2] as any[])[0] as any,
+          audit: (results[3] as any[])[0] as any,
           lastUpdated: now,
         };
       },
@@ -574,33 +569,277 @@ export class OptimizedQueriesService {
   }
 
   /**
-   * 清理过期缓存和优化数据库连接
+   * 获取用户仪表板数据 - 综合用户信息视图
    */
-  async performMaintenance() {
-    try {
-      // 清理所有缓存 (clearExpiredCache method doesn't exist)
-      await this.performanceOptimizer.clearAllCaches();
+  async getUserDashboardData(userId: string) {
+    const cacheKey = `user_dashboard:${userId}`;
+    
+    return this.performanceOptimizer.optimizeQuery(
+      cacheKey,
+      async () => {
+        const [user, positions, recentOrders, pendingWithdrawals] = await Promise.all([
+          this.database.user.findUnique({
+            where: { id: userId },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              kycStatus: true,
+              referralCode: true,
+              createdAt: true,
+              wallets: {
+                where: { isPrimary: true },
+                select: { address: true, chainId: true },
+                take: 1
+              }
+            }
+          }),
+          this.database.position.findMany({
+            where: { userId, status: 'ACTIVE' },
+            select: {
+              id: true,
+              principal: true,
+              product: {
+                select: { name: true, symbol: true }
+              }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          }),
+          this.database.order.findMany({
+            where: { userId },
+            select: {
+              id: true,
+              usdtAmount: true,
+              status: true,
+              createdAt: true,
+              product: {
+                select: { name: true, symbol: true }
+              }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 5
+          }),
+          this.database.withdrawal.findMany({
+            where: { userId, status: 'PENDING' },
+            select: {
+              id: true,
+              amount: true,
+              requestedAt: true,
+              status: true
+            },
+            orderBy: { requestedAt: 'desc' }
+          })
+        ]);
 
-      // 数据库连接池状态检查
-      const connectionInfo = await this.database.$queryRaw`
-        SELECT 
-          count(*) as total_connections,
-          count(case when state = 'active' then 1 end) as active_connections,
-          count(case when state = 'idle' then 1 end) as idle_connections
-        FROM pg_stat_activity 
-        WHERE datname = current_database()
-      `;
+        const totalBalance = positions.reduce((sum, pos) => sum + Number(pos.principal || 0), 0);
+        const totalEarnings = positions.reduce((sum, pos) => {
+          const invested = Number(pos.principal);
+          // 简化：假设当前值等于本金 (实际应该从其他数据源计算)
+          const current = Number(pos.principal || 0);
+          return sum + (current - invested);
+        }, 0);
 
-      this.logger.log(`Database maintenance completed. Connections: ${JSON.stringify(connectionInfo)}`);
-      
-      return {
-        cacheCleared: true,
-        connectionStatus: connectionInfo,
-        maintenanceAt: new Date()
-      };
-    } catch (error) {
-      this.logger.error('Database maintenance failed', error);
-      throw error;
+        return {
+          user,
+          positions,
+          recentOrders,
+          pendingWithdrawals,
+          totalBalance,
+          totalEarnings,
+          lastUpdated: new Date()
+        };
+      },
+      { ttl: 120000 } // 2分钟缓存
+    );
+  }
+
+  /**
+   * 获取管理员分析数据 - 系统级统计视图
+   */
+  async getAdminAnalytics(startDate?: Date, endDate?: Date) {
+    const timeKey = startDate && endDate ? `${startDate.toISOString()}-${endDate.toISOString()}` : 'all';
+    const cacheKey = `admin_analytics:${timeKey}`;
+    
+    return this.performanceOptimizer.optimizeQuery(
+      cacheKey,
+      async () => {
+        const dateFilter: any = {};
+        if (startDate || endDate) {
+          if (startDate) dateFilter.gte = startDate;
+          if (endDate) dateFilter.lte = endDate;
+        }
+        
+        const whereClause = Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {};
+
+        const results = await Promise.all([
+          this.database.$queryRaw`
+            SELECT 
+              COUNT(*) as total_users,
+              COUNT(CASE WHEN is_active = true THEN 1 END) as active_users,
+              COUNT(CASE WHEN kyc_status = 'APPROVED' THEN 1 END) as kyc_approved,
+              COUNT(CASE WHEN role = 'AGENT' THEN 1 END) as agents
+            FROM users
+            ${Object.keys(dateFilter).length > 0 ? `WHERE created_at >= ${dateFilter.gte} ${dateFilter.lte ? `AND created_at <= ${dateFilter.lte}` : ''}` : ''}
+          `,
+          this.database.$queryRaw`
+            SELECT 
+              COUNT(*) as total_orders,
+              COUNT(CASE WHEN status = 'SUCCESS' THEN 1 END) as successful_orders,
+              COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_orders,
+              COALESCE(AVG(usdt_amount), 0) as avg_order_size
+            FROM orders
+            ${Object.keys(dateFilter).length > 0 ? `WHERE created_at >= ${dateFilter.gte} ${dateFilter.lte ? `AND created_at <= ${dateFilter.lte}` : ''}` : ''}
+          `,
+          this.database.$queryRaw`
+            SELECT 
+              COALESCE(SUM(CASE WHEN status = 'SUCCESS' THEN usdt_amount ELSE 0 END), 0) as total_revenue,
+              COALESCE(SUM(CASE WHEN status = 'PENDING' THEN usdt_amount ELSE 0 END), 0) as pending_revenue
+            FROM orders
+            ${Object.keys(dateFilter).length > 0 ? `WHERE created_at >= ${dateFilter.gte} ${dateFilter.lte ? `AND created_at <= ${dateFilter.lte}` : ''}` : ''}
+          `,
+          this.database.$queryRaw`
+            SELECT 
+              COUNT(*) as total_withdrawals,
+              COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) as completed_withdrawals,
+              COALESCE(SUM(CASE WHEN status = 'COMPLETED' THEN amount ELSE 0 END), 0) as total_withdrawn
+            FROM withdrawals
+            ${Object.keys(dateFilter).length > 0 ? `WHERE requested_at >= ${dateFilter.gte} ${dateFilter.lte ? `AND requested_at <= ${dateFilter.lte}` : ''}` : ''}
+          `,
+          this.database.$queryRaw`
+            SELECT 
+              COUNT(*) as active_connections,
+              COUNT(CASE WHEN state = 'idle' THEN 1 END) as idle_connections
+            FROM pg_stat_activity 
+            WHERE datname = current_database()
+          `
+        ]);
+
+        return {
+          totalUsers: Number(((results[0] as any[])[0] as any).total_users),
+          activeUsers: Number(((results[0] as any[])[0] as any).active_users),
+          totalOrders: Number(((results[1] as any[])[0] as any).total_orders),
+          totalRevenue: Number(((results[2] as any[])[0] as any).total_revenue),
+          pendingRevenue: Number(((results[2] as any[])[0] as any).pending_revenue),
+          withdrawalStats: (results[3] as any[])[0] as any,
+          systemHealth: (results[4] as any[])[0] as any,
+          period: { startDate, endDate },
+          lastUpdated: new Date()
+        };
+      },
+      { ttl: 300000 } // 5分钟缓存
+    );
+  }
+
+  /**
+   * 获取用户持仓数据 - 分页优化版本
+   */
+  async getUserPositions(userId: string, page: number = 1, limit: number = 20) {
+    const cacheKey = `user_positions:${userId}:${page}:${limit}`;
+    
+    return this.performanceOptimizer.optimizeQuery(
+      cacheKey,
+      async () => {
+        const skip = (page - 1) * limit;
+
+        const [positions, total] = await Promise.all([
+          this.database.position.findMany({
+            where: { userId },
+            select: {
+              id: true,
+              principal: true,
+              status: true,
+              createdAt: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  symbol: true,
+                  minAmount: true
+                }
+              },
+              payouts: {
+                select: {
+                  id: true,
+                  amount: true,
+                  isClaimable: true,
+                  claimedAt: true
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 3 // 最近3次分红
+              }
+            },
+            orderBy: [
+              { status: 'asc' }, // ACTIVE positions first
+              { createdAt: 'desc' }
+            ],
+            skip,
+            take: limit
+          }),
+          this.database.position.count({
+            where: { userId }
+          })
+        ]);
+
+        return {
+          positions,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            hasNext: skip + limit < total,
+            hasPrev: page > 1
+          }
+        };
+      },
+      { ttl: 180000 } // 3分钟缓存
+    );
+  }
+
+  /**
+   * 执行数据库维护操作
+   */
+  async performMaintenance(): Promise<{
+    status: string;
+    operations: Array<{ name: string; success: boolean; duration: number }>;
+    summary: string;
+  }> {
+    const startTime = Date.now();
+    const operations: Array<{ name: string; success: boolean; duration: number }> = [];
+
+    // 执行维护操作
+    const maintenanceTasks = [
+      { name: 'ANALYZE Tables', query: 'ANALYZE;' },
+      { name: 'REINDEX Database', query: 'REINDEX DATABASE qa_database;' }
+    ];
+
+    for (const task of maintenanceTasks) {
+      const taskStart = Date.now();
+      try {
+        await this.database.$executeRawUnsafe(task.query);
+        operations.push({
+          name: task.name,
+          success: true,
+          duration: Date.now() - taskStart
+        });
+      } catch (error) {
+        operations.push({
+          name: task.name,
+          success: false,
+          duration: Date.now() - taskStart
+        });
+        this.logger.error(`Maintenance task failed: ${task.name}`, error);
+      }
     }
+
+    const totalDuration = Date.now() - startTime;
+    const successCount = operations.filter(op => op.success).length;
+
+    return {
+      status: successCount === operations.length ? 'success' : 'partial',
+      operations,
+      summary: `Completed ${successCount}/${operations.length} maintenance tasks in ${totalDuration}ms`
+    };
   }
 }

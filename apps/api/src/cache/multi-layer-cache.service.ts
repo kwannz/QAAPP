@@ -2,14 +2,14 @@ import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config';
 import Redis, { Cluster } from 'ioredis';
 import * as LRU from 'lru-cache';
-// msgpack-lite not available - using JSON serialization
 import {
   CacheLayer,
-  CacheOperation,
   CacheStats,
   MultiLayerCacheConfig,
+  CacheOperation,
   CacheKey
-} from '@qa-app/shared';
+} from '../types/cache.types';
+// msgpack-lite not available - using JSON serialization
 
 interface CacheItem<T = any> {
   value: T;
@@ -22,9 +22,10 @@ interface CacheItem<T = any> {
 export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MultiLayerCacheService.name);
   private l1Cache: any;
-  private l2Cache: Redis | Cluster;
+  private l2Cache!: Redis | Cluster;
   private config: MultiLayerCacheConfig;
   private stats: Map<CacheLayer, CacheStats> = new Map();
+  private statsCollectionIntervalId!: NodeJS.Timeout;
 
   constructor(private configService: ConfigService) {
     this.config = this.loadCacheConfig();
@@ -39,8 +40,16 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
+    this.logger.log('Cleaning up Multi-Layer Cache Service...');
+    
+    if (this.statsCollectionIntervalId) {
+      clearInterval(this.statsCollectionIntervalId);
+    }
+    
     await this.l2Cache.disconnect();
     this.l1Cache.clear();
+    
+    this.logger.log('Multi-Layer Cache Service cleanup completed');
   }
 
   private loadCacheConfig(): MultiLayerCacheConfig {
@@ -398,7 +407,7 @@ export class MultiLayerCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async startStatsCollection(): Promise<void> {
-    setInterval(async () => {
+    this.statsCollectionIntervalId = setInterval(async () => {
       try {
         await this.getStats();
       } catch (error) {

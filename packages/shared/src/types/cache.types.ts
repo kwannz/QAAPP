@@ -95,5 +95,5 @@ export interface Alert {
   acknowledgedAt?: Date;
   resolved: boolean;
   resolvedAt?: Date;
-  metadata?: any;
+  metadata?: unknown;
 }

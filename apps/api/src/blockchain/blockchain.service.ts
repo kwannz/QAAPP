@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ethers } from 'ethers';
+import { getErrorMessage, getErrorStack } from '../common/utils/error.utils';
 
 interface TransactionReceipt {
   transactionHash: string;
@@ -134,7 +135,7 @@ export class BlockchainService {
     try {
       // 在实际环境中，这里应该从文件系统或配置中加载ABI
       // 这里提供基础的ERC20和我们合约的ABI结构
-      const abis = {
+      const abis: { [key: string]: string[] } = {
         'MockUSDT': [
           'function transfer(address to, uint256 amount) public returns (bool)',
           'function transferFrom(address from, address to, uint256 amount) public returns (bool)',
@@ -168,7 +169,7 @@ export class BlockchainService {
         ]
       };
 
-      return abis[contractName] || null;
+      return abis[contractName as keyof typeof abis] || null;
     } catch (error) {
       this.logger.error(`Failed to load ABI for ${contractName}:`, error);
       return null;
@@ -210,7 +211,7 @@ export class BlockchainService {
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString(),
         from: receipt.from,
-        to: receipt.to,
+        to: receipt.to ?? undefined,
         // value: receipt.value?.toString(),
       };
     } catch (error) {
@@ -450,11 +451,11 @@ export class BlockchainService {
         },
         timestamp: new Date().toISOString(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Blockchain health check failed:', error);
       return {
         status: 'unhealthy',
-        error: error.message,
+        error: getErrorMessage(error),
         timestamp: new Date().toISOString(),
       };
     }

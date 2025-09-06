@@ -1,6 +1,0 @@
-{
-  "teamId": "team_qa-app",
-  "apiUrl": "https://turbo.build/api",
-  "loginUrl": "https://turbo.build",
-  "timeout": 30
-}

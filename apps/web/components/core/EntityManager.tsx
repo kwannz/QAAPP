@@ -19,21 +19,23 @@ import {
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  Label,
+} from '@/components/ui';
+import { cn } from '@/lib/utils';
+
 import type { TableColumn, TableAction, BatchAction } from './DataTable';
 import { DataTable } from './DataTable';
 import type { FormField } from './FormBuilder';
 import { FormBuilder } from './FormBuilder';
 
-import { 
-  Badge, 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Dialog 
-} from '@/components/ui';
-import { cn } from '@/lib/utils';
 
 export interface EntityPermissions {
   canView?: boolean
@@ -53,14 +55,20 @@ export interface EntityActions<T = any> {
   onExport?: () => Promise<void>
   onImport?: (file: File) => Promise<void>
   onRefresh?: () => Promise<void>
-  customActions?: {
+  customActions?: ({
     label: string
     icon?: ReactNode
     onClick: (item: T) => void
     variant?: 'default' | 'secondary' | 'destructive' | 'outline'
     show?: (item: T) => boolean
-    bulk?: boolean
-  }[]
+    bulk?: false
+  } | {
+    label: string
+    icon?: ReactNode
+    onClick: (selectedRows: T[]) => void
+    variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+    bulk: true
+  })[]
 }
 
 interface EntityManagerProperties<T = any> {
@@ -238,7 +246,15 @@ export function EntityManager<T extends Record<string, any>>({
 
   // 添加自定义操作
   if (actions.customActions) {
-    tableActions.push(...actions.customActions.filter(action => !action.bulk));
+    const individualActions = actions.customActions.filter((action): action is {
+      label: string
+      icon?: ReactNode
+      onClick: (item: T) => void
+      variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+      show?: (item: T) => boolean
+      bulk?: false
+    } => !action.bulk);
+    tableActions.push(...individualActions);
   }
 
   // 构建批量操作
@@ -255,7 +271,14 @@ export function EntityManager<T extends Record<string, any>>({
 
   // 添加自定义批量操作
   if (actions.customActions) {
-    batchActions.push(...actions.customActions.filter(action => action.bulk));
+    const bulkActions = actions.customActions.filter((action): action is {
+      label: string
+      icon?: ReactNode
+      onClick: (selectedRows: T[]) => void
+      variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+      bulk: true
+    } => action.bulk === true);
+    batchActions.push(...bulkActions);
   }
 
   return (
@@ -293,7 +316,7 @@ export function EntityManager<T extends Record<string, any>>({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => document.querySelector('#import-file')?.click()}
+              onClick={() => (document.querySelector('#import-file') as HTMLElement)?.click()}
               className="flex items-center gap-2"
             >
               <Upload className="h-4 w-4" />

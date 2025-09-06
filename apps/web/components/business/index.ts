@@ -4,20 +4,20 @@
  */
 
 // Transaction Management
-export { TransactionFlow, useTransactionFlow } from './TransactionFlow'
-export type { TransactionType, TransactionStep } from './TransactionFlow'
+export { TransactionFlow, useTransactionFlow } from './TransactionFlow';
+export type { TransactionType, TransactionStep } from './TransactionFlow';
 
 // Portfolio Management
-export { PortfolioManager, usePortfolioManager } from './PortfolioManager'
+export { PortfolioManager, usePortfolioManager } from './PortfolioManager';
 
-// Wallet Management
-export { WalletManager, useWalletManager } from './WalletManager'
+// Wallet Management - imported from wallet system
+export { WalletManager, useWalletManager } from '../wallet/WalletSystem';
 
 // Business component utilities
 export const BUSINESS_COMPONENTS = {
   TransactionFlow: 'TransactionFlow',
-  PortfolioManager: 'PortfolioManager', 
-  WalletManager: 'WalletManager'
-} as const
+  PortfolioManager: 'PortfolioManager',
+  WalletManager: 'WalletManager',
+} as const;
 
 export type BusinessComponentType = keyof typeof BUSINESS_COMPONENTS

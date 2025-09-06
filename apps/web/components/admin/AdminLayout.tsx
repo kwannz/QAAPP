@@ -1,15 +1,12 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Users, 
-  UserCheck, 
-  ShoppingBag, 
-  CreditCard, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  ShoppingBag,
+  CreditCard,
+  FileText,
   UserCog,
   Settings,
   LogOut,
@@ -17,12 +14,17 @@ import {
   X,
   Bell,
   Search,
-  Wallet
-} from 'lucide-react'
-import { Button, Card, Input } from '@/components/ui'
-import { useAuthStore } from '../../lib/auth-context'
+  Wallet,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import { useState } from 'react';
 
-interface AdminLayoutProps {
+import { Button, Card, Input } from '@/components/ui';
+
+import { useAuthStore } from '../../lib/auth-context';
+
+interface AdminLayoutProperties {
   children: React.ReactNode
 }
 
@@ -31,62 +33,62 @@ const adminNavigation = [
     name: '总览',
     href: '/admin',
     icon: LayoutDashboard,
-    description: '系统概览和统计'
+    description: '系统概览和统计',
   },
   {
     name: 'KYC审核',
     href: '/admin/kycreview',
     icon: UserCheck,
-    description: '用户身份验证审核'
+    description: '用户身份验证审核',
   },
   {
     name: '用户管理',
     href: '/admin/users',
     icon: Users,
-    description: '用户账户管理'
+    description: '用户账户管理',
   },
   {
     name: '产品审核',
     href: '/admin/products',
     icon: ShoppingBag,
-    description: '投资产品管理'
+    description: '投资产品管理',
   },
   {
     name: '订单审核',
     href: '/admin/orders',
     icon: CreditCard,
-    description: '交易订单审核'
+    description: '交易订单审核',
   },
   {
     name: '提现审核',
     href: '/admin/withdrawals',
     icon: Wallet,
-    description: '资金提现审核'
+    description: '资金提现审核',
   },
   {
     name: '审计日志',
     href: '/admin/audit-logs',
     icon: FileText,
-    description: '系统操作记录'
+    description: '系统操作记录',
   },
   {
     name: '代理管理',
     href: '/admin/agents',
     icon: UserCog,
-    description: '代理商管理'
+    description: '代理商管理',
   },
-]
+];
 
-export function AdminLayout({ children }: AdminLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, logout } = useAuthStore()
-  const pathname = usePathname()
-  const router = useRouter()
+export function AdminLayout({ children }: AdminLayoutProperties) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthStore();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = () => {
-    logout()
-    router.push('/auth/login')
-  }
+    logout();
+    router.push('/auth/login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,8 +98,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
           <div className="flex items-center justify-between px-4 py-6 border-b">
             <h2 className="text-lg font-semibold text-gray-900">管理后台</h2>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(false)}
             >
@@ -106,8 +108,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <nav className="flex-1 px-4 py-6 space-y-2">
             {adminNavigation.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.name}
@@ -125,7 +127,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <div className="text-xs text-gray-500">{item.description}</div>
                   </div>
                 </Link>
-              )
+              );
             })}
           </nav>
         </div>
@@ -145,11 +147,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </div>
             </div>
           </div>
-          
+
           <nav className="flex-1 px-6 py-6 space-y-2 overflow-y-auto">
             {adminNavigation.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.name}
@@ -166,7 +168,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
                   </div>
                 </Link>
-              )
+              );
             })}
           </nav>
 
@@ -186,8 +188,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <p className="text-xs text-gray-500">{user?.role || 'ADMIN'}</p>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={handleLogout}
                 className="text-gray-500 hover:text-gray-700"
@@ -213,7 +215,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <Menu className="w-5 h-5" />
               </Button>
-              
+
               <div className="hidden md:flex items-center space-x-2">
                 <Search className="w-4 h-4 text-gray-400" />
                 <Input
@@ -226,9 +228,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
               </Button>
-              
+
               <div className="hidden lg:flex items-center space-x-3">
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">
@@ -252,5 +254,5 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </main>
       </div>
     </div>
-  )
+  );
 }

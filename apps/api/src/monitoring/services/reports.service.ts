@@ -101,7 +101,7 @@ export class ReportsService {
     // Simulate processing
     setTimeout(() => {
       report.status = 'COMPLETED';
-      report['downloadUrl'] = `/api/reports/${report.id}/download`;
+      (report as any)['downloadUrl'] = `/api/reports/${report.id}/download`;
     }, 5000);
 
     return {

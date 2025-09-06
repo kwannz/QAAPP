@@ -1,11 +1,17 @@
-'use client'
+'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactNode, useState, useEffect, createContext, useContext } from 'react'
-import { ClientOnly } from '../components/ClientOnly'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, createRef } from 'react';
+import dynamic from 'next/dynamic';
 
-// Import RainbowKit styles
-import '@rainbow-me/rainbowkit/styles.css'
+import { ClientOnly } from '../components/ClientOnly';
+import { MockWagmiProvider } from './wagmi-mock-provider';
+
+import { isBrowserEnvironment, installBrowserPolyfills } from './browser-polyfills';
+
+// RainbowKit styles are loaded via Next.js app configuration
+// Removed dynamic import to fix TypeScript compilation issues
 
 // 创建一个安全的Web3上下文
 interface SafeWeb3Context {
@@ -28,35 +34,62 @@ const defaultWeb3Context: SafeWeb3Context = {
   disconnect: async () => {
     // Web3 not initialized - disconnect disabled
   },
+};
+
+const Web3Context = createContext<SafeWeb3Context>(defaultWeb3Context);
+
+export const useSafeWeb3 = () => useContext(Web3Context);
+
+// Simple wrapper for fallback mode - now using proper MockWagmiProvider
+function SimpleFallbackWrapper({ children }: { children: ReactNode }) {
+  return (
+    <MockWagmiProvider>
+      {children}
+    </MockWagmiProvider>
+  );
 }
-
-const Web3Context = createContext<SafeWeb3Context>(defaultWeb3Context)
-
-export const useSafeWeb3 = () => useContext(Web3Context)
 
 // 安全的Wagmi提供者包装器
 function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagmiConfig?: any }) {
-  if (!wagmiConfig) {
-    // 如果没有Wagmi配置，提供模拟的Wagmi context以避免错误
-    return (
-      <div data-wagmi-provider="mock">
-        {children}
-      </div>
-    )
-  }
-  
-  // 动态加载Wagmi组件
-  const [WagmiProvider, setWagmiProvider] = useState<any>(null)
-  const [RainbowKitProvider, setRainbowKitProvider] = useState<any>(null)
-  
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [WagmiProvider, setWagmiProvider] = useState<any>(null);
+  const [RainbowKitProvider, setRainbowKitProvider] = useState<any>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [useWagmi, setUseWagmi] = useState(false);
+
   useEffect(() => {
+    // 确保浏览器 polyfills 已安装
+    installBrowserPolyfills();
+
+    // 只在浏览器环境且有配置时初始化
+    if (!isBrowserEnvironment() || !wagmiConfig) {
+      setIsInitialized(true);
+      return;
+    }
+
     const loadWagmi = async () => {
       try {
-        const { WagmiProvider: WagmiComp } = await import('wagmi')
-        const { RainbowKitProvider: RainbowComp, lightTheme, darkTheme } = await import('@rainbow-me/rainbowkit')
-        
-        setWagmiProvider(() => WagmiComp)
-        setRainbowKitProvider(() => (props: any) => (
+        // 确保配置存在再加载组件
+        if (!wagmiConfig) {
+          throw new Error('No wagmi config available');
+        }
+
+        // 动态导入以避免SSR问题
+        const [wagmiModule, rainbowkitModule] = await Promise.all([
+          import('wagmi'),
+          import('@rainbow-me/rainbowkit'),
+        ]);
+
+        const { WagmiProvider: WagmiComp } = wagmiModule;
+        const { RainbowKitProvider: RainbowComp, lightTheme, darkTheme } = rainbowkitModule;
+
+        // 验证组件已正确加载
+        if (!WagmiComp || !RainbowComp) {
+          throw new Error('Failed to load Wagmi/RainbowKit components');
+        }
+
+        setWagmiProvider(() => WagmiComp);
+        setRainbowKitProvider(() => (properties: any) => (
           <RainbowComp
             theme={{
               lightMode: lightTheme({
@@ -76,42 +109,72 @@ function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagm
               appName: 'QA Fixed Income Platform',
               learnMoreUrl: 'https://qa-app.com',
             }}
-            {...props}
+            {...properties}
           />
-        ))
+        ));
+
+        setUseWagmi(true);
+        setIsInitialized(true);
+        console.log('✅ Wagmi/RainbowKit components loaded successfully');
       } catch (error) {
-        // Failed to load Wagmi components - fallback to loading state
+        console.warn('❌ Failed to load Wagmi/RainbowKit components, using fallback mode:', error);
+        setLoadError(error instanceof Error ? error.message : 'Unknown error');
+        setUseWagmi(false);
+        setIsInitialized(true);
       }
-    }
-    
-    loadWagmi()
-  }, [])
-  
-  if (!WagmiProvider || !RainbowKitProvider) {
+    };
+
+    loadWagmi();
+  }, [wagmiConfig]);
+
+  // Loading state - always render children to maintain hook consistency
+  if (!isInitialized) {
     return (
-      <div data-wagmi-provider="loading">
+      <SimpleFallbackWrapper>
+        <div data-wagmi-provider="loading">
+          {children}
+        </div>
+      </SimpleFallbackWrapper>
+    );
+  }
+
+  // Success state - provide real Wagmi context
+  if (useWagmi && WagmiProvider && RainbowKitProvider && wagmiConfig) {
+    try {
+      return (
+        <WagmiProvider config={wagmiConfig}>
+          <RainbowKitProvider>
+            <div data-wagmi-provider="active">
+              {children}
+            </div>
+          </RainbowKitProvider>
+        </WagmiProvider>
+      );
+    } catch (error) {
+      console.error('Runtime error in Wagmi provider, falling back to mock context:', error);
+      // Fall through to mock context
+    }
+  }
+
+  // Fallback state - use mock context to prevent hook violations
+  console.info('Using mock Web3 context - wallet features disabled');
+  return (
+    <SimpleFallbackWrapper>
+      <div data-wagmi-provider="fallback" title={loadError || 'Web3 disabled'}>
         {children}
       </div>
-    )
-  }
-  
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <RainbowKitProvider>
-        {children}
-      </RainbowKitProvider>
-    </WagmiProvider>
-  )
+    </SimpleFallbackWrapper>
+  );
 }
 
-interface SafeWeb3ProviderProps {
+interface SafeWeb3ProviderProperties {
   children: ReactNode
 }
 
 // 客户端Web3提供者
-function ClientWeb3Provider({ children }: SafeWeb3ProviderProps) {
-  const [web3State, setWeb3State] = useState<SafeWeb3Context>(defaultWeb3Context)
-  const [wagmiConfig, setWagmiConfig] = useState<any>(null)
+function ClientWeb3Provider({ children }: SafeWeb3ProviderProperties) {
+  const [web3State, setWeb3State] = useState<SafeWeb3Context>(defaultWeb3Context);
+  const [wagmiConfig, setWagmiConfig] = useState<any>(null);
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -119,46 +182,64 @@ function ClientWeb3Provider({ children }: SafeWeb3ProviderProps) {
           queries: {
             staleTime: 60 * 1000,
             retry: (failureCount, error) => {
-              if (error?.message?.includes('user rejected') || 
-                  error?.message?.includes('User denied')) {
-                return false
+              if (error?.message?.includes('user rejected')
+                  || error?.message?.includes('User denied')) {
+                return false;
               }
-              return failureCount < 3
+              return failureCount < 3;
             },
           },
         },
-      })
-  )
+      }),
+  );
 
   useEffect(() => {
     const initializeWeb3 = async () => {
+      // 确保 polyfills 已安装
+      installBrowserPolyfills();
+
+      // 只在浏览器环境中初始化
+      if (!isBrowserEnvironment()) {
+        return;
+      }
+
       try {
         // 动态导入Web3配置
-        const { wagmiConfig: config } = await import('./wagmi-config')
-        
-        setWagmiConfig(config)
-        
-        // 更新状态以启用Web3功能
-        setWeb3State({
-          isWeb3Enabled: true,
-          isConnected: false,
-          connect: async () => {
-            // Connect wallet functionality handled by Wagmi
-          },
-          disconnect: async () => {
-            // Disconnect wallet functionality handled by Wagmi
-          },
-        })
-        
+        const { createWagmiConfig } = await import('./wagmi-config');
+
+        // 使用工厂函数创建配置
+        const config = createWagmiConfig();
+
+        if (config) {
+          setWagmiConfig(config);
+
+          // 更新状态以启用Web3功能
+          setWeb3State({
+            isWeb3Enabled: true,
+            isConnected: false,
+            connect: async () => {
+              // Connect wallet functionality handled by Wagmi
+            },
+            disconnect: async () => {
+              // Disconnect wallet functionality handled by Wagmi
+            },
+          });
+        } else {
+          // 配置创建失败，但应用仍然可以工作
+          console.warn('Web3 config creation failed, running in fallback mode');
+        }
+
         // Web3 initialized successfully with proper Wagmi provider
       } catch (error) {
         // Failed to initialize Web3 - application continues with fallback state
+        console.warn('Web3 initialization failed:', error);
+
         // 保持默认状态，应用仍然可以工作
       }
-    }
+    };
 
-    initializeWeb3()
-  }, [])
+    initializeWeb3();
+  }, []);
 
   return (
     <Web3Context.Provider value={web3State}>
@@ -168,11 +249,11 @@ function ClientWeb3Provider({ children }: SafeWeb3ProviderProps) {
         </SafeWagmiWrapper>
       </QueryClientProvider>
     </Web3Context.Provider>
-  )
+  );
 }
 
 // SSR安全的Web3提供者
-export function SSRSafeWeb3Provider({ children }: SafeWeb3ProviderProps) {
+export function SSRSafeWeb3Provider({ children }: SafeWeb3ProviderProperties) {
   return (
     <ClientOnly fallback={
       <Web3Context.Provider value={defaultWeb3Context}>
@@ -180,10 +261,11 @@ export function SSRSafeWeb3Provider({ children }: SafeWeb3ProviderProps) {
           {children}
         </QueryClientProvider>
       </Web3Context.Provider>
-    }>
+    }
+    >
       <ClientWeb3Provider>
         {children}
       </ClientWeb3Provider>
     </ClientOnly>
-  )
+  );
 }

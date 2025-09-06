@@ -1,7 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 import {
   Activity,
   CreditCard,
@@ -15,14 +14,17 @@ import {
   ArrowDownLeft,
   Shield,
   AlertTriangle,
-  CheckCircle
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
-import { Header } from '../../../components/layout/Header'
-import { ProtectedRoute } from '../../../components/auth/ProtectedRoute'
-import { TabContainer } from '../../../components/common/TabContainer'
-import { FilterPanel } from '../../../components/common/FilterPanel'
-import { useAuthStore } from '../../../lib/auth-context'
+  CheckCircle,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
+
+import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
+import { FilterPanel } from '../../../components/common/FilterPanel';
+import { TabContainer } from '../../../components/common/TabContainer';
+import { Header } from '../../../components/layout/Header';
+import { useAuthStore } from '../../../lib/auth-context';
 
 interface ActivityLog {
   id: string
@@ -60,7 +62,7 @@ const mockActivities: ActivityLog[] = [
     status: 'SUCCESS',
     description: '用户成功登录',
     timestamp: '2024-03-15T10:30:00Z',
-    details: { ip: '192.168.1.100', device: 'Chrome 浏览器', location: '上海' }
+    details: { ip: '192.168.1.100', device: 'Chrome 浏览器', location: '上海' },
   },
   {
     id: 'act-002',
@@ -69,7 +71,7 @@ const mockActivities: ActivityLog[] = [
     status: 'SUCCESS',
     description: '购买QA黄金卡产品',
     timestamp: '2024-03-15T09:15:00Z',
-    details: { ip: '192.168.1.100' }
+    details: { ip: '192.168.1.100' },
   },
   {
     id: 'act-003',
@@ -78,32 +80,32 @@ const mockActivities: ActivityLog[] = [
     status: 'SUCCESS',
     description: '用户修改登录密码',
     timestamp: '2024-03-14T16:20:00Z',
-    details: { ip: '192.168.1.100', device: 'iPhone Safari' }
-  }
-]
+    details: { ip: '192.168.1.100', device: 'iPhone Safari' },
+  },
+];
 
 const mockTransactions: Transaction[] = [
   {
     id: 'tx-001',
     type: 'INVESTMENT',
     direction: 'OUT',
-    amount: 10000,
+    amount: 10_000,
     currency: 'USDT',
     status: 'COMPLETED',
     description: '购买QA黄金卡',
     timestamp: '2024-03-15T09:15:00Z',
     fee: 5,
-    hash: '0x1234...abcd'
+    hash: '0x1234...abcd',
   },
   {
     id: 'tx-002',
     type: 'COMMISSION',
     direction: 'IN',
-    amount: 250.50,
+    amount: 250.5,
     currency: 'USDT',
     status: 'COMPLETED',
     description: '推荐佣金',
-    timestamp: '2024-03-14T14:30:00Z'
+    timestamp: '2024-03-14T14:30:00Z',
   },
   {
     id: 'tx-003',
@@ -114,20 +116,20 @@ const mockTransactions: Transaction[] = [
     status: 'PENDING',
     description: '收益提取',
     timestamp: '2024-03-14T11:20:00Z',
-    fee: 10
-  }
-]
+    fee: 10,
+  },
+];
 
 export default function UserActivityCenter() {
-  const { user } = useAuthStore()
-  const [activeTab, setActiveTab] = useState('overview')
-  const [activities, setActivities] = useState<ActivityLog[]>(mockActivities)
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
+  const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [activities, setActivities] = useState<ActivityLog[]>(mockActivities);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({
     type: 'all',
     status: 'all',
-    period: '7days'
-  })
+    period: '7days',
+  });
 
   const tabs = [
     {
@@ -139,15 +141,15 @@ export default function UserActivityCenter() {
       id: 'activities',
       label: '账户活动',
       icon: <Shield className="h-4 w-4" />,
-      badge: activities.length.toString()
+      badge: activities.length.toString(),
     },
     {
       id: 'transactions',
       label: '交易记录',
       icon: <CreditCard className="h-4 w-4" />,
-      badge: transactions.length.toString()
-    }
-  ]
+      badge: transactions.length.toString(),
+    },
+  ];
 
   const activityFilters = [
     {
@@ -158,8 +160,8 @@ export default function UserActivityCenter() {
         { value: 'AUTH', label: '登录认证', count: 45 },
         { value: 'FINANCIAL', label: '金融操作', count: 23 },
         { value: 'SECURITY', label: '安全操作', count: 12 },
-        { value: 'PROFILE', label: '账户设置', count: 8 }
-      ]
+        { value: 'PROFILE', label: '账户设置', count: 8 },
+      ],
     },
     {
       id: 'status',
@@ -168,8 +170,8 @@ export default function UserActivityCenter() {
       options: [
         { value: 'SUCCESS', label: '成功', count: 88 },
         { value: 'FAILED', label: '失败', count: 5 },
-        { value: 'WARNING', label: '警告', count: 2 }
-      ]
+        { value: 'WARNING', label: '警告', count: 2 },
+      ],
     },
     {
       id: 'period',
@@ -178,10 +180,10 @@ export default function UserActivityCenter() {
       options: [
         { value: '7days', label: '最近7天' },
         { value: '30days', label: '最近30天' },
-        { value: '90days', label: '最近3个月' }
-      ]
-    }
-  ]
+        { value: '90days', label: '最近3个月' },
+      ],
+    },
+  ];
 
   const transactionFilters = [
     {
@@ -192,8 +194,8 @@ export default function UserActivityCenter() {
         { value: 'INVESTMENT', label: '投资', count: 15 },
         { value: 'WITHDRAWAL', label: '提现', count: 8 },
         { value: 'COMMISSION', label: '佣金', count: 12 },
-        { value: 'REWARD', label: '奖励', count: 5 }
-      ]
+        { value: 'REWARD', label: '奖励', count: 5 },
+      ],
     },
     {
       id: 'status',
@@ -202,30 +204,33 @@ export default function UserActivityCenter() {
       options: [
         { value: 'COMPLETED', label: '已完成', count: 35 },
         { value: 'PENDING', label: '处理中', count: 3 },
-        { value: 'FAILED', label: '失败', count: 2 }
-      ]
-    }
-  ]
+        { value: 'FAILED', label: '失败', count: 2 },
+      ],
+    },
+  ];
 
   const getActivityIcon = (type: string, status: string) => {
-    if (status === 'FAILED') return <AlertTriangle className="h-4 w-4 text-red-600" />
-    if (status === 'WARNING') return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-    
+    if (status === 'FAILED') return <AlertTriangle className="h-4 w-4 text-red-600" />;
+    if (status === 'WARNING') return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+
     switch (type) {
-      case 'AUTH': return <Shield className="h-4 w-4 text-blue-600" />
-      case 'FINANCIAL': return <CreditCard className="h-4 w-4 text-green-600" />
-      case 'SECURITY': return <Shield className="h-4 w-4 text-purple-600" />
-      default: return <Activity className="h-4 w-4 text-gray-600" />
+      case 'AUTH': { return <Shield className="h-4 w-4 text-blue-600" />;
+      }
+      case 'FINANCIAL': { return <CreditCard className="h-4 w-4 text-green-600" />;
+      }
+      case 'SECURITY': { return <Shield className="h-4 w-4 text-purple-600" />;
+      }
+      default: { return <Activity className="h-4 w-4 text-gray-600" />;
+      }
     }
-  }
+  };
 
   const getTransactionIcon = (type: string, direction: string) => {
     if (direction === 'IN') {
-      return <ArrowUpRight className="h-4 w-4 text-green-600" />
-    } else {
-      return <ArrowDownLeft className="h-4 w-4 text-red-600" />
+      return <ArrowUpRight className="h-4 w-4 text-green-600" />;
     }
-  }
+      return <ArrowDownLeft className="h-4 w-4 text-red-600" />;
+  };
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -240,7 +245,7 @@ export default function UserActivityCenter() {
             <Activity className="h-8 w-8 text-blue-600" />
           </div>
         </Card>
-        
+
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -250,7 +255,7 @@ export default function UserActivityCenter() {
             <CreditCard className="h-8 w-8 text-green-600" />
           </div>
         </Card>
-        
+
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -260,7 +265,7 @@ export default function UserActivityCenter() {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
         </Card>
-        
+
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -286,7 +291,7 @@ export default function UserActivityCenter() {
               status: tx.status === 'COMPLETED' ? 'SUCCESS' as const : 'WARNING' as const,
               description: tx.description,
               timestamp: tx.timestamp,
-              details: { amount: tx.amount }
+              details: { amount: tx.amount },
             }))].slice(0, 10).map((item, index) => (
               <motion.div
                 key={item.id}
@@ -307,10 +312,13 @@ export default function UserActivityCenter() {
                   </p>
                 </div>
                 <div className={`flex-shrink-0 text-xs px-2 py-1 rounded ${
-                  item.status === 'SUCCESS' ? 'bg-green-100 text-green-800' :
-                  item.status === 'FAILED' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }`}>
+                  item.status === 'SUCCESS'
+? 'bg-green-100 text-green-800'
+                  : (item.status === 'FAILED'
+? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800')
+                }`}
+                >
                   {item.status === 'SUCCESS' && '成功'}
                   {item.status === 'FAILED' && '失败'}
                   {item.status === 'WARNING' && '警告'}
@@ -321,7 +329,7 @@ export default function UserActivityCenter() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 
   const renderActivities = () => (
     <div className="space-y-6">
@@ -348,10 +356,13 @@ export default function UserActivityCenter() {
                       {activity.description}
                     </p>
                     <span className={`text-xs px-2 py-1 rounded ${
-                      activity.status === 'SUCCESS' ? 'bg-green-100 text-green-800' :
-                      activity.status === 'FAILED' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                      activity.status === 'SUCCESS'
+? 'bg-green-100 text-green-800'
+                      : (activity.status === 'FAILED'
+? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800')
+                    }`}
+                    >
                       {activity.status === 'SUCCESS' && '成功'}
                       {activity.status === 'FAILED' && '失败'}
                       {activity.status === 'WARNING' && '警告'}
@@ -374,7 +385,7 @@ export default function UserActivityCenter() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 
   const renderTransactions = () => (
     <div className="space-y-6">
@@ -391,7 +402,7 @@ export default function UserActivityCenter() {
             <TrendingUp className="h-8 w-8 text-green-600" />
           </div>
         </Card>
-        
+
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -403,7 +414,7 @@ export default function UserActivityCenter() {
             <TrendingDown className="h-8 w-8 text-red-600" />
           </div>
         </Card>
-        
+
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -456,21 +467,26 @@ export default function UserActivityCenter() {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <p className={`text-sm font-bold ${
                     transaction.direction === 'IN' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  }`}
+                  >
                     {transaction.direction === 'IN' ? '+' : '-'}
                     ¥{transaction.amount.toLocaleString()}
                     {transaction.currency && transaction.currency !== 'CNY' && ` ${transaction.currency}`}
                   </p>
                   <div className={`text-xs px-2 py-1 rounded mt-1 ${
-                    transaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                    transaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                    transaction.status === 'FAILED' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                    transaction.status === 'COMPLETED'
+? 'bg-green-100 text-green-800'
+                    : transaction.status === 'PENDING'
+? 'bg-yellow-100 text-yellow-800'
+                    : transaction.status === 'FAILED'
+? 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-800'
+                  }`}
+                  >
                     {transaction.status === 'COMPLETED' && '已完成'}
                     {transaction.status === 'PENDING' && '处理中'}
                     {transaction.status === 'FAILED' && '失败'}
@@ -488,20 +504,24 @@ export default function UserActivityCenter() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'overview':
-        return renderOverview()
-      case 'activities':
-        return renderActivities()
-      case 'transactions':
-        return renderTransactions()
-      default:
-        return renderOverview()
+      case 'overview': {
+        return renderOverview();
+      }
+      case 'activities': {
+        return renderActivities();
+      }
+      case 'transactions': {
+        return renderTransactions();
+      }
+      default: {
+        return renderOverview();
+      }
     }
-  }
+  };
 
   return (
     <ProtectedRoute>
@@ -537,5 +557,5 @@ export default function UserActivityCenter() {
         </main>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

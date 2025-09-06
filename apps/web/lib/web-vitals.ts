@@ -1,4 +1,5 @@
-import { onCLS, onINP, onFCP, onLCP, onTTFB, Metric } from 'web-vitals'
+import type { Metric } from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
 
 export interface PerformanceBudget {
   LCP: number // Largest Contentful Paint - 目标 < 2.5s
@@ -14,11 +15,11 @@ const PERFORMANCE_BUDGETS: PerformanceBudget = {
   CLS: 0.1,
   FCP: 1800,
   TTFB: 800,
-}
+};
 
 export function sendToAnalytics(metric: Metric) {
-  const isExceedingBudget = checkBudgetViolation(metric)
-  
+  const isExceedingBudget = checkBudgetViolation(metric);
+
   // 发送到分析服务
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
     // 可以集成Google Analytics, Vercel Analytics等
@@ -27,21 +28,21 @@ export function sendToAnalytics(metric: Metric) {
       rating: metric.rating,
       delta: metric.delta,
       exceedingBudget: isExceedingBudget,
-      budgetLimit: PERFORMANCE_BUDGETS[metric.name as keyof PerformanceBudget]
-    })
-    
+      budgetLimit: PERFORMANCE_BUDGETS[metric.name as keyof PerformanceBudget],
+    });
+
     // 如果超出预算，发送警告
     if (isExceedingBudget) {
-      reportPerformanceIssue(metric)
+      reportPerformanceIssue(metric);
     }
   }
 }
 
 export function checkBudgetViolation(metric: Metric): boolean {
-  const budget = PERFORMANCE_BUDGETS[metric.name as keyof PerformanceBudget]
-  if (!budget) return false
-  
-  return metric.value > budget
+  const budget = PERFORMANCE_BUDGETS[metric.name as keyof PerformanceBudget];
+  if (!budget) return false;
+
+  return metric.value > budget;
 }
 
 export function reportPerformanceIssue(metric: Metric) {
@@ -52,29 +53,29 @@ export function reportPerformanceIssue(metric: Metric) {
     budget: PERFORMANCE_BUDGETS[metric.name as keyof PerformanceBudget],
     url: window.location.href,
     timestamp: Date.now(),
-  }
-  
+  };
+
   // 发送到监控服务
   if (typeof fetch !== 'undefined') {
     fetch('/api/performance/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(issue),
-    }).catch(err => console.warn('Failed to report performance issue:', err))
+    }).catch(error => console.warn('Failed to report performance issue:', error));
   }
 }
 
 export function initializeWebVitals() {
-  if (typeof window === 'undefined') return
-  
+  if (typeof window === 'undefined') return;
+
   // 收集所有Web Vitals指标
-  onCLS(sendToAnalytics)
-  onINP(sendToAnalytics)
-  onFCP(sendToAnalytics)
-  onLCP(sendToAnalytics)
-  onTTFB(sendToAnalytics)
-  
-  console.log('🚀 Web Vitals monitoring initialized')
+  onCLS(sendToAnalytics);
+  onINP(sendToAnalytics);
+  onFCP(sendToAnalytics);
+  onLCP(sendToAnalytics);
+  onTTFB(sendToAnalytics);
+
+  console.log('🚀 Web Vitals monitoring initialized');
 }
 
 export function getPerformanceScore(): number {
@@ -82,37 +83,37 @@ export function getPerformanceScore(): number {
   const metrics = {
     lcp: performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
     fcp: performance.getEntriesByType('paint').find(p => p.name === 'first-contentful-paint')?.startTime || 0,
-  }
-  
-  let score = 100
-  
-  if (metrics.lcp > PERFORMANCE_BUDGETS.LCP) score -= 20
-  if (metrics.fcp > PERFORMANCE_BUDGETS.FCP) score -= 15
-  
-  return Math.max(0, score)
+  };
+
+  let score = 100;
+
+  if (metrics.lcp > PERFORMANCE_BUDGETS.LCP) score -= 20;
+  if (metrics.fcp > PERFORMANCE_BUDGETS.FCP) score -= 15;
+
+  return Math.max(0, score);
 }
 
 export function createPerformanceMarker(name: string) {
   if (typeof window !== 'undefined' && 'performance' in window) {
-    performance.mark(`${name}-start`)
-    
+    performance.mark(`${name}-start`);
+
     return {
       end: () => {
-        performance.mark(`${name}-end`)
-        performance.measure(name, `${name}-start`, `${name}-end`)
-        
-        const measure = performance.getEntriesByName(name)[0]
+        performance.mark(`${name}-end`);
+        performance.measure(name, `${name}-start`, `${name}-end`);
+
+        const measure = performance.getEntriesByName(name)[0];
         if (measure) {
-          console.log(`⏱️ ${name}: ${measure.duration.toFixed(2)}ms`)
-          
+          console.log(`⏱️ ${name}: ${measure.duration.toFixed(2)}ms`);
+
           // 清理performance entries
-          performance.clearMarks(`${name}-start`)
-          performance.clearMarks(`${name}-end`)
-          performance.clearMeasures(name)
+          performance.clearMarks(`${name}-start`);
+          performance.clearMarks(`${name}-end`);
+          performance.clearMeasures(name);
         }
-      }
-    }
+      },
+    };
   }
-  
-  return { end: () => {} }
+
+  return { end: () => {} };
 }

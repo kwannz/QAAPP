@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { MetricsService } from '../metrics/metrics.service';
+import { getErrorMessage, getErrorStack } from '../utils/error.utils';
 
 @Injectable()
 export class MonitoringInterceptor implements NestInterceptor {
@@ -52,7 +53,7 @@ export class MonitoringInterceptor implements NestInterceptor {
             `${request.method} ${request.path} - ${response.statusCode} - ${duration}ms`
           );
         },
-        error: (error) => {
+        error: (error: unknown) => {
           const duration = Date.now() - startTime;
           
           // 记录错误指标（状态码500）
@@ -70,8 +71,8 @@ export class MonitoringInterceptor implements NestInterceptor {
           
           // 记录错误日志
           this.logger.error(
-            `${request.method} ${request.path} - ERROR - ${duration}ms: ${error.message}`,
-            error.stack
+            `${request.method} ${request.path} - ERROR - ${duration}ms: ${getErrorMessage(error)}`,
+            getErrorStack(error)
           );
         },
       }),

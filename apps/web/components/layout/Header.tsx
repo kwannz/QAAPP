@@ -1,26 +1,28 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-// import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { Menu, X, ChevronDown } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
-import { Button, cn } from '@/components/ui'
-import { useAuthStore } from '../../lib/auth-context'
+import { SafeConnectButton } from '../web3/SafeConnectButton';
+
+import { Button, cn } from '@/components/ui';
+
+import { useAuthStore } from '../../lib/auth-context';
 
 const navigation = [
   { name: '首页', href: '/' },
   { name: '产品', href: '/products' },
   { name: '我的投资', href: '/dashboard', requireAuth: true },
   { name: '推荐中心', href: '/referral', requireAuth: true },
-]
+];
 
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
-  const { user, isAuthenticated } = useAuthStore()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const { user, isAuthenticated } = useAuthStore();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -54,29 +56,44 @@ export function Header() {
           {navigation.map((item) => {
             // 如果需要认证但用户未登录，则不显示
             if (item.requireAuth && !isAuthenticated) {
-              return null
+              return null;
             }
-            
-            const isActive = pathname === item.href
-            
+
+            const isActive = pathname === item.href;
+
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
                   'text-sm font-semibold leading-6 transition-colors hover:text-primary',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+                  isActive ? 'text-primary' : 'text-muted-foreground',
                 )}
               >
                 {item.name}
               </Link>
-            )
+            );
           })}
         </div>
 
         {/* 右侧操作区 */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:space-x-4">
-          {!isAuthenticated ? (
+          {isAuthenticated ? (
+            <div className="flex items-center space-x-4">
+              <SafeConnectButton />
+
+              {/* 用户菜单 */}
+              <div className="relative">
+                <div className="flex items-center space-x-2 text-sm">
+                  <span className="text-muted-foreground">欢迎,</span>
+                  <span className="font-medium">
+                    {user?.email || `用户${user?.referralCode}`}
+                  </span>
+                  <div className="h-2 w-2 rounded-full bg-green-500" />
+                </div>
+              </div>
+            </div>
+          ) : (
             <>
               <Link href="/auth/login">
                 <Button variant="ghost" size="sm">
@@ -89,23 +106,6 @@ export function Header() {
                 </Button>
               </Link>
             </>
-          ) : (
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                连接钱包 (暂时禁用)
-              </Button>
-              
-              {/* 用户菜单 */}
-              <div className="relative">
-                <div className="flex items-center space-x-2 text-sm">
-                  <span className="text-muted-foreground">欢迎,</span>
-                  <span className="font-medium">
-                    {user?.email || `用户${user?.referralCode}`}
-                  </span>
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
-                </div>
-              </div>
-            </div>
           )}
         </div>
 
@@ -139,41 +139,51 @@ export function Header() {
                     <X className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
-                
+
                 <div className="mt-6 flow-root">
                   <div className="-my-6 divide-y divide-border">
                     <div className="space-y-2 py-6">
                       {navigation.map((item) => {
                         if (item.requireAuth && !isAuthenticated) {
-                          return null
+                          return null;
                         }
-                        
-                        const isActive = pathname === item.href
-                        
+
+                        const isActive = pathname === item.href;
+
                         return (
                           <Link
                             key={item.name}
                             href={item.href}
                             className={cn(
                               '-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 transition-colors',
-                              isActive 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                              isActive
+                                ? 'bg-primary/10 text-primary'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                             )}
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             {item.name}
                           </Link>
-                        )
+                        );
                       })}
                     </div>
-                    
+
                     <div className="py-6 space-y-4">
                       <div className="w-full">
-                        <ConnectButton />
+                        <div className="flex justify-center">
+                          <SafeConnectButton />
+                        </div>
                       </div>
-                      
-                      {!isAuthenticated ? (
+
+                      {isAuthenticated
+? (
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">
+                            欢迎, {user?.email || `用户${user?.referralCode}`}
+                          </p>
+                        </div>
+                      )
+: (
                         <div className="space-y-2">
                           <Link href="/auth/login" className="block">
                             <Button variant="ghost" className="w-full" onClick={() => setMobileMenuOpen(false)}>
@@ -186,12 +196,6 @@ export function Header() {
                             </Button>
                           </Link>
                         </div>
-                      ) : (
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground">
-                            欢迎, {user?.email || `用户${user?.referralCode}`}
-                          </p>
-                        </div>
                       )}
                     </div>
                   </div>
@@ -202,5 +206,5 @@ export function Header() {
         </AnimatePresence>
       </nav>
     </header>
-  )
+  );
 }

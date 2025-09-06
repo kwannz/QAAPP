@@ -246,9 +246,9 @@ export class DatabaseOptimizationController {
 
       return {
         database: {
-          connectionPool: connectionStats.connectionStatus,
+          connectionPool: connectionStats.status,
           status: 'healthy',
-          lastOptimized: connectionStats.maintenanceAt,
+          lastOptimized: new Date().toISOString(),
         },
         cache: cacheStats,
         optimization: {

@@ -7,6 +7,8 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { CustomValidationPipe } from './common/pipes/validation.pipe';
+import helmet from 'helmet';
+import compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -14,6 +16,34 @@ async function bootstrap() {
   });
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
+
+  // 安全中间件 - Helmet.js
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+    },
+  }));
+
+  // 压缩中间件
+  app.use(compression());
+
+  // 请求大小限制
+  app.use('/api', (req: any, res: any, next: any) => {
+    req.setMaxListeners(0);
+    if (req.headers['content-length'] && parseInt(req.headers['content-length']) > 10 * 1024 * 1024) {
+      return res.status(413).json({ error: 'Request too large' });
+    }
+    next();
+  });
 
   // 全局异常过滤器
   app.useGlobalFilters(new GlobalExceptionFilter());
@@ -32,7 +62,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:3002',
-      'http://localhost:3003'
+      'http://localhost:3003',
+      'http://localhost:3005'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

@@ -1,25 +1,8 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import apiClient from '@/lib/api-client'
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Button, 
-  Alert, 
-  AlertDescription, 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from '@/components/ui'
-import { UserPositions } from '@/components/positions/UserPositions'
-import { PayoutDashboard } from '@/components/payouts/PayoutDashboard'
-import { 
-  TrendingUp, 
-  DollarSign, 
+import {
+  TrendingUp,
+  DollarSign,
   Target,
   Award,
   AlertCircle,
@@ -27,8 +10,26 @@ import {
   PieChart,
   BarChart3,
   Wallet,
-  Clock
-} from 'lucide-react'
+  Clock,
+} from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+
+import { PayoutDashboard } from '@/components/payouts/PayoutDashboard';
+import { UserPositions } from '@/components/positions/UserPositions';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Alert,
+  AlertDescription,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui';
+import apiClient from '@/lib/api-client';
 
 // 类型定义
 interface DashboardStats {
@@ -40,39 +41,43 @@ interface DashboardStats {
   averageAPR: number
 }
 
-interface InvestmentDashboardProps {
+interface InvestmentDashboardProperties {
   userId?: string
   className?: string
+  stats?: any
+  positions?: any[]
+  onClaimRewards?: () => void
+  onViewPosition?: (positionId: string) => void
 }
 
-export function InvestmentDashboard({ userId = 'user-test-001', className = '' }: InvestmentDashboardProps) {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('overview')
+export function InvestmentDashboard({ userId = 'user-test-001', className = '' }: InvestmentDashboardProperties) {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // 获取仪表板统计数据
-  const fetchDashboardStats = async () => {
-    setLoading(true)
-    setError(null)
-    
+  // 获取仪表板统计数据 - 使用useCallback优化
+  const fetchDashboardStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
       // 并行获取持仓和收益数据
       const [{ data: positionsData }, { data: payoutsData }] = await Promise.all([
         apiClient.get(`/positions/user/${userId}`),
-        apiClient.get(`/payouts/user/${userId}/claimable`)
-      ])
+        apiClient.get(`/payouts/user/${userId}/claimable`),
+      ]);
 
       // 计算汇总统计
-      const summary = positionsData.summary || {}
-      const totalInvested = summary.totalPrincipal || 0
-      const totalEarnings = summary.totalPaid || 0
-      const activePositions = summary.totalActive || 0
-      const claimableAmount = payoutsData.totalAmount || 0
-      const totalROI = totalInvested > 0 ? (totalEarnings / totalInvested) * 100 : 0
+      const summary = positionsData.summary || {};
+      const totalInvested = summary.totalPrincipal || 0;
+      const totalEarnings = summary.totalPaid || 0;
+      const activePositions = summary.totalActive || 0;
+      const claimableAmount = payoutsData.totalAmount || 0;
+      const totalROI = totalInvested > 0 ? (totalEarnings / totalInvested) * 100 : 0;
 
       // 计算平均APR (简化计算)
-      const averageAPR = 10.5 // 临时值，实际应该从持仓数据计算
+      const averageAPR = 10.5; // 临时值，实际应该从持仓数据计算
 
       setStats({
         totalInvested,
@@ -80,24 +85,41 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
         activePositions,
         claimableAmount,
         totalROI,
-        averageAPR
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据时发生未知错误')
-      console.error('Failed to fetch dashboard stats:', err)
+        averageAPR,
+      });
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : '获取数据时发生未知错误');
+      console.error('Failed to fetch dashboard stats:', error_);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [userId]);
 
   // 初始化数据
   useEffect(() => {
-    fetchDashboardStats()
-  }, [userId])
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
 
-  // 渲染概览统计卡片
-  const renderStatsCards = () => {
-    if (!stats) return null
+  // 计算衍生数据 - 使用useMemo优化
+  const computedStats = useMemo(() => {
+    if (!stats) return null;
+    
+    return {
+      totalPortfolioValue: stats.totalInvested + stats.totalEarnings,
+      monthlyReturn: stats.averageAPR / 12,
+      investmentRatio: stats.totalInvested > 0 
+        ? (stats.totalInvested / (stats.totalInvested + stats.totalEarnings)) * 100 
+        : 0,
+      earningsRatio: stats.totalInvested > 0 
+        ? (stats.totalEarnings / (stats.totalInvested + stats.totalEarnings)) * 100 
+        : 0,
+      investmentDays: Math.floor(Math.random() * 30) + 15, // 临时值，实际应从API获取
+    };
+  }, [stats]);
+
+  // 渲染概览统计卡片 - 使用useMemo优化重渲染
+  const renderStatsCards = useMemo(() => {
+    if (!stats) return null;
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -169,12 +191,12 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
           </CardContent>
         </Card>
       </div>
-    )
-  }
+    );
+  }, [stats]);
 
-  // 渲染快速操作面板
-  const renderQuickActions = () => {
-    if (!stats) return null
+  // 渲染快速操作面板 - 使用useMemo和computedStats优化
+  const renderQuickActions = useMemo(() => {
+    if (!stats || !computedStats) return null;
 
     return (
       <Card className="mb-6">
@@ -189,7 +211,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg">
               <h4 className="font-medium text-orange-900 mb-2">总投资组合价值</h4>
               <p className="text-2xl font-bold text-orange-600">
-                ${(stats.totalInvested + stats.totalEarnings).toFixed(2)}
+                ${computedStats.totalPortfolioValue.toFixed(2)}
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3 text-green-500" />
@@ -200,7 +222,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
               <h4 className="font-medium text-green-900 mb-2">月化收益率</h4>
               <p className="text-2xl font-bold text-green-600">
-                {(stats.averageAPR / 12).toFixed(2)}%
+                {computedStats.monthlyReturn.toFixed(2)}%
               </p>
               <p className="text-xs text-green-600">基于年化{stats.averageAPR}%</p>
             </div>
@@ -208,7 +230,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
               <h4 className="font-medium text-purple-900 mb-2">投资天数</h4>
               <p className="text-2xl font-bold text-purple-600">
-                {Math.floor(Math.random() * 30) + 15}天
+                {computedStats.investmentDays}天
               </p>
               <p className="text-xs text-purple-600">平均持有期</p>
             </div>
@@ -219,8 +241,8 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
               <Wallet className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-800">
                 您有 <strong>${stats.claimableAmount.toFixed(6)}</strong> 的收益可以领取！
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="ml-2"
                   onClick={() => setActiveTab('payouts')}
                 >
@@ -231,8 +253,8 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
           )}
         </CardContent>
       </Card>
-    )
-  }
+    );
+  }, [stats, computedStats, setActiveTab]);
 
   return (
     <div className={className}>
@@ -259,17 +281,19 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
         </Alert>
       )}
 
-      {loading ? (
+      {loading
+? (
         <div className="flex items-center justify-center py-12">
           <div className="flex items-center gap-2">
             <RefreshCw className="w-6 h-6 animate-spin" />
             <span className="text-lg">加载数据中...</span>
           </div>
         </div>
-      ) : (
+      )
+: (
         <>
-          {renderStatsCards()}
-          {renderQuickActions()}
+          {renderStatsCards}
+          {renderQuickActions}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -304,27 +328,27 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
                           <span>${stats?.totalInvested.toFixed(2)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-orange-600 h-2 rounded-full" 
-                            style={{ 
-                              width: `${stats ? (stats.totalInvested / (stats.totalInvested + stats.totalEarnings)) * 100 : 0}%` 
+                          <div
+                            className="bg-orange-600 h-2 rounded-full"
+                            style={{
+                              width: `${computedStats?.investmentRatio || 0}%`,
                             }}
-                          ></div>
+                          />
                         </div>
                       </div>
-                      
+
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span>累计收益</span>
                           <span className="text-green-600">${stats?.totalEarnings.toFixed(2)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-600 h-2 rounded-full" 
-                            style={{ 
-                              width: `${stats ? (stats.totalEarnings / (stats.totalInvested + stats.totalEarnings)) * 100 : 0}%` 
+                          <div
+                            className="bg-green-600 h-2 rounded-full"
+                            style={{
+                              width: `${computedStats?.earningsRatio || 0}%`,
                             }}
-                          ></div>
+                          />
                         </div>
                       </div>
                     </div>
@@ -341,19 +365,19 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
                   <CardContent>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-center gap-3 p-2 bg-orange-50 rounded">
-                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-orange-500 rounded-full" />
                         <span>新投资持仓创建成功</span>
                         <span className="text-xs text-gray-500 ml-auto">2小时前</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 p-2 bg-green-50 rounded">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-green-500 rounded-full" />
                         <span>收益已生成，可领取</span>
                         <span className="text-xs text-gray-500 ml-auto">1天前</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 p-2 bg-yellow-50 rounded">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full" />
                         <span>投资产品即将到期</span>
                         <span className="text-xs text-gray-500 ml-auto">3天前</span>
                       </div>
@@ -374,5 +398,5 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
         </>
       )}
     </div>
-  )
+  );
 }

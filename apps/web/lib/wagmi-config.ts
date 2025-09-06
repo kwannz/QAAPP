@@ -1,48 +1,103 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { mainnet, polygon, arbitrum, sepolia, hardhat } from 'wagmi/chains'
-import { http } from 'viem'
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { http } from 'viem';
+import { mainnet, polygon, arbitrum, sepolia, hardhat } from 'wagmi/chains';
+
+import { isBrowserEnvironment } from './browser-polyfills';
 
 // 获取环境变量，使用有效的WalletConnect项目ID
 // 使用一个更稳定的测试项目ID
-const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'a7f416d3f78b2ad3c80d7c29ad5b4c2c'
+const getProjectId = () => process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'a7f416d3f78b2ad3c80d7c29ad5b4c2c';
 
 // 本地开发链配置
 const hardhatLocal = {
   ...hardhat,
   name: 'Hardhat Local',
-  id: 31337,
+  id: 31_337,
   rpcUrls: {
     default: { http: ['http://localhost:8545'] },
     public: { http: ['http://localhost:8545'] },
   },
-} as const
+} as const;
 
 // 根据环境决定支持的链
-const isDevelopment = process.env.NODE_ENV === 'development'
-const isTestnetEnabled = process.env.NEXT_PUBLIC_ENABLE_TESTNET === 'true'
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isTestnetEnabled = process.env.NEXT_PUBLIC_ENABLE_TESTNET === 'true';
 
 // 自定义链配置
-const chains = isDevelopment 
-  ? [hardhatLocal, sepolia, mainnet, polygon, arbitrum] as const
-  : isTestnetEnabled 
-    ? [sepolia, mainnet, polygon, arbitrum] as const
-    : [mainnet, polygon, arbitrum] as const
+const getChains = () => {
+  if (isDevelopment) {
+    return [hardhatLocal, sepolia, mainnet, polygon, arbitrum] as const;
+  } else if (isTestnetEnabled) {
+    return [sepolia, mainnet, polygon, arbitrum] as const;
+  }
+    return [mainnet, polygon, arbitrum] as const;
+};
 
-// Wagmi 配置 - 修复SSR问题
-export const wagmiConfig = getDefaultConfig({
-  appName: 'QA Fixed Income Platform',
-  projectId,
-  chains,
-  ssr: true,
-  // 使用HTTP传输提高稳定性，使用公共RPC端点
-  transports: {
-    [hardhatLocal.id]: http('http://localhost:8545'),
-    [mainnet.id]: http(process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || 'https://eth.llamarpc.com'),
-    [polygon.id]: http(process.env.NEXT_PUBLIC_POLYGON_RPC_URL || 'https://polygon.llamarpc.com'),
-    [arbitrum.id]: http(process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || 'https://arbitrum.llamarpc.com'),
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || 'https://ethereum-sepolia.publicnode.com'),
-  },
-})
+// 传输配置
+const getTransports = () => {
+  const chains = getChains();
+  const transports: any = {};
+
+  for (const chain of chains) {
+    switch (chain.id) {
+      case hardhatLocal.id: {
+        transports[chain.id] = http('http://localhost:8545');
+        break;
+      }
+      case mainnet.id: {
+        transports[chain.id] = http(process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || 'https://eth.llamarpc.com');
+        break;
+      }
+      case polygon.id: {
+        transports[chain.id] = http(process.env.NEXT_PUBLIC_POLYGON_RPC_URL || 'https://polygon.llamarpc.com');
+        break;
+      }
+      case arbitrum.id: {
+        transports[chain.id] = http(process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || 'https://arbitrum.llamarpc.com');
+        break;
+      }
+      case sepolia.id: {
+        transports[chain.id] = http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || 'https://ethereum-sepolia.publicnode.com');
+        break;
+      }
+    }
+  }
+
+  return transports;
+};
+
+// Wagmi 配置工厂函数 - 延迟初始化以避免SSR问题
+let cachedWagmiConfig: any = null;
+
+export const createWagmiConfig = () => {
+  // 只在浏览器环境中创建配置
+  if (!isBrowserEnvironment()) {
+    return null;
+  }
+
+  // 如果已经创建过，直接返回缓存的配置
+  if (cachedWagmiConfig) {
+    return cachedWagmiConfig;
+  }
+
+  try {
+    cachedWagmiConfig = getDefaultConfig({
+      appName: 'QA Fixed Income Platform',
+      projectId: getProjectId(),
+      chains: getChains(),
+      ssr: true,
+      transports: getTransports(),
+    });
+
+    return cachedWagmiConfig;
+  } catch (error) {
+    console.warn('Failed to create Wagmi config, using fallback:', error);
+    return null;
+  }
+};
+
+// 向后兼容的导出
+export const wagmiConfig = createWagmiConfig();
 
 // 链配置映射
 export const chainConfig = {
@@ -83,23 +138,23 @@ export const chainConfig = {
     nativeCurrency: 'ETH',
     usdtContract: process.env.NEXT_PUBLIC_USDT_CONTRACT_TESTNET || '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
   },
-}
+};
 
 // 支持的链ID列表
-export const supportedChainIds = Object.keys(chainConfig).map(Number)
+export const supportedChainIds = Object.keys(chainConfig).map(Number);
 
 // 检查链是否支持
 export const isSupportedChain = (chainId?: number): boolean => {
-  return chainId ? supportedChainIds.includes(chainId) : false
-}
+  return chainId ? supportedChainIds.includes(chainId) : false;
+};
 
 // 获取链信息
 export const getChainInfo = (chainId?: number) => {
   if (!chainId || !chainConfig[chainId]) {
-    return null
+    return null;
   }
-  return chainConfig[chainId]
-}
+  return chainConfig[chainId];
+};
 
 // USDT合约ABI（简化版）
 export const USDT_ABI = [
@@ -108,43 +163,43 @@ export const USDT_ABI = [
     inputs: [{ name: '_owner', type: 'address' }],
     name: 'balanceOf',
     outputs: [{ name: 'balance', type: 'uint256' }],
-    type: 'function'
+    type: 'function',
   },
   {
     constant: false,
     inputs: [
       { name: '_to', type: 'address' },
-      { name: '_value', type: 'uint256' }
+      { name: '_value', type: 'uint256' },
     ],
     name: 'transfer',
     outputs: [{ name: '', type: 'bool' }],
-    type: 'function'
+    type: 'function',
   },
   {
     constant: true,
     inputs: [
       { name: '_owner', type: 'address' },
-      { name: '_spender', type: 'address' }
+      { name: '_spender', type: 'address' },
     ],
     name: 'allowance',
     outputs: [{ name: '', type: 'uint256' }],
-    type: 'function'
+    type: 'function',
   },
   {
     constant: false,
     inputs: [
       { name: '_spender', type: 'address' },
-      { name: '_value', type: 'uint256' }
+      { name: '_value', type: 'uint256' },
     ],
     name: 'approve',
     outputs: [{ name: '', type: 'bool' }],
-    type: 'function'
+    type: 'function',
   },
   {
     constant: true,
     inputs: [],
     name: 'decimals',
     outputs: [{ name: '', type: 'uint8' }],
-    type: 'function'
-  }
-] as const
+    type: 'function',
+  },
+] as const;

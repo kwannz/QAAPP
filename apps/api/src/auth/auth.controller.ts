@@ -1,5 +1,7 @@
 import { Controller, Post, Body, UseGuards, Get, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import { AuthenticatedRequest } from '../common/types/express.types';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { 
@@ -25,6 +27,8 @@ export class AuthController {
     type: AuthResponseDto 
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 429, description: 'Too many login attempts' })
+  @Throttle({ auth: { ttl: 60000, limit: 5 } }) // 5次登录尝试/分钟
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
@@ -38,6 +42,8 @@ export class AuthController {
     type: AuthResponseDto 
   })
   @ApiResponse({ status: 400, description: 'Email already registered or invalid data' })
+  @ApiResponse({ status: 429, description: 'Too many registration attempts' })
+  @Throttle({ auth: { ttl: 60000, limit: 3 } }) // 3次注册尝试/分钟
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return this.authService.register(registerDto);
@@ -55,6 +61,8 @@ export class AuthController {
       }
     }
   })
+  @ApiResponse({ status: 429, description: 'Too many challenge requests' })
+  @Throttle({ sensitive: { ttl: 60000, limit: 10 } }) // 10次挑战请求/分钟
   @Post('wallet/challenge')
   async generateWalletChallenge(@Body() challengeDto: WalletChallengeDto) {
     return this.authService.generateWalletChallenge(challengeDto);
@@ -67,6 +75,8 @@ export class AuthController {
     type: AuthResponseDto 
   })
   @ApiResponse({ status: 401, description: 'Invalid signature' })
+  @ApiResponse({ status: 429, description: 'Too many verification attempts' })
+  @Throttle({ auth: { ttl: 60000, limit: 5 } }) // 5次验证尝试/分钟
   @HttpCode(HttpStatus.OK)
   @Post('wallet/verify')
   async verifyWalletSignature(@Body() verifyDto: WalletVerifyDto): Promise<AuthResponseDto> {
@@ -80,6 +90,8 @@ export class AuthController {
     type: AuthResponseDto 
   })
   @ApiResponse({ status: 401, description: 'Invalid Google token' })
+  @ApiResponse({ status: 429, description: 'Too many Google login attempts' })
+  @Throttle({ auth: { ttl: 60000, limit: 5 } }) // 5次Google登录尝试/分钟
   @HttpCode(HttpStatus.OK)
   @Post('google')
   async googleLogin(@Body() body: { token: string }): Promise<AuthResponseDto> {
@@ -105,7 +117,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  async logout(@Req() req: any) {
+  async logout(@Req() req: AuthenticatedRequest) {
     return this.authService.logout(req.user.id);
   }
 
@@ -139,7 +151,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@Req() req: any) {
+  async getProfile(@Req() req: AuthenticatedRequest) {
     return req.user;
   }
 

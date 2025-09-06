@@ -27,9 +27,9 @@ export interface SagaStep {
   status: SagaStepStatus;
   action: string; // 操作名称
   compensation?: string; // 补偿操作名称
-  payload: any;
-  result?: any;
-  error?: any;
+  payload: unknown;
+  result?: unknown;
+  error?: unknown;
   retryCount: number;
   maxRetries: number;
   timeout: number; // 超时时间（毫秒）
@@ -47,7 +47,7 @@ export interface SagaDefinition {
   version: string;
   description?: string;
   steps: SagaStep[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timeout?: number; // 整个Saga超时时间
   retryPolicy?: RetryPolicy;
   compensationPolicy?: CompensationPolicy;
@@ -59,14 +59,14 @@ export interface SagaExecution {
   definitionVersion: string;
   status: SagaStatus;
   currentStep?: string;
-  context: Record<string, any>; // 执行上下文
+  context: Record<string, unknown>; // 执行上下文
   steps: Record<string, SagaStep>; // 步骤执行状态
   startedAt: Date;
   completedAt?: Date;
   failedAt?: Date;
   compensatedAt?: Date;
-  error?: any;
-  metadata?: Record<string, any>;
+  error?: unknown;
+  metadata?: Record<string, unknown>;
 }
 
 export interface RetryPolicy {
@@ -86,8 +86,8 @@ export interface CompensationPolicy {
 
 export interface SagaStepResult {
   success: boolean;
-  data?: any;
-  error?: any;
+  data?: unknown;
+  error?: unknown;
   shouldRetry?: boolean;
   compensationRequired?: boolean;
 }
@@ -96,7 +96,7 @@ export interface SagaCommand {
   sagaId: string;
   stepId: string;
   command: string;
-  payload: any;
+  payload: unknown;
   timestamp: number;
   correlationId?: string;
 }
@@ -105,7 +105,7 @@ export interface SagaEvent {
   sagaId: string;
   stepId?: string;
   eventType: string;
-  eventData: any;
+  eventData: unknown;
   timestamp: number;
   correlationId?: string;
   causedBy?: string; // 触发事件的原因
@@ -153,9 +153,9 @@ export interface OrderSagaEvents {
   };
 }
 
-export interface SagaStepHandler<TPayload = any, TResult = any> {
-  execute(payload: TPayload, context: Record<string, any>): Promise<TResult>;
-  compensate?(payload: TPayload, context: Record<string, any>): Promise<void>;
+export interface SagaStepHandler<TPayload = unknown, TResult = unknown> {
+  execute(payload: TPayload, context: Record<string, unknown>): Promise<TResult>;
+  compensate?(payload: TPayload, context: Record<string, unknown>): Promise<void>;
   validate?(payload: TPayload): Promise<boolean>;
   getTimeout?(): number;
   getRetryPolicy?(): RetryPolicy;
@@ -175,7 +175,13 @@ export interface SagaRepository {
   saveSagaExecution(execution: SagaExecution): Promise<void>;
   getSagaExecution(sagaId: string): Promise<SagaExecution | null>;
   updateSagaStatus(sagaId: string, status: SagaStatus): Promise<void>;
-  updateStepStatus(sagaId: string, stepId: string, status: SagaStepStatus, result?: any, error?: any): Promise<void>;
+  updateStepStatus(
+    sagaId: string,
+    stepId: string,
+    status: SagaStepStatus,
+    result?: unknown,
+    error?: unknown
+  ): Promise<void>;
   findPendingSagas(): Promise<SagaExecution[]>;
   findTimeoutSagas(timeoutMs: number): Promise<SagaExecution[]>;
   saveSagaEvent(event: SagaEvent): Promise<void>;

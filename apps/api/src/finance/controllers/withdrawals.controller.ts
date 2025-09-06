@@ -5,6 +5,7 @@ import { Auth } from '../../auth/decorators/auth.decorator';
 import { WithdrawalsService, CreateWithdrawalDto, UpdateWithdrawalDto, WithdrawalQueryDto } from '../services/withdrawals.service';
 import { Response } from 'express';
 import { Deprecated } from '../../common/decorators/deprecated.decorator';
+import { AuthenticatedRequest } from '../../common/types/express.types';
 
 @ApiTags('Finance - Withdrawals')
 @Controller('finance/withdrawals')
@@ -25,7 +26,7 @@ export class WithdrawalsController {
   @ApiResponse({ status: 201, description: 'Withdrawal request created' })
   async createWithdrawal(
     @Body() createDto: CreateWithdrawalDto,
-    @Request() req: any
+    @Request() req: AuthenticatedRequest
   ) {
     return this.withdrawalsService.createWithdrawal(createDto, req.user.sub);
   }
@@ -70,7 +71,7 @@ export class WithdrawalsController {
   async updateWithdrawal(
     @Param('id') id: string,
     @Body() updateDto: UpdateWithdrawalDto,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response
   ) {
     res.setHeader('Deprecation', 'true');
@@ -85,7 +86,7 @@ export class WithdrawalsController {
   @ApiResponse({ status: 200, description: 'Withdrawals batch updated' })
   async batchUpdateWithdrawals(
     @Body() batchData: { ids: string[]; updateDto: UpdateWithdrawalDto },
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response
   ) {
     res.setHeader('Deprecation', 'true');

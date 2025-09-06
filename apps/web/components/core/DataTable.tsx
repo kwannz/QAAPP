@@ -26,7 +26,7 @@ import type { ReactNode } from 'react';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, cn } from '@/components/ui';
 
 // Audit-specific types and configurations
-interface AuditLog {
+export interface AuditLog {
   id: string
   timestamp: string
   user?: string

@@ -1,8 +1,9 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { Shield, Zap, Users, TrendingUp, Lock, Award } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui'
+import { motion } from 'framer-motion';
+import { Shield, Zap, Users, TrendingUp, Lock, Award } from 'lucide-react';
+
+import { Card, CardContent } from '@/components/ui';
 
 const features = [
   {
@@ -47,7 +48,7 @@ const features = [
     color: 'text-pink-500',
     bgColor: 'bg-pink-100',
   },
-]
+];
 
 export function FeaturesSection() {
   return (
@@ -71,8 +72,8 @@ export function FeaturesSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => {
-            const Icon = feature.icon
-            
+            const Icon = feature.icon;
+
             return (
               <motion.div
                 key={feature.title}
@@ -102,7 +103,7 @@ export function FeaturesSection() {
                   </CardContent>
                 </Card>
               </motion.div>
-            )
+            );
           })}
         </div>
 
@@ -120,12 +121,12 @@ export function FeaturesSection() {
                 <div className="text-2xl font-bold text-primary">24/7</div>
                 <div className="text-sm text-muted-foreground">全天候客户服务</div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="text-2xl font-bold text-primary">100%</div>
                 <div className="text-sm text-muted-foreground">智能合约执行</div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="text-2xl font-bold text-primary">0</div>
                 <div className="text-sm text-muted-foreground">安全事故记录</div>
@@ -135,5 +136,5 @@ export function FeaturesSection() {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

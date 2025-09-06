@@ -1,36 +1,37 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  Input, 
-  Alert, 
-  AlertDescription, 
-  Badge, 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger, 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui'
-import { Wallet, Info, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
-import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses'
-import { WalletConnectionManager } from '@/components/ui'
-import { ETHPaymentFlow } from '@/components/payments/ETHPaymentFlow'
-import { contractManager, useContractManager } from '@/lib/contracts/contract-manager'
-import { useTreasury, useUSDT } from '@/lib/hooks/use-contracts'
-import { toast } from 'sonner'
-import { apiClient } from '@/lib/api-client'
+import { Wallet, Info, TrendingUp, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 
-interface EnhancedProductPurchaseProps {
+import { ETHPaymentFlow } from '@/components/payments/ETHPaymentFlow';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Alert,
+  AlertDescription,
+  Badge,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+ WalletConnectionManager } from '@/components/ui';
+import { apiClient } from '@/lib/api-client';
+import type { ProductType } from '@/lib/contracts/addresses';
+import { PRODUCT_CONFIG } from '@/lib/contracts/addresses';
+import { contractManager, useContractManager } from '@/lib/contracts/contract-manager';
+import { useTreasury, useUSDT } from '@/lib/hooks/use-contracts';
+
+interface EnhancedProductPurchaseProperties {
   productType: ProductType
   onSuccess?: (txHash?: string, tokenId?: string) => void
   onError?: (error: string) => void
@@ -43,123 +44,123 @@ export function ProductPurchase({
   productType,
   onSuccess,
   onError,
-  className = ''
-}: EnhancedProductPurchaseProps) {
-  const { address, isConnected, chainId } = useAccount()
-  const { connect, connectors } = useConnect()
-  const { disconnect } = useDisconnect()
-  
-  const treasury = useTreasury()
-  const usdt = useUSDT()
-  const { state: contractState, areContractsDeployed } = useContractManager()
-  
-  const [step, setStep] = useState<PurchaseStep>('selection')
-  const [paymentType, setPaymentType] = useState<'USDT' | 'ETH'>('USDT')
-  const [amount, setAmount] = useState('')
-  const [showPaymentFlow, setShowPaymentFlow] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
+  className = '',
+}: EnhancedProductPurchaseProperties) {
+  const { address, isConnected, chainId } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
 
-  const productConfig = PRODUCT_CONFIG[productType]
+  const treasury = useTreasury();
+  const usdt = useUSDT();
+  const { state: contractState, areContractsDeployed } = useContractManager();
+
+  const [step, setStep] = useState<PurchaseStep>('selection');
+  const [paymentType, setPaymentType] = useState<'USDT' | 'ETH'>('USDT');
+  const [amount, setAmount] = useState('');
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const productConfig = PRODUCT_CONFIG[productType];
 
   // 初始化合约管理器
   useEffect(() => {
     if (chainId) {
-      contractManager.initialize(chainId)
+      contractManager.initialize(chainId);
     }
-  }, [chainId])
+  }, [chainId]);
 
   // 检查网络是否支持
-  const isSupportedNetwork = contractState?.isSupported ?? false
+  const isSupportedNetwork = contractState?.isSupported ?? false;
 
   // 计算预期收益
   const calculateReturns = () => {
-    if (!amount) return null
-    
-    const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) return null
-    
-    const principal = paymentType === 'ETH' ? amountNum * 2000 : amountNum
-    const dailyRate = productConfig.apr / 100 / 365
-    const totalReturn = principal * dailyRate * productConfig.duration
-    
+    if (!amount) return null;
+
+    const amountNumber = Number.parseFloat(amount);
+    if (isNaN(amountNumber) || amountNumber <= 0) return null;
+
+    const principal = paymentType === 'ETH' ? amountNumber * 2000 : amountNumber;
+    const dailyRate = productConfig.apr / 100 / 365;
+    const totalReturn = principal * dailyRate * productConfig.duration;
+
     return {
       principal,
       totalReturn,
       totalValue: principal + totalReturn,
       dailyReturn: principal * dailyRate,
-      originalAmount: amountNum,
-      originalCurrency: paymentType
-    }
-  }
+      originalAmount: amountNumber,
+      originalCurrency: paymentType,
+    };
+  };
 
   // 验证投资金额
   const validateAmount = () => {
-    const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      return { isValid: false, error: '请输入有效的投资金额' }
+    const amountNumber = Number.parseFloat(amount);
+    if (isNaN(amountNumber) || amountNumber <= 0) {
+      return { isValid: false, error: '请输入有效的投资金额' };
     }
 
-    const equivalentUSDT = paymentType === 'ETH' ? amountNum * 2000 : amountNum
-    
+    const equivalentUSDT = paymentType === 'ETH' ? amountNumber * 2000 : amountNumber;
+
     if (equivalentUSDT < productConfig.minInvestment) {
-      return { 
-        isValid: false, 
-        error: `最小投资金额为 ${productConfig.minInvestment} USDT` 
-      }
+      return {
+        isValid: false,
+        error: `最小投资金额为 ${productConfig.minInvestment} USDT`,
+      };
     }
-    
+
     if (equivalentUSDT > productConfig.maxInvestment) {
-      return { 
-        isValid: false, 
-        error: `最大投资金额为 ${productConfig.maxInvestment} USDT` 
-      }
+      return {
+        isValid: false,
+        error: `最大投资金额为 ${productConfig.maxInvestment} USDT`,
+      };
     }
-    
-    return { isValid: true }
-  }
+
+    return { isValid: true };
+  };
 
   // 处理步骤切换
   const handleStepChange = (newStep: PurchaseStep) => {
-    setStep(newStep)
-  }
+    setStep(newStep);
+  };
 
   // 处理支付成功
   const handlePaymentSuccess = (txHash: string, tokenId?: string) => {
-    setStep('success')
-    setIsProcessing(false)
+    setStep('success');
+    setIsProcessing(false);
     toast.success('投资成功！', {
-      description: '您的投资凭证NFT已发送到钱包'
-    })
-    onSuccess?.(txHash, tokenId)
-  }
+      description: '您的投资凭证NFT已发送到钱包',
+    });
+    onSuccess?.(txHash, tokenId);
+  };
 
   // 处理支付错误
   const handlePaymentError = (error: string) => {
-    setIsProcessing(false)
+    setIsProcessing(false);
     toast.error('投资失败', {
-      description: error
-    })
-    onError?.(error)
-  }
+      description: error,
+    });
+    onError?.(error);
+  };
 
   // 开始支付流程
   const startPaymentFlow = () => {
-    const validation = validateAmount()
+    const validation = validateAmount();
     if (!validation.isValid) {
-      toast.error(validation.error)
-      return
+      toast.error(validation.error);
+      return;
     }
 
     if (!areContractsDeployed) {
       toast.error('合约尚未部署', {
-        description: '请等待合约部署完成或切换到支持的网络'
-      })
-      return
+        description: '请等待合约部署完成或切换到支持的网络',
+      });
+      return;
     }
 
-    setIsProcessing(true)
-    setShowPaymentFlow(true)
-  }
+    setIsProcessing(true);
+    setShowPaymentFlow(true);
+  };
 
   // 渲染金额选择阶段
   const renderAmountSelection = () => (
@@ -215,12 +216,12 @@ export function ProductPurchase({
               placeholder={`${productConfig.minInvestment} - ${productConfig.maxInvestment}`}
               min={paymentType === 'ETH' ? productConfig.minInvestment / 2000 : productConfig.minInvestment}
               max={paymentType === 'ETH' ? productConfig.maxInvestment / 2000 : productConfig.maxInvestment}
-              step={paymentType === 'ETH' ? "0.001" : "1"}
+              step={paymentType === 'ETH' ? '0.001' : '1'}
             />
-            
+
             {/* 快速金额按钮 */}
             <div className="flex gap-2">
-              {paymentType === 'ETH' 
+              {paymentType === 'ETH'
                 ? [0.05, 0.1, 0.25].map(amount => (
                     <Button
                       key={amount}
@@ -254,7 +255,7 @@ export function ProductPurchase({
               </h4>
               <div className="space-y-2 text-sm">
                 {(() => {
-                  const returns = calculateReturns()!
+                  const returns = calculateReturns();
                   return (
                     <>
                       <div className="flex justify-between">
@@ -287,7 +288,7 @@ export function ProductPurchase({
                         </span>
                       </div>
                     </>
-                  )
+                  );
                 })()}
               </div>
             </div>
@@ -295,43 +296,51 @@ export function ProductPurchase({
 
           {/* 操作按钮 */}
           <div className="space-y-3">
-            {!isConnected ? (
-              <Button onClick={() => handleStepChange('wallet')} className="w-full" size="lg">
-                <Wallet className="w-4 h-4 mr-2" />
-                连接钱包
+            {isConnected
+? isSupportedNetwork
+? areContractsDeployed
+? (
+              <Button
+                onClick={startPaymentFlow}
+                disabled={!amount || isProcessing}
+                className="w-full"
+                size="lg"
+              >
+                {isProcessing
+? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    处理中...
+                  </>
+                )
+: (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    确认投资
+                  </>
+                )}
               </Button>
-            ) : !isSupportedNetwork ? (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  当前网络不受支持。请切换到支持的网络后继续。
-                </AlertDescription>
-              </Alert>
-            ) : !areContractsDeployed ? (
+            )
+: (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   智能合约尚未部署。请等待部署完成或切换网络。
                 </AlertDescription>
               </Alert>
-            ) : (
-              <Button 
-                onClick={startPaymentFlow}
-                disabled={!amount || isProcessing}
-                className="w-full" 
-                size="lg"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    处理中...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    确认投资
-                  </>
-                )}
+            )
+: (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  当前网络不受支持。请切换到支持的网络后继续。
+                </AlertDescription>
+              </Alert>
+            )
+: (
+              <Button onClick={() => handleStepChange('wallet')} className="w-full" size="lg">
+                <Wallet className="w-4 h-4 mr-2" />
+                连接钱包
               </Button>
             )}
           </div>
@@ -346,7 +355,7 @@ export function ProductPurchase({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 
   // 渲染钱包连接阶段
   const renderWalletConnection = () => (
@@ -355,17 +364,17 @@ export function ProductPurchase({
         <h3 className="text-lg font-semibold mb-2">连接钱包</h3>
         <p className="text-gray-600 mb-4">请连接您的钱包以继续投资</p>
       </div>
-      
+
       <WalletConnectionManager
         onConnectionChange={(connected) => {
           if (connected) {
-            setTimeout(() => handleStepChange('selection'), 1000)
+            setTimeout(() => handleStepChange('selection'), 1000);
           }
         }}
-        showNetworkInfo={true}
-        showContractStatus={true}
+        showNetworkInfo
+        showContractStatus
       />
-      
+
       <Button
         variant="outline"
         onClick={() => handleStepChange('selection')}
@@ -374,7 +383,7 @@ export function ProductPurchase({
         返回投资页面
       </Button>
     </div>
-  )
+  );
 
   // 渲染成功页面
   const renderSuccess = () => (
@@ -386,45 +395,49 @@ export function ProductPurchase({
         <h3 className="text-lg font-semibold text-green-700 mb-2">投资成功！</h3>
         <p className="text-gray-600">您的投资凭证NFT已发送到钱包</p>
       </div>
-      
+
       <Alert>
         <CheckCircle className="h-4 w-4" />
         <AlertDescription>
           您可以在个人仪表板查看投资详情和收益情况。
         </AlertDescription>
       </Alert>
-      
+
       <Button
         onClick={() => {
-          setStep('selection')
-          setAmount('')
-          setIsProcessing(false)
+          setStep('selection');
+          setAmount('');
+          setIsProcessing(false);
         }}
         className="w-full"
       >
         继续投资
       </Button>
     </div>
-  )
+  );
 
   // 主渲染函数
   const renderCurrentStep = () => {
     switch (step) {
-      case 'selection':
-        return renderAmountSelection()
-      case 'wallet':
-        return renderWalletConnection()
-      case 'success':
-        return renderSuccess()
-      default:
-        return renderAmountSelection()
+      case 'selection': {
+        return renderAmountSelection();
+      }
+      case 'wallet': {
+        return renderWalletConnection();
+      }
+      case 'success': {
+        return renderSuccess();
+      }
+      default: {
+        return renderAmountSelection();
+      }
     }
-  }
+  };
 
   return (
     <div className={`max-w-lg mx-auto ${className}`}>
       {renderCurrentStep()}
-      
+
       {/* ETH支付流程对话框 */}
       <Dialog open={showPaymentFlow} onOpenChange={setShowPaymentFlow}>
         <DialogContent className="max-w-md">
@@ -435,20 +448,20 @@ export function ProductPurchase({
             productType={productType}
             ethAmount={amount}
             onSuccess={(txHash, tokenId) => {
-              setShowPaymentFlow(false)
-              handlePaymentSuccess(txHash, tokenId)
+              setShowPaymentFlow(false);
+              handlePaymentSuccess(txHash, tokenId);
             }}
             onError={(error) => {
-              setShowPaymentFlow(false)
-              handlePaymentError(error)
+              setShowPaymentFlow(false);
+              handlePaymentError(error);
             }}
             onCancel={() => {
-              setShowPaymentFlow(false)
-              setIsProcessing(false)
+              setShowPaymentFlow(false);
+              setIsProcessing(false);
             }}
           />
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Auth } from '../auth/decorators/auth.decorator';
+import { AlertRuleData, DataCleanupConfig } from './interfaces/admin.interface';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -322,7 +323,7 @@ export class AdminController {
   // Alert Rules Management
   @Post('alert-rules')
   @ApiOperation({ summary: 'Create alert rule' })
-  async createAlertRule(@Body() ruleData: any) {
+  async createAlertRule(@Body() ruleData: AlertRuleData) {
     return {
       id: `rule-${Date.now()}`,
       ...ruleData,
@@ -352,7 +353,7 @@ export class AdminController {
   // Data Cleanup
   @Post('data-cleanup')
   @ApiOperation({ summary: 'Execute data cleanup' })
-  async executeDataCleanup(@Body() cleanupConfig: any) {
+  async executeDataCleanup(@Body() cleanupConfig: DataCleanupConfig) {
     return {
       taskId: `cleanup-${Date.now()}`,
       status: 'submitted',

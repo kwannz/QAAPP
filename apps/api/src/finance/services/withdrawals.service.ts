@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { WithdrawalStatus, WithdrawalType, RiskLevel, Prisma } from '@qa-app/database';
 // AuditService functionality integrated into monitoring module
 import { RiskEngineService, WithdrawalRiskInput } from '../../risk/risk-engine.service';
+import { PerformanceOptimizerService } from '../../common/performance/performance-optimizer.service';
 
 export interface CreateWithdrawalDto {
   userId: string;
@@ -35,6 +36,7 @@ export class WithdrawalsService {
   constructor(
     private prisma: PrismaService,
     private riskEngine: RiskEngineService,
+    private performanceOptimizer: PerformanceOptimizerService,
   ) {}
 
   async createWithdrawal(createDto: CreateWithdrawalDto, actorId: string): Promise<any> {
@@ -264,7 +266,7 @@ export class WithdrawalsService {
     updateDto: UpdateWithdrawalDto,
     actorId: string,
   ): Promise<{ updated: number; failed: string[] }> {
-    const results = { updated: 0, failed: [] };
+    const results = { updated: 0, failed: [] as string[] };
 
     for (const id of ids) {
       try {
@@ -294,51 +296,68 @@ export class WithdrawalsService {
   }
 
   async getWithdrawalStats(): Promise<any> {
-    const [
-      totalWithdrawals,
-      pendingWithdrawals,
-      completedWithdrawals,
-      rejectedWithdrawals,
-      totalAmount,
-      riskLevelStats,
-      recentActivity,
-    ] = await Promise.all([
-      this.prisma.withdrawal.count(),
-      this.prisma.withdrawal.count({ where: { status: WithdrawalStatus.PENDING } }),
-      this.prisma.withdrawal.count({ where: { status: WithdrawalStatus.COMPLETED } }),
-      this.prisma.withdrawal.count({ where: { status: WithdrawalStatus.REJECTED } }),
-      this.prisma.withdrawal.aggregate({
-        _sum: { amount: true },
-        where: { status: WithdrawalStatus.COMPLETED },
-      }),
-      this.prisma.withdrawal.groupBy({
-        by: ['riskLevel'],
-        _count: true,
-        where: { status: { in: [WithdrawalStatus.PENDING, WithdrawalStatus.REVIEWING] } },
-      }),
-      this.prisma.withdrawal.count({
-        where: {
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // 最近24小时
-          },
-        },
-      }),
-    ]);
+    // 使用PerformanceOptimizerService优化查询缓存
+    return this.performanceOptimizer.optimizeQuery(
+      'withdrawal_stats_aggregated',
+      async () => {
+        const recent24hDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        
+        // 优化：使用单个聚合查询获取状态统计和总金额
+        const [statusStats, riskLevelStats, recentActivity] = await Promise.all([
+          // 合并多个count查询为单个groupBy聚合
+          this.prisma.withdrawal.groupBy({
+            by: ['status'],
+            _count: true,
+            _sum: { amount: true },
+          }),
+          
+          // 风险等级统计保持原有逻辑
+          this.prisma.withdrawal.groupBy({
+            by: ['riskLevel'],
+            _count: true,
+            where: { status: { in: [WithdrawalStatus.PENDING, WithdrawalStatus.REVIEWING] } },
+          }),
+          
+          // 最近24小时活动统计
+          this.prisma.withdrawal.count({
+            where: { createdAt: { gte: recent24hDate } },
+          }),
+        ]);
 
-    return {
-      total: totalWithdrawals,
-      byStatus: {
-        pending: pendingWithdrawals,
-        completed: completedWithdrawals,
-        rejected: rejectedWithdrawals,
+        // 处理状态统计数据
+        const statusCounts = statusStats.reduce((acc, stat) => {
+          acc[stat.status.toLowerCase()] = stat._count;
+          return acc;
+        }, {} as Record<string, number>);
+
+        // 计算完成提现的总金额
+        const completedAmount = statusStats
+          .filter(stat => stat.status === WithdrawalStatus.COMPLETED)
+          .reduce((sum, stat) => sum + Number(stat._sum.amount || 0), 0);
+
+        // 计算总数
+        const totalWithdrawals = statusStats.reduce((sum, stat) => sum + stat._count, 0);
+
+        return {
+          total: totalWithdrawals,
+          byStatus: {
+            pending: statusCounts.pending || 0,
+            completed: statusCounts.completed || 0,
+            rejected: statusCounts.rejected || 0,
+          },
+          totalCompletedAmount: completedAmount,
+          riskLevelDistribution: riskLevelStats.reduce((acc, stat) => {
+            (acc as any)[stat.riskLevel.toLowerCase()] = stat._count;
+            return acc;
+          }, {} as Record<string, number>),
+          recent24h: recentActivity,
+        };
       },
-      totalCompletedAmount: totalAmount._sum.amount || 0,
-      riskLevelDistribution: riskLevelStats.reduce((acc, stat) => {
-        acc[stat.riskLevel.toLowerCase()] = stat._count;
-        return acc;
-      }, {}),
-      recent24h: recentActivity,
-    };
+      { 
+        ttl: 5 * 60 * 1000, // 5分钟缓存
+        tags: ['withdrawal-stats'] 
+      }
+    );
   }
 
   private async validateUserBalance(
@@ -413,7 +432,7 @@ export class WithdrawalsService {
       [WithdrawalType.PRINCIPAL]: 0.001, // 0.1%
     };
 
-    const feeRate = feeConfig?.value?.[type] || defaultFees[type];
+    const feeRate = (feeConfig?.value as any)?.[type] || defaultFees[type];
     const calculatedFee = amount * feeRate;
     
     // 设置最小和最大手续费

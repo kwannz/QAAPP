@@ -1,9 +1,10 @@
-'use client'
+'use client';
 
-import { ReactNode, useState } from 'react'
-import { Search, Filter, X, Calendar, Download } from 'lucide-react'
-import { Button, Input } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { Search, Filter, X, Calendar, Download } from 'lucide-react';
+import { ReactNode, useState } from 'react';
+
+import { Button, Input } from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 interface FilterOption {
   value: string
@@ -19,7 +20,7 @@ interface FilterConfig {
   placeholder?: string
 }
 
-interface FilterPanelProps {
+interface FilterPanelProperties {
   filters: FilterConfig[]
   values: Record<string, any>
   onChange: (filterValues: Record<string, any>) => void
@@ -38,36 +39,33 @@ export function FilterPanel({
   onExport,
   searchPlaceholder = '搜索...',
   className,
-  showExport = true
-}: FilterPanelProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isExpanded, setIsExpanded] = useState(false)
+  showExport = true,
+}: FilterPanelProperties) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleFilterChange = (filterId: string, value: any) => {
     onChange({
       ...values,
-      [filterId]: value
-    })
-  }
+      [filterId]: value,
+    });
+  };
 
   const handleSearch = (value: string) => {
-    setSearchTerm(value)
-    onSearch?.(value)
-  }
+    setSearchTerm(value);
+    onSearch?.(value);
+  };
 
   const clearFilters = () => {
-    const clearedValues = Object.keys(values).reduce((acc, key) => ({
-      ...acc,
-      [key]: filters.find(f => f.id === key)?.type === 'search' ? '' : 'all'
-    }), {})
-    onChange(clearedValues)
-    setSearchTerm('')
-    onSearch?.('')
-  }
+    const clearedValues = Object.fromEntries(Object.keys(values).map((key) => [key, filters.find(f => f.id === key)?.type === 'search' ? '' : 'all']));
+    onChange(clearedValues);
+    setSearchTerm('');
+    onSearch?.('');
+  };
 
   const activeFilterCount = Object.entries(values).filter(
-    ([key, value]) => value && value !== 'all' && value !== ''
-  ).length
+    ([key, value]) => value && value !== 'all' && value !== '',
+  ).length;
 
   return (
     <div className={cn('space-y-4 rounded-lg bg-white p-4 shadow-sm', className)}>
@@ -83,7 +81,7 @@ export function FilterPanel({
             className="pl-10"
           />
         </div>
-        
+
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -99,7 +97,7 @@ export function FilterPanel({
               </span>
             )}
           </Button>
-          
+
           {showExport && onExport && (
             <Button variant="outline" size="sm" onClick={onExport}>
               <Download className="mr-2 h-4 w-4" />
@@ -118,7 +116,7 @@ export function FilterPanel({
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   {filter.label}
                 </label>
-                
+
                 {filter.type === 'select' && filter.options && (
                   <select
                     value={values[filter.id] || 'all'}
@@ -134,7 +132,7 @@ export function FilterPanel({
                     ))}
                   </select>
                 )}
-                
+
                 {filter.type === 'date' && (
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -146,7 +144,7 @@ export function FilterPanel({
                     />
                   </div>
                 )}
-                
+
                 {filter.type === 'daterange' && (
                   <div className="flex gap-2">
                     <input
@@ -168,7 +166,7 @@ export function FilterPanel({
               </div>
             ))}
           </div>
-          
+
           {activeFilterCount > 0 && (
             <div className="flex justify-end">
               <Button
@@ -185,5 +183,5 @@ export function FilterPanel({
         </div>
       )}
     </div>
-  )
+  );
 }

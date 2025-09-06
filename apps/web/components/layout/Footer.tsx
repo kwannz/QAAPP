@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { Github, Twitter, MessageCircle, Mail, ExternalLink } from 'lucide-react'
+import { Github, Twitter, MessageCircle, Mail, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
-import { Button } from '@/components/ui'
+import { Button } from '@/components/ui';
 
 const navigation = {
   product: [
@@ -30,17 +30,17 @@ const navigation = {
     { name: '风险提示', href: '/risk-disclosure' },
     { name: '免责声明', href: '/disclaimer' },
   ],
-}
+};
 
 const socialLinks = [
   { name: 'Twitter', href: '#', icon: Twitter },
   { name: 'Telegram', href: '#', icon: MessageCircle },
   { name: 'Github', href: '#', icon: Github },
   { name: 'Email', href: 'mailto:support@qa-app.com', icon: Mail },
-]
+];
 
 export function Footer() {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-gray-50 border-t">
@@ -58,7 +58,7 @@ export function Footer() {
                   QA App
                 </span>
               </div>
-              
+
               <p className="text-muted-foreground mb-6 leading-relaxed max-w-md">
                 专业的Web3固定收益投资平台，致力于为用户提供安全、透明、高效的数字资产增值服务。
               </p>
@@ -147,7 +147,7 @@ export function Footer() {
               <p className="text-sm text-muted-foreground">
                 © {currentYear} QA App. All rights reserved.
               </p>
-              
+
               <div className="flex space-x-4">
                 {navigation.legal.map((item) => (
                   <Link
@@ -164,7 +164,7 @@ export function Footer() {
             {/* 社交媒体链接 */}
             <div className="flex space-x-4">
               {socialLinks.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.name}
@@ -174,7 +174,7 @@ export function Footer() {
                     <span className="sr-only">{item.name}</span>
                     <Icon className="h-5 w-5" />
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
@@ -193,5 +193,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

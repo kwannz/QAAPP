@@ -4,18 +4,18 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class LoginDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: 'password123' })
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 }
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: 'StrongPassword123!' })
   @IsString()
@@ -23,7 +23,7 @@ export class RegisterDto {
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
     message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
-  password: string;
+  password!: string;
 
   @ApiPropertyOptional({ example: 'REFER123' })
   @IsOptional()
@@ -42,13 +42,13 @@ export class WalletChallengeDto {
     description: 'Ethereum wallet address' 
   })
   @IsEthereumAddress()
-  address: string;
+  address!: string;
 
   @ApiProperty({ 
     example: 1,
     description: 'Chain ID (1 for mainnet, 11155111 for Sepolia testnet)' 
   })
-  chainId: number;
+  chainId!: number;
 }
 
 export class WalletVerifyDto {
@@ -57,7 +57,7 @@ export class WalletVerifyDto {
     description: 'Ethereum wallet address' 
   })
   @IsEthereumAddress()
-  address: string;
+  address!: string;
 
   @ApiProperty({ 
     example: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b',
@@ -65,14 +65,14 @@ export class WalletVerifyDto {
   })
   @IsString()
   @IsHexadecimal()
-  signature: string;
+  signature!: string;
 
   @ApiProperty({ 
     example: 'Welcome to QA App!\n\nSign this message to authenticate your wallet.\n\nNonce: 1234567890\nTimestamp: 2024-08-24T10:00:00.000Z',
     description: 'Original message that was signed' 
   })
   @IsString()
-  message: string;
+  message!: string;
 }
 
 export class RefreshTokenDto {
@@ -81,18 +81,18 @@ export class RefreshTokenDto {
     description: 'Valid refresh token' 
   })
   @IsString()
-  refreshToken: string;
+  refreshToken!: string;
 }
 
 export class AuthResponseDto {
   @ApiProperty()
-  accessToken: string;
+  accessToken!: string;
 
   @ApiProperty()
-  refreshToken: string;
+  refreshToken!: string;
 
   @ApiProperty()
-  user: {
+  user!: {
     id: string;
     email?: string;
     role: string;
@@ -101,5 +101,5 @@ export class AuthResponseDto {
   };
 
   @ApiProperty()
-  expiresAt: string;
+  expiresAt!: string;
 }

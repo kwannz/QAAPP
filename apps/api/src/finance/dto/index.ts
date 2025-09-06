@@ -38,7 +38,7 @@ export class GetTransactionsDto {
 
 export class UpdateTransactionStatusDto {
   @IsEnum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'])
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  status!: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
   @IsOptional()
   metadata?: any
@@ -46,7 +46,7 @@ export class UpdateTransactionStatusDto {
 
 export class ProcessTransactionDto {
   @IsEnum(['APPROVE', 'REJECT', 'PROCESS'])
-  action: 'APPROVE' | 'REJECT' | 'PROCESS'
+  action!: 'APPROVE' | 'REJECT' | 'PROCESS'
 
   @IsOptional()
   @IsString()
@@ -75,16 +75,16 @@ export class ExportTransactionsDto {
   endDate?: string
 
   @IsEnum(['csv', 'excel', 'json'])
-  format: 'csv' | 'excel' | 'json'
+  format!: 'csv' | 'excel' | 'json'
 }
 
 export class BulkUpdateTransactionsDto {
   @IsArray()
   @IsString({ each: true })
-  ids: string[]
+  ids!: string[]
 
   @IsEnum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'])
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  status!: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
   @IsOptional()
   metadata?: any

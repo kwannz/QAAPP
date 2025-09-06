@@ -12,11 +12,11 @@ try {
 
 @Injectable()
 export class LoggerService implements NestLoggerService {
-  private logger: winston.Logger;
-  private requestLogger: winston.Logger;
-  private performanceLogger: winston.Logger;
-  private auditLogger: winston.Logger;
-  private errorLogger: winston.Logger;
+  private logger!: winston.Logger;
+  private requestLogger!: winston.Logger;
+  private performanceLogger!: winston.Logger;
+  private auditLogger!: winston.Logger;
+  private errorLogger!: winston.Logger;
 
   constructor() {
     this.initializeLoggers();

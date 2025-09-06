@@ -1,26 +1,8 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { PositionStatus } from '@qa-app/database';
+import { FinanceMappingUtils, MockPosition } from '../interfaces/mapping.interface';
 
-export interface MockPosition {
-  id: string;
-  userId: string;
-  productId: string;
-  orderId: string;
-  principal: number;
-  startDate: Date;
-  endDate: Date;
-  nextPayoutAt?: Date;
-  nftTokenId?: number;
-  nftTokenUri?: string;
-  status: 'ACTIVE' | 'REDEEMING' | 'CLOSED' | 'DEFAULTED';
-  totalPaid: number;
-  lastPayoutAt?: Date;
-  maturityAmount?: number;
-  metadata?: any;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 @Injectable()
 export class PositionsService {
@@ -68,7 +50,7 @@ export class PositionsService {
 
       this.logger.log(`Created position ${position.id} for user ${orderData.userId}, amount: $${orderData.usdtAmount}`);
       
-      return {
+      return FinanceMappingUtils.mapDatabasePositionToMock({
         id: position.id,
         userId: position.userId,
         productId: position.productId,
@@ -86,7 +68,7 @@ export class PositionsService {
         metadata: position.metadata,
         createdAt: position.createdAt,
         updatedAt: position.updatedAt
-      };
+      });
     } catch (error) {
       this.logger.error('Failed to create position:', error);
       throw error;
@@ -147,7 +129,7 @@ export class PositionsService {
       // 转换为 MockPosition 格式
       const mockPositions: MockPosition[] = positions.map(pos => {
         const totalPaid = pos.payouts.reduce((sum, payout) => sum + Number(payout.amount), 0);
-        return {
+        return FinanceMappingUtils.mapDatabasePositionToMock({
           id: pos.id,
           userId: pos.userId,
           productId: pos.productId,
@@ -165,7 +147,7 @@ export class PositionsService {
           metadata: pos.metadata,
           createdAt: pos.createdAt,
           updatedAt: pos.updatedAt
-        };
+        });
       });
 
       // 计算汇总信息
@@ -226,7 +208,7 @@ export class PositionsService {
       _sum: { amount: true }
     });
 
-    return {
+    return FinanceMappingUtils.mapDatabasePositionToMock({
       id: position.id,
       userId: position.userId,
       productId: position.productId,
@@ -244,7 +226,7 @@ export class PositionsService {
       metadata: position.metadata,
       createdAt: position.createdAt,
       updatedAt: position.updatedAt
-    };
+    });
   }
 
   /**
@@ -283,7 +265,7 @@ export class PositionsService {
         _sum: { amount: true }
       });
 
-      activePositions.push({
+      activePositions.push(FinanceMappingUtils.mapDatabasePositionToMock({
         id: pos.id,
         userId: pos.userId,
         productId: pos.productId,
@@ -301,7 +283,7 @@ export class PositionsService {
         metadata: pos.metadata,
         createdAt: pos.createdAt,
         updatedAt: pos.updatedAt
-      });
+      }));
     }
 
     return activePositions;
@@ -339,7 +321,7 @@ export class PositionsService {
 
     this.logger.log(`Updated position ${positionId} status to ${status}`);
     
-    return {
+    return FinanceMappingUtils.mapDatabasePositionToMock({
       id: updatedPosition.id,
       userId: updatedPosition.userId,
       productId: updatedPosition.productId,
@@ -357,7 +339,7 @@ export class PositionsService {
       metadata: updatedPosition.metadata,
       createdAt: updatedPosition.createdAt,
       updatedAt: updatedPosition.updatedAt
-    };
+    });
   }
 
   /**
@@ -393,7 +375,7 @@ export class PositionsService {
 
     this.logger.log(`Recorded payout payment for position ${positionId}: $${payoutAmount.toFixed(6)}`);
     
-    return {
+    return FinanceMappingUtils.mapDatabasePositionToMock({
       id: updatedPosition.id,
       userId: updatedPosition.userId,
       productId: updatedPosition.productId,
@@ -411,7 +393,7 @@ export class PositionsService {
       metadata: updatedPosition.metadata,
       createdAt: updatedPosition.createdAt,
       updatedAt: updatedPosition.updatedAt
-    };
+    });
   }
 
   /**
@@ -484,7 +466,7 @@ export class PositionsService {
         _sum: { amount: true }
       });
 
-      const finalPosition: MockPosition = {
+      const finalPosition: MockPosition = FinanceMappingUtils.mapDatabasePositionToMock({
         id: closedPosition.id,
         userId: closedPosition.userId,
         productId: closedPosition.productId,
@@ -502,7 +484,7 @@ export class PositionsService {
         metadata: closedPosition.metadata,
         createdAt: closedPosition.createdAt,
         updatedAt: closedPosition.updatedAt
-      };
+      });
 
       this.logger.log(`Position ${positionId} redeemed: $${redeemAmount.toFixed(6)}, tx: ${mockTxHash}`);
 
