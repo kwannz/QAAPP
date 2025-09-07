@@ -5,7 +5,7 @@
 export {
   Button,
   buttonVariants,
-  type ButtonProperties as ButtonProps
+  type ButtonProperties as ButtonProps,
 } from '../../../../packages/ui/src/components/ui/button';
 
 export {
@@ -15,33 +15,33 @@ export {
   CardTitle,
   CardDescription,
   CardContent,
-  cardVariants
+  cardVariants,
 } from '../../../../packages/ui/src/components/ui/card';
 
 export {
   Alert,
   AlertTitle,
   AlertDescription,
-  alertVariants
+  alertVariants,
 } from '../../../../packages/ui/src/components/ui/alert';
 
 export {
   Badge,
   type BadgeProperties as BadgeProps,
-  badgeVariants
+  badgeVariants,
 } from '../../../../packages/ui/src/components/ui/badge';
 
 export {
   Input,
   type InputProperties as InputProps,
-  inputVariants
+  inputVariants,
 } from '../../../../packages/ui/src/components/ui/input';
 
 export {
   Tabs,
   TabsList,
   TabsTrigger,
-  TabsContent
+  TabsContent,
 } from '../../../../packages/ui/src/components/ui/tabs';
 
 export { Checkbox } from '../../../../packages/ui/src/components/ui/checkbox';
@@ -58,23 +58,33 @@ export { cn } from '../../../../packages/ui/src/utils/cn';
 // 业务组件  
 export { 
   NFTCard,
-  type NFTCardProperties as NFTCardProps
+  type NFTCardProperties as NFTCardProps,
 } from '../../../../packages/ui/src/components/business/nft-card';
 
 export {
   WalletConnect,
-  type WalletConnectProperties as WalletConnectProps
+  type WalletConnectProperties as WalletConnectProps,
 } from '../../../../packages/ui/src/components/business/WalletConnect';
 
 export { 
   InvestmentDashboard,
   type InvestmentDashboardProperties as InvestmentDashboardProps,
   type DashboardPosition,
-  type DashboardInvestmentStats
+  type DashboardInvestmentStats,
 } from '../../../../packages/ui/src/components/business/InvestmentDashboard';
 
 // 类型
 export type { VariantProps } from 'class-variance-authority';
 
 // App-specific UI组件 - 保持本地CardSystem
-export { Card as MetricsCard, Card as ProductCard, Card as UnifiedCard, Card as SystemHealthCard, EnhancedProductCard } from './CardSystem';
+// Export enhanced cards with correct implementations
+export {
+  MetricsCard,
+  ProductCard,
+  UnifiedCard,
+  SystemHealthCard,
+  EnhancedProductCard,
+} from './CardSystem';
+
+// Wallet connection manager used in product purchase flow
+export { WalletConnectionManager } from './WalletConnectionManager';

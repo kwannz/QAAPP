@@ -38,20 +38,25 @@ export const CONTRACTS = {
 
 // 根据链ID获取合约地址
 export function getContractAddresses(chainId: number) {
+  const CHAIN_ID_MAINNET = 1;
+  const CHAIN_ID_POLYGON = 137;
+  const CHAIN_ID_ARBITRUM = 42_161;
+  const CHAIN_ID_SEPOLIA = 11_155_111;
+  const CHAIN_ID_LOCAL = 31_337;
   switch (chainId) {
-    case 1: { // 以太坊主网
+    case CHAIN_ID_MAINNET: { // 以太坊主网
       return CONTRACTS.mainnet;
     }
-    case 137: { // Polygon 主网
+    case CHAIN_ID_POLYGON: { // Polygon 主网
       return CONTRACTS.polygon;
     }
-    case 42_161: { // Arbitrum 主网
+    case CHAIN_ID_ARBITRUM: { // Arbitrum 主网
       return CONTRACTS.arbitrum;
     }
-    case 11_155_111: { // Sepolia 测试网
+    case CHAIN_ID_SEPOLIA: { // Sepolia 测试网
       return CONTRACTS.sepolia;
     }
-    case 31_337: { // 本地测试网络
+    case CHAIN_ID_LOCAL: { // 本地测试网络
       return CONTRACTS.localhost;
     }
     default: {
@@ -62,10 +67,10 @@ export function getContractAddresses(chainId: number) {
 
 // 产品类型枚举 (与智能合约保持一致)
 export enum ProductType {
-  SILVER = 0,   // 白银卡
-  GOLD = 1,     // 黄金卡
-  DIAMOND = 2,  // 钻石卡
-  PLATINUM = 3  // 白金卡
+  SILVER,   // 白银卡
+  GOLD,     // 黄金卡
+  DIAMOND,  // 钻石卡
+  PLATINUM, // 白金卡
 }
 
 // 产品配置 (与智能合约保持一致)

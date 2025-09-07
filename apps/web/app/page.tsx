@@ -9,6 +9,7 @@ import { StatsSection } from '../components/home/StatsSection'
 import { CTASection } from '../components/home/CTASection'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
+import { Card, CardContent, CardHeader, CardTitle, WalletConnectionManager } from '@/components/ui'
 
 export default function HomePage() {
   return (
@@ -16,6 +17,27 @@ export default function HomePage() {
       <Header />
       
       <main className="flex-1">
+        {/* 调试：已连接覆盖 */}
+        {(() => {
+          const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+          const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const override = debug && sp?.get('e2e_wallet') === 'connected';
+          if (override) {
+            return (
+              <div className="qa-container mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>钱包连接</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <WalletConnectionManager showNetworkInfo showContractStatus />
+                  </CardContent>
+                </Card>
+              </div>
+            )
+          }
+          return null;
+        })()}
         {/* 英雄区域 */}
         <Suspense fallback={<div className="h-screen animate-pulse bg-gradient-to-br from-blue-50 to-indigo-100" />}>
           <HeroSection />

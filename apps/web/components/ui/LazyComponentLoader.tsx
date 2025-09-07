@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import React, { Suspense } from 'react';
+import { logger } from '@/lib/verbose-logger';
 
 // 通用加载器组件
 export function LoadingSpinner({ size = 'default' }: { size?: 'small' | 'default' | 'large' }) {
@@ -75,17 +76,17 @@ export function TableLoader() {
         {/* 表头 */}
         <div className="bg-gray-50 px-6 py-3 border-b">
           <div className="flex space-x-4">
-            {[1, 2, 3, 4].map((index) => (
-              <div key={index} className="h-4 bg-gray-200 rounded flex-1" />
+            {(['h1','h2','h3','h4'] as const).map((key) => (
+              <div key={key} className="h-4 bg-gray-200 rounded flex-1" />
             ))}
           </div>
         </div>
         {/* 表格行 */}
-        {[1, 2, 3, 4, 5].map((index) => (
-          <div key={index} className="px-6 py-4 border-b">
+        {(['r1','r2','r3','r4','r5'] as const).map((rowKey) => (
+          <div key={rowKey} className="px-6 py-4 border-b">
             <div className="flex space-x-4">
-              {[1, 2, 3, 4].map((index) => (
-                <div key={index} className="h-3 bg-gray-200 rounded flex-1" />
+              {(['c1','c2','c3','c4'] as const).map((colKey) => (
+                <div key={colKey} className="h-3 bg-gray-200 rounded flex-1" />
               ))}
             </div>
           </div>
@@ -138,7 +139,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProperties, ErrorBounda
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('LazyWrapper Error:', error, errorInfo);
+    logger.error('LazyWrapper', 'Error', { error, errorInfo });
   }
 
   async render() {
@@ -192,7 +193,7 @@ export const preloadComponent = async (importFunction: () => Promise<any>) => {
 export function usePreloadComponent(importFunction: () => Promise<any>, delay = 0) {
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      importFunction().catch(console.error);
+      importFunction().catch((error) => logger.error('LazyLoader', 'Preload error', { error }));
     }, delay);
 
     return () => clearTimeout(timer);

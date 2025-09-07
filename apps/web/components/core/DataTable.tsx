@@ -24,6 +24,10 @@ import { useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, cn } from '@/components/ui';
+const THOUSANDS_THRESHOLD = 1000;
+const MAX_ROW_ACTIONS = 2;
+const MAX_PAGINATION_BUTTONS = 5;
+const PAGE_OFFSET = 2;
 
 // Audit-specific types and configurations
 export interface AuditLog {
@@ -103,7 +107,6 @@ interface DataTableProperties<T = any> {
   selectable?: boolean
   exportable?: boolean
   title?: string
-  preset?: 'default' | 'audit' | 'monitoring'
   description?: string
   className?: string
   emptyMessage?: string
@@ -123,7 +126,6 @@ export function DataTable<T extends Record<string, any>>({
   searchable = true,
   selectable = false,
   exportable = false,
-  preset = 'default',
   title,
   description,
   className,
@@ -136,6 +138,10 @@ export function DataTable<T extends Record<string, any>>({
   const [selectedRows, setSelectedRows] = useState<Set<T>>(new Set());
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(false);
+
+  // Derived pagination numbers
+  const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 0;
+  const buttonCount = pagination ? Math.min(MAX_PAGINATION_BUTTONS, totalPages) : 0;
 
   // 处理排序
   const handleSort = (column: keyof T) => {
@@ -240,7 +246,7 @@ export function DataTable<T extends Record<string, any>>({
       );
     }
 
-    if (typeof value === 'number' && value > 1000) {
+    if (typeof value === 'number' && value > THOUSANDS_THRESHOLD) {
       return value.toLocaleString('zh-CN');
     }
 
@@ -282,8 +288,8 @@ export function DataTable<T extends Record<string, any>>({
                 className="flex items-center gap-2"
               >
                 <Filter className="h-4 w-4" />
-                筛选 {Object.values(activeFilters).some(v => v && v !== 'all')
-                  && `(${Object.values(activeFilters).filter(v => v && v !== 'all').length})`}
+                筛选 {Object.values(activeFilters).some(v => v && v !== 'all') &&
+                  `(${Object.values(activeFilters).filter(v => v && v !== 'all').length})`}
               </Button>
             )}
           </div>
@@ -295,9 +301,9 @@ export function DataTable<T extends Record<string, any>>({
                 <span className="text-sm text-gray-500">
                   已选择 {selectedRows.size} 项
                 </span>
-                {batchActions.map((action, index) => (
+                {batchActions.map((action) => (
                   <Button
-                    key={index}
+                    key={action.label}
                     variant={action.variant || 'outline'}
                     size="sm"
                     onClick={() => action.onClick([...selectedRows])}
@@ -433,9 +439,11 @@ colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
                   </tr>
                 )
 : (
-                  filteredAndSortedData.map((row, index) => (
+                  filteredAndSortedData.map((row, index) => {
+                    const rowKey = String((row as any)[columns[0].key] ?? index);
+                    return (
                     <motion.tr
-                      key={index}
+                      key={rowKey}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className={cn(
@@ -466,10 +474,10 @@ colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
                           <div className="flex items-center justify-center space-x-2">
                             {actions
                               .filter(action => !action.show || action.show(row))
-                              .slice(0, 2)
-                              .map((action, actionIndex) => (
+                              .slice(0, MAX_ROW_ACTIONS)
+                              .map((action) => (
                                 <Button
-                                  key={actionIndex}
+                                  key={String(action.label)}
                                   variant={action.variant || 'outline'}
                                   size="sm"
                                   onClick={() => action.onClick(row)}
@@ -480,7 +488,7 @@ colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
                                   {action.label}
                                 </Button>
                               ))}
-                            {actions.filter(action => !action.show || action.show(row)).length > 2 && (
+                            {actions.filter(action => !action.show || action.show(row)).length > MAX_ROW_ACTIONS && (
                               <Button variant="outline" size="sm">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
@@ -489,7 +497,8 @@ colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
                         </td>
                       )}
                     </motion.tr>
-                  ))
+                    );
+                  })
                 ))}
               </tbody>
             </table>
@@ -529,9 +538,9 @@ colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
               </Button>
 
               <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, Math.ceil(pagination.total / pagination.pageSize)) })
+                {Array.from({ length: buttonCount })
                   .map((_, index) => {
-                    const pageNumber = pagination.page + index - 2;
+                    const pageNumber = pagination.page + index - PAGE_OFFSET;
                     if (pageNumber < 1 || pageNumber > Math.ceil(pagination.total / pagination.pageSize)) {
                       return null;
                     }
@@ -734,7 +743,6 @@ export function AuditTable({
     <DataTable<AuditLog>
       data={logs}
       columns={columns}
-      preset="audit"
       actions={actions}
       batchActions={batchActions}
       selectable={showActions}

@@ -1,20 +1,23 @@
 'use client';
 
-import {
-  Wallet, CheckCircle, RefreshCw, Trash2, Copy, ExternalLink,
-  AlertCircle, Badge as BadgeIcon,
-} from 'lucide-react';
+import { Wallet, CheckCircle, RefreshCw, Trash2, Copy, ExternalLink, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { formatUnits } from 'viem';
+import { useSafeToast } from '../../lib/use-safe-toast';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Alert, AlertDescription } from '@/components/ui';
 
 
 import { useUSDT } from '../../lib/hooks/use-contracts';
 import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../lib/hooks/use-safe-wagmi';
+import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Alert, AlertDescription } from '@/components/ui';
 
 export function WalletsSection() {
+  const COPY_RESET_MS = 2000;
+  const ADDRESS_PREFIX_LEN = 6;
+  const ADDRESS_SUFFIX_LEN = 4;
+  const ETH_DECIMALS = 18;
+  const BALANCE_DECIMALS = 4;
+  const toast = useSafeToast();
   const [isCopied, setIsCopied] = useState(false);
   const { address, isConnected, chainId, chain } = useSafeAccount();
   const { connect, connectors, isPending: isConnecting } = useSafeConnect();
@@ -30,7 +33,7 @@ export function WalletsSection() {
       await navigator.clipboard.writeText(address);
       setIsCopied(true);
       toast.success('地址已复制到剪贴板');
-      setTimeout(() => setIsCopied(false), 2000);
+      setTimeout(() => setIsCopied(false), COPY_RESET_MS);
     } catch {
       toast.error('复制失败');
     }
@@ -56,7 +59,7 @@ export function WalletsSection() {
   };
 
   const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, ADDRESS_PREFIX_LEN)}...${addr.slice(-ADDRESS_SUFFIX_LEN)}`;
   };
 
   return (
@@ -141,7 +144,7 @@ export function WalletsSection() {
                     <div>
                       <p className="text-sm text-muted-foreground">以太坊</p>
                       <p className="font-semibold">
-                        {ethBalance ? Number.parseFloat(formatUnits(ethBalance.value, 18)).toFixed(4) : '0.0000'} ETH
+                        {ethBalance ? Number.parseFloat(formatUnits(ethBalance.value, ETH_DECIMALS)).toFixed(BALANCE_DECIMALS) : '0.0000'} ETH
                       </p>
                     </div>
                   </div>

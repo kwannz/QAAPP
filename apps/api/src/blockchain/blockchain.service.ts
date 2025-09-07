@@ -50,10 +50,14 @@ export class BlockchainService {
     }
     
     try {
-      // Create provider with static network to avoid network detection retries
-      this.provider = new ethers.JsonRpcProvider(rpcUrl, 'any', {
-        staticNetwork: true,
-      });
+      // Resolve chainId if provided, otherwise avoid using special network 'any'
+      const chainId = this.configService.get<number>('BLOCKCHAIN_CHAIN_ID');
+      if (chainId && Number.isInteger(chainId)) {
+        this.provider = new ethers.JsonRpcProvider(rpcUrl, chainId);
+      } else {
+        // Fallback: do not use staticNetwork with 'any' to avoid ethers INVALID_ARGUMENT
+        this.provider = new ethers.JsonRpcProvider(rpcUrl);
+      }
       
       // Test connection with timeout
       const controller = new AbortController();

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 import { tokenManager } from './token-manager';
+import { logger } from './verbose-logger';
 
 export interface User {
   id: string
@@ -54,7 +55,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // 开发模式默认用户
-const DEV_DEFAULT_USER: User = {
+const _DEV_DEFAULT_USER: User = {
   id: 'dev-user-001',
   email: 'dev@qaapp.com',
   role: 'ADMIN' as UserRole,
@@ -104,7 +105,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
           }
         }
       } catch (error) {
-        console.warn('Failed to restore auth state:', error);
+        logger.warn('AuthContext', 'Failed to restore auth state', { error });
       }
     }
   }, []);
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
       try {
         localStorage.setItem('qa-auth-storage', JSON.stringify(state));
       } catch (error) {
-        console.warn('Failed to save auth state:', error);
+        logger.warn('AuthContext', 'Failed to save auth state', { error });
       }
     }
   };
@@ -235,7 +236,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
             address: user.walletAddress,
             chainId: 1,
             isPrimary: true,
-            label: 'Primary Wallet'
+            label: 'Primary Wallet',
           }] : [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -261,7 +262,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
       
       throw new Error('Login failed: Invalid response');
     } catch (error: any) {
-      console.error('Login failed:', error);
+      logger.error('AuthContext', 'Login failed', { error });
       // 重新抛出错误，让UI处理
       throw error;
     } finally {
@@ -275,7 +276,9 @@ export function AuthProvider({ children }: AuthProviderProperties) {
   };
 
   // 注册方法
-  const register = async (userData: { email: string; password: string; name?: string; referralCode?: string }): Promise<{ success: boolean }> => {
+  const register = async (
+    userData: { email: string; password: string; name?: string; referralCode?: string }
+  ): Promise<{ success: boolean }> => {
     setLoading(true);
     try {
       // 导入apiClient（避免循环依赖）
@@ -285,7 +288,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
       const response = await authApi.register({
         email: userData.email,
         password: userData.password,
-        referralCode: userData.referralCode
+        referralCode: userData.referralCode,
       });
       
       if (response.data?.success && response.data?.data) {
@@ -304,7 +307,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
             address: user.walletAddress,
             chainId: 1,
             isPrimary: true,
-            label: 'Primary Wallet'
+            label: 'Primary Wallet',
           }] : [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -330,7 +333,7 @@ export function AuthProvider({ children }: AuthProviderProperties) {
       
       throw new Error('Registration failed: Invalid response');
     } catch (error: any) {
-      console.error('Registration failed:', error);
+      logger.error('AuthContext', 'Registration failed', { error });
       throw error;
     } finally {
       setLoading(false);

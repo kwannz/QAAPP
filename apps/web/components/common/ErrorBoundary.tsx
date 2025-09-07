@@ -4,6 +4,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import React from 'react';
 
 import { Button } from '../ui';
+import { logger } from '../../lib/verbose-logger';
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -30,7 +31,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProperties, Erro
     this.setState({ error, errorInfo });
 
     // 记录错误到控制台
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary', 'Caught an error', { error, errorInfo });
 
     // 可选：发送错误到监控服务
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
@@ -112,7 +113,7 @@ function DefaultErrorUI({ error, resetError }: { error?: Error; resetError: () =
 // 用于函数组件的 Hook
 export function useErrorHandler() {
   return (error: Error, errorInfo?: React.ErrorInfo) => {
-    console.error('Error caught by error handler:', error, errorInfo);
+    logger.error('ErrorBoundary', 'Error caught by error handler', { error, errorInfo });
 
     // 可选：自动上报错误
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {

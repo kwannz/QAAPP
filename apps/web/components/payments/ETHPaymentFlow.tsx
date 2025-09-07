@@ -1,18 +1,9 @@
 'use client';
 
-import {
-  Loader2,
-  CheckCircle,
-  AlertTriangle,
-  ExternalLink,
-  Clock,
-  Wallet,
-  ArrowRight,
-  RefreshCw,
-} from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, ExternalLink, Clock, Wallet, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { parseUnits, formatEther, formatUnits } from 'viem';
+import { parseUnits, formatEther } from 'viem';
 import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi';
 
 import {
@@ -66,7 +57,7 @@ export function ETHPaymentFlow({
   });
 
   // 等待交易确认
-  const { data: receipt, isLoading: isConfirming, isSuccess, isError } = useWaitForTransactionReceipt({
+  const { data: receipt, isLoading: _isConfirming, isSuccess, isError } = useWaitForTransactionReceipt({
     hash: paymentState.txHash as `0x${string}` | undefined,
   });
 
@@ -74,11 +65,21 @@ export function ETHPaymentFlow({
   const productConfig = PRODUCT_CONFIG[productType];
 
   // 计算相关数值
-  const ethAmountWei = parseUnits(ethAmount, 18);
-  const equivalentUSDT = Number.parseFloat(ethAmount) * 2000; // 1 ETH = 2000 USDT
+  const DECIMALS_ETH = 18;
+  const USD_PER_ETH = 2000;
+  const DAYS_PER_YEAR = 365;
+  const DECIMALS_TWO = 2;
+  const PERCENT_SCALE = 100;
+  const CHAIN_ID_SEPOLIA = 11_155_111;
+  const ethAmountWei = parseUnits(ethAmount, DECIMALS_ETH);
+  const equivalentUSDT = Number.parseFloat(ethAmount) * USD_PER_ETH; // 1 ETH = 2000 USDT
   const hasEnoughBalance = ethBalance ? ethBalance.value >= ethAmountWei : false;
-  const estimatedGas = BigInt(200_000); // 估计的gas消耗
-  const estimatedGasCost = ethBalance ? (estimatedGas * BigInt(20_000_000_000)) : BigInt(0); // 20 gwei估算
+  // eslint-disable-next-line no-magic-numbers
+  const ESTIMATED_GAS_UNITS = BigInt(200_000);
+  // eslint-disable-next-line no-magic-numbers
+  const GAS_PRICE_20_GWEI = BigInt(20_000_000_000);
+  const estimatedGas = ESTIMATED_GAS_UNITS; // 估计的gas消耗
+  const estimatedGasCost = ethBalance ? (estimatedGas * GAS_PRICE_20_GWEI) : BigInt(0); // 20 gwei估算
   const totalRequired = ethAmountWei + estimatedGasCost;
 
   // 监听交易状态变化
@@ -209,13 +210,18 @@ export function ETHPaymentFlow({
               <div className="flex justify-between">
                 <span>预期收益:</span>
                 <span className="text-green-600">
-                  +{((equivalentUSDT * productConfig.apr / 100 * productConfig.duration / 365)).toFixed(2)} USDT
+                  +{(
+                    (equivalentUSDT * productConfig.apr) / PERCENT_SCALE * (productConfig.duration / DAYS_PER_YEAR)
+                  ).toFixed(DECIMALS_TWO)} USDT
                 </span>
               </div>
               <div className="flex justify-between font-medium border-t pt-1">
                 <span>到期总值:</span>
                 <span className="text-green-600">
-                  {(equivalentUSDT + (equivalentUSDT * productConfig.apr / 100 * productConfig.duration / 365)).toFixed(2)} USDT
+                  {(
+                    equivalentUSDT +
+                    (equivalentUSDT * productConfig.apr) / PERCENT_SCALE * (productConfig.duration / DAYS_PER_YEAR)
+                  ).toFixed(DECIMALS_TWO)} USDT
                 </span>
               </div>
             </div>
@@ -327,7 +333,7 @@ export function ETHPaymentFlow({
         <div className="bg-gray-50 p-3 rounded-lg">
           <div className="text-sm text-gray-600 mb-1">交易哈希:</div>
           <div className="font-mono text-xs break-all">{paymentState.txHash}</div>
-          {chainId === 11_155_111 && (
+          {chainId === CHAIN_ID_SEPOLIA && (
             <Button
               variant="link"
               size="sm"
@@ -369,12 +375,12 @@ export function ETHPaymentFlow({
             <div>Gas使用: {receipt.gasUsed?.toString()}</div>
           </div>
 
-          {chainId === 11_155_111 && (
+          {chainId === CHAIN_ID_SEPOLIA && (
             <Button
               variant="link"
               size="sm"
               onClick={() => window.open(`https://sepolia.etherscan.io/tx/${receipt.transactionHash}`, '_blank')}
-            >
+          >
               <ExternalLink className="w-4 h-4 mr-1" />
               在区块浏览器查看
             </Button>
@@ -452,7 +458,7 @@ export function ETHPaymentFlow({
       {/* 进度指示器 */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          {['preparation', 'confirmation', 'processing', 'success'].map((step, index) => {
+          {(['preparation', 'confirmation', 'processing', 'success'] as PaymentStep[]).map((step, index, steps) => {
             const isActive = step === paymentState.step;
             const isCompleted = ['confirmation', 'processing', 'success'].indexOf(paymentState.step) > index - 1;
             const isError = paymentState.step === 'error';
@@ -476,7 +482,7 @@ export function ETHPaymentFlow({
                     index + 1
                   )}
                 </div>
-                {index < 3 && (
+                {index < steps.length - 1 && (
                   <div className={`w-12 h-0.5 mx-2 ${
                     isCompleted && !isError ? 'bg-orange-500' : 'bg-gray-300'
                   }`}

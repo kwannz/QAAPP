@@ -4,6 +4,29 @@
  */
 
 import React from 'react';
+import { logger } from './verbose-logger';
+
+// Time constants to avoid magic numbers
+const MS_PER_SEC = 1000;
+const SEC_PER_MINUTE = 60;
+const CLEANUP_INTERVAL_MS = SEC_PER_MINUTE * MS_PER_SEC; // 60_000
+const PURGE_FRACTION_OLDEST = 0.25;
+const DELAY_SHORT_MS = 100;
+const ONE_SECOND_MS = 1000;
+const TTL_DEFAULT_MINUTES = 5;
+// eslint-disable-next-line no-magic-numbers
+const TTL_2_MIN = 2 * SEC_PER_MINUTE * MS_PER_SEC;
+// eslint-disable-next-line no-magic-numbers
+const TTL_5_MIN = 5 * SEC_PER_MINUTE * MS_PER_SEC;
+// eslint-disable-next-line no-magic-numbers
+const TTL_10_MIN = 10 * SEC_PER_MINUTE * MS_PER_SEC;
+// eslint-disable-next-line no-magic-numbers
+const TTL_15_MIN = 15 * SEC_PER_MINUTE * MS_PER_SEC;
+// eslint-disable-next-line no-magic-numbers
+const TTL_30_MIN = 30 * SEC_PER_MINUTE * MS_PER_SEC;
+// eslint-disable-next-line no-magic-numbers
+const TTL_1_HOUR = 60 * SEC_PER_MINUTE * MS_PER_SEC;
+const EXTRA_DELETE_COUNT = 10;
 
 interface CacheEntry<T = any> {
   data: T | string  // string when compressed, T when not compressed
@@ -39,7 +62,7 @@ class DataCacheManager {
   private cleanupInterval: NodeJS.Timeout | null = null;
 
   private config: CacheConfig = {
-    defaultTTL: 5 * 60 * 1000, // 5分钟
+    defaultTTL: TTL_DEFAULT_MINUTES * SEC_PER_MINUTE * MS_PER_SEC, // 5分钟
     maxSize: 100, // 最大缓存项数
     compressionThreshold: 50_000, // 50KB以上启用压缩
     enableMemoryCache: true,
@@ -109,14 +132,14 @@ class DataCacheManager {
             return idbValue.compressed ? this.decompress(idbValue.data as string) : (idbValue.data as T);
           }
         } catch (error) {
-          console.warn('IndexedDB cache error:', error);
+          logger.warn('DataCache', 'IndexedDB cache error', { error });
         }
       }
 
       this.stats.missRate = this.calculateHitRate(false);
       return null;
     } catch (error) {
-      console.error('Cache get error:', error);
+      logger.error('DataCache', 'Cache get error', { error });
       return null;
     }
   }
@@ -165,14 +188,14 @@ class DataCacheManager {
           try {
             localStorage.setItem(`cache_${key}`, JSON.stringify(entry));
           } catch (retryError) {
-            console.warn('Failed to save to localStorage:', retryError);
+            logger.warn('DataCache', 'Failed to save to localStorage', { retryError });
           }
         }
       }
 
       this.updateStorageStats();
     } catch (error) {
-      console.error('Cache set error:', error);
+      logger.error('DataCache', 'Cache set error', { error });
     }
   }
 
@@ -344,13 +367,16 @@ class DataCacheManager {
         };
       });
     } catch (error) {
-      console.warn('IndexedDB get error:', error);
+      logger.warn('DataCache', 'IndexedDB get error', { error });
       return null;
     }
   }
 
   private generateVersion(): string {
-    return `v${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    const RADIX_36 = 36;
+    const SLICE_START = 2;
+    const SLICE_END = 11;
+    return `v${Date.now()}_${Math.random().toString(RADIX_36).slice(SLICE_START, SLICE_END)}`;
   }
 
   private enforceMemoryLimit(): void {
@@ -360,7 +386,7 @@ class DataCacheManager {
     const entries = [...this.memoryCache.entries()];
     entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
 
-    const toDelete = this.memoryCache.size - this.config.maxSize + 10; // 多删除10个避免频繁清理
+    const toDelete = this.memoryCache.size - this.config.maxSize + EXTRA_DELETE_COUNT; // 多删除避免频繁清理
     for (let index = 0; index < toDelete && index < entries.length; index++) {
       this.memoryCache.delete(entries[index][0]);
     }
@@ -381,9 +407,9 @@ class DataCacheManager {
       }
     }
 
-    // 删除最旧的25%缓存项
+    // 删除最旧的一部分缓存项（按比例）
     cacheKeys.sort((a, b) => a.timestamp - b.timestamp);
-    const deleteCount = Math.ceil(cacheKeys.length * 0.25);
+    const deleteCount = Math.ceil(cacheKeys.length * PURGE_FRACTION_OLDEST);
 
     for (let index = 0; index < deleteCount; index++) {
       localStorage.removeItem(cacheKeys[index].key);
@@ -421,7 +447,7 @@ class DataCacheManager {
   private startCleanupInterval(): void {
     this.cleanupInterval = setInterval(() => {
       this.cleanupExpiredEntries();
-    }, 60_000); // 每分钟清理一次过期条目
+    }, CLEANUP_INTERVAL_MS); // 每分钟清理一次过期条目
   }
 
   private cleanupExpiredEntries(): void {
@@ -456,7 +482,8 @@ class DataCacheManager {
     // 预加载LocalStorage中的有效缓存到内存
     for (let index = 0; index < localStorage.length; index++) {
       const key = localStorage.key(index);
-      if (key && key.startsWith('cache_') && this.memoryCache.size < this.config.maxSize / 2) {
+      const HALF_DIVISOR = 2;
+      if (key && key.startsWith('cache_') && this.memoryCache.size < this.config.maxSize / HALF_DIVISOR) {
         try {
           const entry = JSON.parse(localStorage.getItem(key));
           const cacheKey = key.replace('cache_', '');
@@ -542,6 +569,8 @@ export function useCachedData<T = any>(
   // 依赖变化时重新获取
   React.useEffect(() => {
     fetchData();
+  // 说明：依赖数组来源于调用方选项，需在运行时决定
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, options?.dependencies || []);
 
   // 提供手动刷新方法
@@ -586,12 +615,12 @@ export class CachePreloader {
       {
         key: `user_${userId}`,
         fetcher: async () => fetch(`/api/users/${userId}`).then(async r => r.json()),
-        ttl: 10 * 60 * 1000, // 10分钟
+        ttl: TTL_10_MIN, // 10分钟
       },
       {
         key: `user_permissions_${userId}`,
         fetcher: async () => fetch(`/api/users/${userId}/permissions`).then(async r => r.json()),
-        ttl: 30 * 60 * 1000, // 30分钟
+        ttl: TTL_30_MIN, // 30分钟
       },
     ];
 
@@ -603,12 +632,12 @@ export class CachePreloader {
       {
         key: 'dashboard_metrics',
         fetcher: async () => fetch('/api/dashboard/metrics').then(async r => r.json()),
-        ttl: 2 * 60 * 1000, // 2分钟
+        ttl: TTL_2_MIN, // 2分钟
       },
       {
         key: `dashboard_${userRole.toLowerCase()}`,
         fetcher: async () => fetch(`/api/dashboard/${userRole.toLowerCase()}`).then(async r => r.json()),
-        ttl: 5 * 60 * 1000, // 5分钟
+        ttl: TTL_5_MIN, // 5分钟
       },
     ];
 
@@ -618,75 +647,87 @@ export class CachePreloader {
   /**
    * 智能预热：根据用户行为模式预加载数据
    */
-  async intelligentPreload(userRole: string, userId: string, recentPages: string[] = []) {
-    console.log('🚀 启动智能缓存预热...');
+  async intelligentPreload(_userRole: string, userId: string, recentPages: string[] = []) {
+    logger.info('CachePreloader', '启动智能缓存预热');
 
     // 基础数据（高优先级）
+    const PRIORITY_10 = 10;
+    const PRIORITY_9 = 9;
+    const PRIORITY_8 = 8;
+    const PRIORITY_7 = 7;
+
     await this.addToPreloadQueue([
       {
         key: 'system_config',
-        priority: 10,
+        priority: PRIORITY_10,
         fetcher: async () => fetch('/api/config').then(async r => r.json()),
-        ttl: 60 * 60 * 1000, // 1小时
+        ttl: TTL_1_HOUR, // 1小时
       },
       {
         key: 'user_permissions',
-        priority: 9,
+        priority: PRIORITY_9,
         fetcher: async () => fetch(`/api/users/${userId}/permissions`).then(async r => r.json()),
-        ttl: 30 * 60 * 1000, // 30分钟
+        ttl: TTL_30_MIN, // 30分钟
       },
     ]);
 
     // 角色相关数据（中优先级）
-    if (userRole === 'ADMIN') {
+    if (_userRole === 'ADMIN') {
       await this.addToPreloadQueue([
         {
           key: 'admin_dashboard_metrics',
-          priority: 8,
+          priority: PRIORITY_8,
           fetcher: async () => fetch('/api/monitoring/metrics').then(async r => r.json()),
-          ttl: 2 * 60 * 1000,
+          ttl: TTL_2_MIN,
         },
         {
           key: 'admin_transaction_stats',
-          priority: 7,
+          priority: PRIORITY_7,
           fetcher: async () => fetch('/api/finance/transactions/stats/overview').then(async r => r.json()),
-          ttl: 5 * 60 * 1000,
+          ttl: TTL_5_MIN,
         },
       ]);
     }
 
     // 基于页面访问历史的预测性加载（低优先级）
-    const predictiveRoutes = this.generatePredictiveRoutes(recentPages, userRole);
+    const predictiveRoutes = this.generatePredictiveRoutes(recentPages, _userRole);
     await this.addToPreloadQueue(predictiveRoutes);
 
     // 执行队列
     await this.processPreloadQueue();
   }
 
-  private async addToPreloadQueue(routes: Array<{ key: string; priority: number; fetcher: () => Promise<any>; ttl?: number }>) {
+  private async addToPreloadQueue(
+    routes: Array<{ key: string; priority: number; fetcher: () => Promise<any>; ttl?: number }>
+  ) {
     this.preloadQueue.push(...routes);
     this.preloadQueue.sort((a, b) => b.priority - a.priority); // 高优先级优先
   }
 
-  private generatePredictiveRoutes(recentPages: string[], userRole: string): Array<{ key: string; priority: number; fetcher: () => Promise<any>; ttl?: number }> {
+  private generatePredictiveRoutes(
+    recentPages: string[], 
+    _userRole: string
+  ): Array<{ key: string; priority: number; fetcher: () => Promise<any>; ttl?: number }> {
     const routes: Array<{ key: string; priority: number; fetcher: () => Promise<any>; ttl?: number }> = [];
+    const PRIORITY_5 = 5;
+    const PRIORITY_4 = 4;
 
     // 预测用户可能访问的页面
     if (recentPages.includes('/admin/operations')) {
       routes.push({
         key: 'predictive_users_list',
-        priority: 5,
+        priority: PRIORITY_5,
         fetcher: async () => fetch('/api/users?limit=50').then(async r => r.json()),
-        ttl: 10 * 60 * 1000,
+        ttl: TTL_10_MIN,
       });
     }
 
     if (recentPages.includes('/admin/analytics')) {
       routes.push({
         key: 'predictive_reports_data',
-        priority: 4,
+        priority: PRIORITY_4,
         fetcher: async () => fetch('/api/reports/summary').then(async r => r.json()),
-        ttl: 15 * 60 * 1000,
+        ttl: TTL_15_MIN,
       });
     }
 
@@ -720,14 +761,14 @@ export class CachePreloader {
 
         // 批次间延迟，避免服务器压力
         if (index + batchSize < this.preloadQueue.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, DELAY_SHORT_MS));
         }
       }
 
       const duration = Date.now() - startTime;
-      console.log(`✅ 缓存预热完成: ${successful}成功, ${failed}失败, 耗时${duration}ms`);
+      logger.info('CachePreloader', '预热完成', { successful, failed, duration });
     } catch (error) {
-      console.error('Cache preload error:', error);
+      logger.error('CachePreloader', 'Cache preload error', { error });
     } finally {
       this.preloadQueue = [];
       this.isPreloading = false;
@@ -746,9 +787,9 @@ export class CachePreloader {
         this.cache.getOrFetch(prediction.cacheKey, prediction.fetcher, {
           ttl: prediction.ttl,
         }).catch(error => {
-          console.debug('Predictive cache update failed:', error);
+          logger.debug('CachePreloader', 'Predictive cache update failed', { error });
         });
-      }, 1000);
+      }, ONE_SECOND_MS);
     }
   }
 
@@ -764,7 +805,7 @@ export class CachePreloader {
       predictions.push({
         cacheKey: 'predicted_user_details',
         fetcher: async () => fetch('/api/users/recent').then(async r => r.json()),
-        ttl: 5 * 60 * 1000,
+        ttl: TTL_5_MIN,
       });
     }
 
@@ -772,7 +813,7 @@ export class CachePreloader {
       predictions.push({
         cacheKey: 'predicted_daily_reports',
         fetcher: async () => fetch('/api/reports/daily').then(async r => r.json()),
-        ttl: 15 * 60 * 1000,
+        ttl: TTL_15_MIN,
       });
     }
 
@@ -790,7 +831,7 @@ export const cacheDebugger = {
   getStats: () => dataCache.getStats(),
   viewCache: () => {
     const stats = dataCache.getStats();
-    console.table(stats);
+    logger.info('CacheDebugger', 'Stats', stats);
     return stats;
   },
   clearAll: async () => dataCache.clearAll(),
@@ -798,15 +839,18 @@ export const cacheDebugger = {
     const testKey = 'test_cache_key';
     const testData = { message: 'Hello Cache!', timestamp: new Date() };
 
-    console.time('Cache Set');
+    const t0 = performance.now();
     await dataCache.set(testKey, testData);
-    console.timeEnd('Cache Set');
+    const t1 = performance.now();
+    const DECIMALS_TWO = 2;
+    logger.info('CacheDebugger', 'Cache Set', { durationMs: (t1 - t0).toFixed(DECIMALS_TWO) });
 
-    console.time('Cache Get');
+    const g0 = performance.now();
     const result = await dataCache.get(testKey);
-    console.timeEnd('Cache Get');
+    const g1 = performance.now();
+    logger.info('CacheDebugger', 'Cache Get', { durationMs: (g1 - g0).toFixed(DECIMALS_TWO) });
 
-    console.log('Cache test result:', { original: testData, cached: result });
+    logger.info('CacheDebugger', 'Cache test result', { original: testData, cached: result });
     await dataCache.delete(testKey);
 
     return result;

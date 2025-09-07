@@ -4,26 +4,23 @@ import { motion } from 'framer-motion';
 import {
   Bell,
   BellRing,
-  TrendingUp,
   AlertTriangle,
   Info,
   CheckCircle,
   X,
   Settings,
-  Filter,
   Search,
-  MoreHorizontal,
   Clock,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { Header } from '../../components/layout/Header';
 import { useSafeToast } from '../../lib/use-safe-toast';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, WalletConnectionManager } from '@/components/ui';
 
 // Mock data for notifications
 const mockNotifications = [
@@ -35,7 +32,7 @@ const mockNotifications = [
     category: 'investment',
     createdAt: '2024-02-03T10:30:00Z',
     read: false,
-    priority: 'normal'
+    priority: 'normal',
   },
   {
     id: 'notif-2',
@@ -45,7 +42,7 @@ const mockNotifications = [
     category: 'market',
     createdAt: '2024-02-03T09:15:00Z',
     read: false,
-    priority: 'high'
+    priority: 'high',
   },
   {
     id: 'notif-3',
@@ -55,7 +52,7 @@ const mockNotifications = [
     category: 'product',
     createdAt: '2024-02-02T16:20:00Z',
     read: true,
-    priority: 'normal'
+    priority: 'normal',
   },
   {
     id: 'notif-4',
@@ -65,7 +62,7 @@ const mockNotifications = [
     category: 'security',
     createdAt: '2024-02-02T14:45:00Z',
     read: true,
-    priority: 'high'
+    priority: 'high',
   },
   {
     id: 'notif-5',
@@ -75,7 +72,7 @@ const mockNotifications = [
     category: 'investment',
     createdAt: '2024-02-01T11:00:00Z',
     read: true,
-    priority: 'normal'
+    priority: 'normal',
   },
   {
     id: 'notif-6',
@@ -85,15 +82,15 @@ const mockNotifications = [
     category: 'system',
     createdAt: '2024-01-31T18:30:00Z',
     read: true,
-    priority: 'low'
-  }
+    priority: 'low',
+  },
 ];
 
 const notificationStats = {
   total: 26,
   unread: 2,
   thisWeek: 8,
-  high: 4
+  high: 4,
 };
 
 export default function NotificationsPage() {
@@ -162,19 +159,25 @@ export default function NotificationsPage() {
     }
   };
 
+  const MS_PER_SEC = 1000;
+  const SEC_PER_MIN = 60;
+  const MIN_PER_HOUR = 60;
+  const HOURS_PER_DAY = 24;
+  const DAYS_PER_WEEK = 7;
+
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInMinutes = Math.floor(diffInMs / (MS_PER_SEC * SEC_PER_MIN));
+    const diffInHours = Math.floor(diffInMinutes / MIN_PER_HOUR);
+    const diffInDays = Math.floor(diffInHours / HOURS_PER_DAY);
 
-    if (diffInMinutes < 60) {
+    if (diffInMinutes < MIN_PER_HOUR) {
       return `${diffInMinutes}分钟前`;
-    } else if (diffInHours < 24) {
+    } else if (diffInHours < HOURS_PER_DAY) {
       return `${diffInHours}小时前`;
-    } else if (diffInDays < 7) {
+    } else if (diffInDays < DAYS_PER_WEEK) {
       return `${diffInDays}天前`;
     } else {
       return date.toLocaleDateString('zh-CN');
@@ -225,6 +228,25 @@ export default function NotificationsPage() {
         <main className="flex-1 bg-gray-50">
           <div className="qa-container py-8">
             <div className="space-y-8">
+              {/* 调试：已连接覆盖 */}
+              {(() => {
+                const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+                const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                const override = debug && sp?.get('e2e_wallet') === 'connected';
+                if (override) {
+                  return (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>钱包连接</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <WalletConnectionManager showNetworkInfo showContractStatus />
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              })()}
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -357,7 +379,7 @@ export default function NotificationsPage() {
                 transition={{ delay: 0.3 }}
                 className="space-y-3"
               >
-                {filteredNotifications.map((notification, index) => (
+                {filteredNotifications.map((notification, _index) => (
                   <Card 
                     key={notification.id} 
                     className={`hover:shadow-md transition-all cursor-pointer ${

@@ -17,8 +17,9 @@ import {
   Info,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { logger } from '@/lib/verbose-logger';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label } from '@/components/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label, WalletConnectionManager } from '@/components/ui';
 
 interface ConfigData {
   system: any;
@@ -90,6 +91,7 @@ export default function AdminSettingsPage() {
 
   const [testResults, setTestResults] = useState<any>({});
   const [isTesting, setIsTesting] = useState(false);
+  const TEST_DELAY_MS = 2000;
 
   const configTabs = [
     { id: 'system', name: '系统设置', icon: Settings, description: '基本系统设置和通用配置' },
@@ -125,12 +127,14 @@ export default function AdminSettingsPage() {
   const handleSaveConfig = async (category: string) => {
     try {
       // Mock API call
-      console.log(`Saving ${category} configuration:`, configData[category]);
+      if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+        logger.info('AdminSettings', `Saving ${category} configuration`, configData[category]);
+      }
 
       // Here you would make an API call to save the configuration
       alert(`${category}配置已保存成功！`);
     } catch (error) {
-      console.error('Failed to save configuration:', error);
+      logger.error('AdminSettings', 'Failed to save configuration', error as any);
       alert('保存配置失败，请重试。');
     }
   };
@@ -139,7 +143,7 @@ export default function AdminSettingsPage() {
     setIsTesting(true);
     try {
       // Mock API call for testing configuration
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, TEST_DELAY_MS));
       const mockResults = {
         system: { passed: 5, warnings: 0, errors: 0 },
         business: { passed: 4, warnings: 1, errors: 0 },
@@ -149,7 +153,7 @@ export default function AdminSettingsPage() {
       };
       setTestResults({ ...testResults, [category]: mockResults[category] });
     } catch (error) {
-      console.error('Configuration test failed:', error);
+      logger.error('AdminSettings', 'Configuration test failed', error as any);
     } finally {
       setIsTesting(false);
     }
@@ -579,6 +583,24 @@ export default function AdminSettingsPage() {
     }
   };
 
+  // 调试覆盖条
+  const DebugWalletBanner = () => {
+    const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+    const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const override = debug && sp?.get('e2e_wallet') === 'connected';
+    if (!override) return null;
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>钱包连接</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <WalletConnectionManager showNetworkInfo showContractStatus />
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center justify-between mb-8">
@@ -602,6 +624,8 @@ export default function AdminSettingsPage() {
           </Button>
         </div>
       </div>
+
+      <DebugWalletBanner />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* 左侧菜单 */}

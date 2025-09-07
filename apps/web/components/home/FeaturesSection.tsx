@@ -51,6 +51,7 @@ const features = [
 ];
 
 export function FeaturesSection() {
+  const ANIM_DELAY_STEP = 0.1;
   return (
     <section className="qa-section bg-white">
       <div className="qa-container">
@@ -80,7 +81,7 @@ export function FeaturesSection() {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.6, delay: index * ANIM_DELAY_STEP }}
               >
                 <Card className="h-full qa-card-hover border-0 shadow-md">
                   <CardContent className="p-8">

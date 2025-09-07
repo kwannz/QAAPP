@@ -4,6 +4,7 @@ import { useReportWebVitals } from 'next/web-vitals';
 import { useEffect, useState } from 'react';
 
 import { sendToAnalytics } from '../../lib/web-vitals';
+import { logger } from '@/lib/verbose-logger';
 
 export function WebVitalsReporter() {
   const [isMounted, setIsMounted] = useState(false);
@@ -56,18 +57,18 @@ export function WebVitalsReporter() {
                   load: nav.loadEventEnd - nav.loadEventStart,
                 };
 
-                console.log('🌐 Navigation Performance:', metrics);
+                logger.info('WebVitals', 'Navigation Performance', metrics);
               }
             }
           } catch (error) {
-            console.warn('Performance observation error:', error);
+            logger.warn('WebVitals', 'Performance observation error', { error });
           }
         });
 
         try {
           observer.observe({ entryTypes: ['navigation', 'resource'] });
         } catch (error) {
-          console.warn('Performance observer initialization failed:', error);
+          logger.warn('WebVitals', 'Performance observer initialization failed', { error });
           observer = null;
         }
       }
@@ -77,12 +78,12 @@ export function WebVitalsReporter() {
           try {
             observer.disconnect();
           } catch (error) {
-            console.warn('Performance observer disconnect error:', error);
+            logger.warn('WebVitals', 'Performance observer disconnect error', { error });
           }
         }
       };
     } catch (error) {
-      console.warn('WebVitals initialization error:', error);
+      logger.warn('WebVitals', 'Initialization error', { error });
     }
   }, [isMounted]);
 

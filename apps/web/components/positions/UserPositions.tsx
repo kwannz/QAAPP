@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   RefreshCw,
 } from 'lucide-react';
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import {
   Card,
@@ -28,6 +28,7 @@ import {
   TabsTrigger,
 } from '@/components/ui';
 import apiClient from '@/lib/api-client';
+import { logger } from '@/lib/verbose-logger';
 
 // 类型定义
 interface Position {
@@ -79,9 +80,15 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('active');
+  const DECIMALS_TWO = 2;
+  const MS_PER_SEC = 1000;
+  const SEC_PER_MIN = 60;
+  const MIN_PER_HOUR = 60;
+  const HOURS_PER_DAY = 24;
+  const DAYS_LOW_WARNING = 3;
 
   // 获取用户持仓数据
-  const fetchPositions = async (status?: string) => {
+  const fetchPositions = useCallback(async (status?: string) => {
     setLoading(true);
     setError(null);
 
@@ -92,22 +99,22 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
       setPositionsData(data);
     } catch (error_) {
       setError(error_ instanceof Error ? error_.message : '获取数据时发生未知错误');
-      console.error('Failed to fetch positions:', error_);
+      logger.error('UserPositions', 'Failed to fetch positions', { error: error_ });
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // 初始化和刷新
   useEffect(() => {
     fetchPositions(selectedTab);
-  }, [userId, selectedTab]);
+  }, [selectedTab, fetchPositions]);
 
   // 持仓赎回
   const handleRedeem = async (positionId: string) => {
     try {
       const { data: result } = await apiClient.post(`/positions/${positionId}/redeem`, { userId });
-      alert(`赎回成功！赎回金额: $${result.redeemAmount.toFixed(2)}`);
+      alert(`赎回成功！赎回金额: $${result.redeemAmount.toFixed(DECIMALS_TWO)}`);
 
       // 刷新数据
       fetchPositions(selectedTab);
@@ -138,20 +145,25 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
   const getDaysRemaining = (endDate: string) => {
     const end = new Date(endDate);
     const now = new Date();
-    const diff = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    const diff = Math.max(
+      0,
+      Math.ceil((end.getTime() - now.getTime()) / (MS_PER_SEC * SEC_PER_MIN * MIN_PER_HOUR * HOURS_PER_DAY)),
+    );
     return diff;
   };
 
   // 计算收益率
   const calculateCurrentYield = (totalPaid: number, principal: number) => {
-    return principal > 0 ? (totalPaid / principal) * 100 : 0;
+    const PERCENT_SCALE = 100;
+    return principal > 0 ? (totalPaid / principal) * PERCENT_SCALE : 0;
   };
 
   // 渲染持仓卡片
   const renderPositionCard = (position: Position) => {
     const daysRemaining = getDaysRemaining(position.endDate);
     const currentYield = calculateCurrentYield(position.totalPaid, position.principal);
-    const expectedAPR = position.metadata?.aprBps ? position.metadata.aprBps / 100 : 0;
+    const PERCENT_SCALE = 100;
+    const expectedAPR = position.metadata?.aprBps ? position.metadata.aprBps / PERCENT_SCALE : 0;
 
     return (
       <Card key={position.id} className="hover:shadow-md transition-shadow">
@@ -181,7 +193,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
                 本金
               </div>
               <div className="text-xl font-semibold">
-                ${position.principal.toFixed(2)}
+                ${position.principal.toFixed(DECIMALS_TWO)}
               </div>
             </div>
 
@@ -191,7 +203,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
                 已获收益
               </div>
               <div className="text-xl font-semibold text-green-600">
-                ${position.totalPaid.toFixed(2)}
+                ${position.totalPaid.toFixed(DECIMALS_TWO)}
               </div>
             </div>
           </div>
@@ -201,20 +213,20 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">当前收益率</span>
               <span className="font-medium text-green-600">
-                {currentYield.toFixed(2)}%
+                {currentYield.toFixed(DECIMALS_TWO)}%
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">预期年化</span>
               <span className="font-medium">
-                {expectedAPR.toFixed(2)}%
+                {expectedAPR.toFixed(DECIMALS_TWO)}%
               </span>
             </div>
             {position.maturityAmount && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">到期金额</span>
                 <span className="font-medium">
-                  ${position.maturityAmount.toFixed(2)}
+                  ${position.maturityAmount.toFixed(DECIMALS_TWO)}
                 </span>
               </div>
             )}
@@ -236,9 +248,9 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
                   <Clock className="w-3 h-3" />
                   剩余天数
                 </div>
-                <span className={daysRemaining <= 3 ? 'text-orange-600 font-medium' : ''}>
-                  {daysRemaining}天
-                </span>
+              <span className={daysRemaining <= DAYS_LOW_WARNING ? 'text-orange-600 font-medium' : ''}>
+                {daysRemaining}天
+              </span>
               </div>
             )}
 
@@ -297,7 +309,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
               <DollarSign className="w-4 h-4 text-green-500" />
               <div>
                 <p className="text-sm text-gray-600">总本金</p>
-                <p className="text-xl font-semibold">${summary.totalPrincipal.toFixed(2)}</p>
+                <p className="text-xl font-semibold">${summary.totalPrincipal.toFixed(DECIMALS_TWO)}</p>
               </div>
             </div>
           </CardContent>
@@ -309,7 +321,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
               <TrendingUp className="w-4 h-4 text-orange-500" />
               <div>
                 <p className="text-sm text-gray-600">累计收益</p>
-                <p className="text-xl font-semibold text-green-600">${summary.totalPaid.toFixed(2)}</p>
+                <p className="text-xl font-semibold text-green-600">${summary.totalPaid.toFixed(DECIMALS_TWO)}</p>
               </div>
             </div>
           </CardContent>
@@ -321,7 +333,7 @@ export function UserPositions({ userId = 'user-test-001', className = '' }: User
               <Award className="w-4 h-4 text-yellow-500" />
               <div>
                 <p className="text-sm text-gray-600">预期总值</p>
-                <p className="text-xl font-semibold">${summary.estimatedTotal.toFixed(2)}</p>
+                <p className="text-xl font-semibold">${summary.estimatedTotal.toFixed(DECIMALS_TWO)}</p>
               </div>
             </div>
           </CardContent>

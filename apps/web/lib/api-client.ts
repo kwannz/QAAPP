@@ -14,6 +14,8 @@ import { tokenManager } from './token-manager';
 
 // API 基础配置
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const HTTP_STATUS_UNAUTHORIZED = 401;
+const HTTP_STATUS_FORBIDDEN = 403;
 
 // 创建 axios 实例
 export const apiClient = axios.create({
@@ -75,7 +77,7 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as any;
 
     // 处理401错误（token过期）
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === HTTP_STATUS_UNAUTHORIZED && !originalRequest._retry) {
       originalRequest._retry = true;
 
       const refreshToken = tokenManager.getRefreshToken();
@@ -119,7 +121,7 @@ apiClient.interceptors.response.use(
     }
 
     // 不显示某些错误的toast
-    const silentErrors = [401, 403];
+    const silentErrors = [HTTP_STATUS_UNAUTHORIZED, HTTP_STATUS_FORBIDDEN];
     if (!silentErrors.includes(error.response?.status || 0)) {
       const toast = await getToast();
       if (toast) {

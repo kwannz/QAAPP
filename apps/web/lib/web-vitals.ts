@@ -1,5 +1,6 @@
 import type { Metric } from 'web-vitals';
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
+import { logger } from '@/lib/verbose-logger';
 
 export interface PerformanceBudget {
   LCP: number // Largest Contentful Paint - 目标 < 2.5s
@@ -17,19 +18,28 @@ const PERFORMANCE_BUDGETS: PerformanceBudget = {
   TTFB: 800,
 };
 
+// Scoring constants (avoid magic numbers)
+const SCORE_LCP_PENALTY = 20;
+const SCORE_FCP_PENALTY = 15;
+const DURATION_DECIMALS = 2;
+
 export function sendToAnalytics(metric: Metric) {
   const isExceedingBudget = checkBudgetViolation(metric);
 
   // 发送到分析服务
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  if (typeof window !== 'undefined') {
+    const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true';
     // 可以集成Google Analytics, Vercel Analytics等
-    console.log(`Performance Metric: ${metric.name}`, {
+    const payload = {
       value: metric.value,
       rating: metric.rating,
       delta: metric.delta,
       exceedingBudget: isExceedingBudget,
       budgetLimit: PERFORMANCE_BUDGETS[metric.name as keyof PerformanceBudget],
-    });
+    };
+    if (debug) {
+      logger.debug('WebVitals', `Performance Metric: ${metric.name}`, payload);
+    }
 
     // 如果超出预算，发送警告
     if (isExceedingBudget) {
@@ -61,7 +71,7 @@ export function reportPerformanceIssue(metric: Metric) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(issue),
-    }).catch(error => console.warn('Failed to report performance issue:', error));
+    }).catch(error => logger.warn('WebVitals', 'Failed to report performance issue', { error }));
   }
 }
 
@@ -74,8 +84,9 @@ export function initializeWebVitals() {
   onFCP(sendToAnalytics);
   onLCP(sendToAnalytics);
   onTTFB(sendToAnalytics);
-
-  console.log('🚀 Web Vitals monitoring initialized');
+  if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+    logger.debug('WebVitals', 'Web Vitals monitoring initialized');
+  }
 }
 
 export function getPerformanceScore(): number {
@@ -87,8 +98,8 @@ export function getPerformanceScore(): number {
 
   let score = 100;
 
-  if (metrics.lcp > PERFORMANCE_BUDGETS.LCP) score -= 20;
-  if (metrics.fcp > PERFORMANCE_BUDGETS.FCP) score -= 15;
+  if (metrics.lcp > PERFORMANCE_BUDGETS.LCP) score -= SCORE_LCP_PENALTY;
+  if (metrics.fcp > PERFORMANCE_BUDGETS.FCP) score -= SCORE_FCP_PENALTY;
 
   return Math.max(0, score);
 }
@@ -104,7 +115,9 @@ export function createPerformanceMarker(name: string) {
 
         const measure = performance.getEntriesByName(name)[0];
         if (measure) {
-          console.log(`⏱️ ${name}: ${measure.duration.toFixed(2)}ms`);
+          if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+            logger.debug('WebVitals', `${name} duration`, { ms: Number(measure.duration.toFixed(DURATION_DECIMALS)) });
+          }
 
           // 清理performance entries
           performance.clearMarks(`${name}-start`);

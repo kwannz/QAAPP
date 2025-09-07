@@ -8,7 +8,6 @@ import {
   CreditCard,
   FileText,
   UserCog,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -20,9 +19,9 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
 
-import { Button, Card, Input } from '@/components/ui';
-
 import { useAuthStore } from '../../lib/auth-context';
+import { Button, Input } from '@/components/ui';
+
 
 interface AdminLayoutProperties {
   children: React.ReactNode

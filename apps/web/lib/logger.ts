@@ -1,3 +1,4 @@
+/* eslint-disable no-console, no-magic-numbers */
 /**
  * 统一的前端日志管理系统
  * 支持多级别日志、性能监控、错误追踪等功能
@@ -39,29 +40,57 @@ export interface LoggerConfig {
   verbose: boolean
   modules?: string[]
   performanceThreshold?: number
+  enableDeduplication: boolean // 新增去重功能
+  environment: 'development' | 'production' | 'test' // 新增环境感知
 }
 
 class Logger {
   private config: LoggerConfig = {
-    level: LogLevel.INFO,
+    level: (() => {
+      const env = process.env.NODE_ENV;
+      switch (env) {
+        case 'development': return LogLevel.DEBUG;
+        case 'test': return LogLevel.WARN;
+        case 'production': return LogLevel.ERROR;
+        default: return LogLevel.INFO;
+      }
+    })(),
     enableConsole: true,
-    enableRemote: false,
-    enableLocalStorage: true,
+    enableRemote: process.env.NODE_ENV === 'production',
+    enableLocalStorage: process.env.NODE_ENV !== 'production',
     maxLocalStorageLogs: 1000,
     verbose: process.env.NODE_ENV === 'development',
     performanceThreshold: 1000, // ms
+    enableDeduplication: true,
+    environment: (process.env.NODE_ENV as any) || 'development',
   };
 
   private logBuffer: LogEntry[] = [];
   private timers: Map<string, number> = new Map();
   private sessionId: string;
   private userId?: string;
+  private loggedMessages: Set<string> = new Set(); // 用于去重
 
   constructor() {
     this.sessionId = this.generateSessionId();
     this.loadConfig();
     this.setupGlobalErrorHandler();
     this.setupPerformanceObserver();
+  }
+
+  // 根据环境获取默认日志级别
+  private static getEnvironmentLogLevel(): LogLevel {
+    const env = process.env.NODE_ENV;
+    switch (env) {
+      case 'development':
+        return LogLevel.DEBUG;
+      case 'test':
+        return LogLevel.WARN;
+      case 'production':
+        return LogLevel.ERROR;
+      default:
+        return LogLevel.INFO;
+    }
   }
 
   // 加载配置
@@ -113,6 +142,23 @@ class Logger {
     error?: Error,
   ) {
     if (level < this.config.level) return;
+
+    // 检查去重
+    if (this.config.enableDeduplication) {
+      const messageKey = `${level}-${module}-${message}`;
+      if (this.loggedMessages.has(messageKey)) {
+        return; // 跳过重复消息
+      }
+      this.loggedMessages.add(messageKey);
+      
+      // 限制去重缓存大小
+      if (this.loggedMessages.size > 500) {
+        // 清空一半缓存
+        const messages = Array.from(this.loggedMessages);
+        this.loggedMessages.clear();
+        messages.slice(-250).forEach(msg => this.loggedMessages.add(msg));
+      }
+    }
 
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
@@ -531,6 +577,37 @@ class Logger {
         headers.join(','),
         ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
       ].join('\n');
+  }
+
+  // Web3 专用日志方法
+  public logWalletConnection(address: string, chainId: number) {
+    this.info('Wallet', `Connected: ${address}`, { address, chainId });
+  }
+
+  public logWalletDisconnection() {
+    this.info('Wallet', 'Disconnected');
+  }
+
+  public logTransactionStart(hash: string, type: string) {
+    this.info('Transaction', `Started: ${type}`, { hash, type });
+  }
+
+  public logTransactionSuccess(hash: string, type: string) {
+    this.info('Transaction', `Success: ${type}`, { hash, type });
+  }
+
+  public logTransactionError(error: any, type: string) {
+    this.error('Transaction', `Failed: ${type}`, error, { type });
+  }
+
+  public logContractCall(contractName: string, method: string, args?: any[]) {
+    this.debug('Contract', `Call: ${contractName}.${method}`, { contractName, method, args });
+  }
+
+  // 清除去重缓存的方法
+  public clearDeduplicationCache() {
+    this.loggedMessages.clear();
+    this.debug('Logger', 'Deduplication cache cleared');
   }
 }
 

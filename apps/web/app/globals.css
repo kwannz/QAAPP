@@ -1,12 +1,15 @@
 /* Temporarily disabled UI package import to fix Element type invalid error */
 /* @import '@qa-app/ui/src/styles/globals.css'; */
 
-/* Basic Tailwind setup */
+/* 基础 Tailwind 设置 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Responsive Design Utilities */
+/* 引入 UI 包的主题变量，避免重复维护 */
+@import '../../../packages/ui/src/styles/vars.css';
+
+/* 响应式与工具类 */
 @layer components {
   /* Container utilities with better responsive breakpoints */
   .qa-container {

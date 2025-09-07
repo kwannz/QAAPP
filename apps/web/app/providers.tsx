@@ -5,20 +5,24 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { SSRSafeToaster } from '../components/SSRSafeToaster';
-
-import { ClientOnly } from '../components/ClientOnly';
 import { WebSocketProvider, WebSocketStatusIndicator } from '../components/providers/WebSocketProvider';
 import { AuthProvider } from '../lib/auth-context';
 import { SSRSafeWeb3Provider } from '../lib/ssr-safe-web3-provider';
 
 
 // React Query配置
+const MS_PER_SEC = 1000;
+const SEC_PER_MIN = 60;
+const ONE_MINUTE_MS = SEC_PER_MIN * MS_PER_SEC;
+const RETRY_BASE = 2;
+const MAX_RETRY_DELAY_MS = 30_000;
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {
         // 数据缓存时间
-        staleTime: 60 * 1000, // 1分钟
+        staleTime: ONE_MINUTE_MS, // 1分钟
         // 浏览器失焦后重新获取数据的时间
         refetchOnWindowFocus: false,
 
@@ -30,11 +34,11 @@ const createQueryClient = () =>
           }
 
           // 其他错误最多重试2次
-          return failureCount < 2;
+          return failureCount < RETRY_BASE;
         },
 
         // 重试延迟
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30_000),
+        retryDelay: attemptIndex => Math.min(MS_PER_SEC * (RETRY_BASE ** attemptIndex), MAX_RETRY_DELAY_MS),
       },
       mutations: {
         // Mutation重试次数
@@ -48,14 +52,14 @@ interface ProvidersProperties {
   cookies?: string | null;
 }
 
-export function Providers({ children, cookies }: ProvidersProperties) {
+export function Providers({ children, cookies: _cookies }: ProvidersProperties) {
   // 确保QueryClient只创建一次
   const [queryClient] = useState(() => createQueryClient());
-  const [mounted, setMounted] = useState(false);
+  const [_mounted, _setMounted] = useState(false);
 
   // 解决SSR水合问题
   useEffect(() => {
-    setMounted(true);
+    _setMounted(true);
   }, []);
 
   return (

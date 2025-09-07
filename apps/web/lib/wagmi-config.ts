@@ -1,12 +1,71 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { http } from 'viem';
 import { mainnet, polygon, arbitrum, sepolia, hardhat } from 'wagmi/chains';
+import { createConfig } from 'wagmi';
+import { injected } from 'wagmi/connectors';
 
 import { isBrowserEnvironment } from './browser-polyfills';
+import { logger } from './verbose-logger';
 
-// 获取环境变量，使用有效的WalletConnect项目ID
-// 使用一个更稳定的测试项目ID
-const getProjectId = () => process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'a7f416d3f78b2ad3c80d7c29ad5b4c2c';
+// 警告消息去重管理器
+class WarningManager {
+  private warnedMessages = new Set<string>();
+  
+  warn(message: string, ...args: any[]) {
+    const key = message + JSON.stringify(args);
+    if (!this.warnedMessages.has(key)) {
+      this.warnedMessages.add(key);
+      logger.warn('WagmiConfig', message, { args });
+    }
+  }
+  
+  info(message: string, ...args: any[]) {
+    const key = message + JSON.stringify(args);
+    if (!this.warnedMessages.has(key)) {
+      this.warnedMessages.add(key);
+      logger.info('WagmiConfig', message, { args });
+    }
+  }
+  
+  clear() {
+    this.warnedMessages.clear();
+  }
+}
+
+const warningManager = new WarningManager();
+
+// 缓存项目ID验证结果
+let cachedProjectId: string | null | undefined = undefined;
+
+// 获取环境变量，使用有效的WalletConnect项目ID (带缓存和去重警告)
+const getProjectId = () => {
+  // 返回缓存结果以避免重复验证
+  if (cachedProjectId !== undefined) {
+    return cachedProjectId;
+  }
+  
+  const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
+  
+  // 检查是否是默认的占位符值
+  if (!projectId || projectId === 'YOUR_PROJECT_ID_HERE') {
+    warningManager.warn('⚠️ WalletConnect项目ID未配置或使用默认占位符');
+    warningManager.warn('请在.env文件中设置NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID');
+    warningManager.warn('或在 https://cloud.reown.com 创建项目并获取项目ID');
+    cachedProjectId = null;
+    return null;
+  }
+  
+  // 基本验证项目ID格式（应该是32个字符的十六进制字符串）
+  if (!/^[a-f0-9]{32}$/.test(projectId)) {
+    warningManager.warn('⚠️ WalletConnect项目ID格式无效，应为32位十六进制字符串');
+    warningManager.warn('当前项目ID:', projectId);
+    cachedProjectId = null;
+    return null;
+  }
+  
+  cachedProjectId = projectId;
+  return projectId;
+};
 
 // 本地开发链配置
 const hardhatLocal = {
@@ -80,18 +139,40 @@ export const createWagmiConfig = () => {
     return cachedWagmiConfig;
   }
 
+  // 检查WalletConnect是否被禁用
+  const walletConnectDisabled = process.env.NEXT_PUBLIC_DISABLE_WALLETCONNECT === 'true';
+
+  const projectId = getProjectId();
+
   try {
+    const chains = getChains();
+    const transports = getTransports();
+
+    if (walletConnectDisabled || !projectId) {
+      // 当 WalletConnect 被禁用或未配置时，回退到仅注入式连接器（如 MetaMask）
+      warningManager.info('🔌 使用注入式钱包连接（MetaMask等），无需 WalletConnect 项目ID');
+      cachedWagmiConfig = createConfig({
+        chains,
+        transports,
+        connectors: [injected()],
+        ssr: true,
+      } as any);
+      return cachedWagmiConfig;
+    }
+
+    // 正常路径：启用 RainbowKit 默认配置（需要 WalletConnect 项目ID）
     cachedWagmiConfig = getDefaultConfig({
       appName: 'QA Fixed Income Platform',
-      projectId: getProjectId(),
-      chains: getChains(),
+      projectId,
+      chains,
       ssr: true,
-      transports: getTransports(),
+      transports,
     });
 
+    warningManager.info('✅ Wagmi配置创建成功，Web3功能已启用');
     return cachedWagmiConfig;
   } catch (error) {
-    console.warn('Failed to create Wagmi config, using fallback:', error);
+    warningManager.warn('❌ 创建Wagmi配置失败，启用Mock模式:', error);
     return null;
   }
 };

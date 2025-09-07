@@ -5,9 +5,10 @@
  * 提供fallback值以避免在WagmiProvider未初始化时出错
  */
 
-import { useSafeWeb3 } from '../ssr-safe-web3-provider';
+import { useAccount, useBalance, useConnect, useDisconnect, useEnsName, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain } from 'wagmi';
+import { useSafeWeb3 as _useSafeWeb3 } from '../ssr-safe-web3-provider';
 
-// 模拟的空账户状态
+// 模拟状态（仅在无 Provider 极端场景使用；正常情况下由 MockWagmiProvider 兜底）
 const EMPTY_ACCOUNT = {
   address: undefined,
   addresses: undefined,
@@ -60,174 +61,84 @@ const EMPTY_DISCONNECT = {
   variables: undefined,
 };
 
-// 检查是否在Wagmi Provider内部
-function isInWagmiProvider(): boolean {
+// 是否启用 Web3（用于返回最小安全对象，但不改变 Hooks 调用顺序）
+function isWeb3Active(): boolean {
   try {
-    // 检查是否存在wagmi provider的标记
     const element = document.querySelector('[data-wagmi-provider]');
-    return element?.getAttribute('data-wagmi-provider') !== 'mock';
+    return Boolean(element);
   } catch {
     return false;
   }
 }
 
+// 安全的useChainId hook
+export function useSafeChainId(): number | undefined {
+  const chainId = useChainId();
+  return chainId;
+}
+
+// 安全的useSwitchChain hook
+export function useSafeSwitchChain() {
+  return useSwitchChain();
+}
+
 // 安全的useAccount hook
 export function useSafeAccount() {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider()) {
-    return EMPTY_ACCOUNT;
-  }
-
-  try {
-    // 动态导入并使用原始的useAccount
-    const { useAccount } = require('wagmi');
-    return useAccount();
-  } catch (error) {
-    console.warn('useAccount failed, falling back to empty state:', error);
-    return EMPTY_ACCOUNT;
-  }
+  // 始终调用 Hook；MockWagmiProvider 在无真实 Provider 时兜底
+  const account = useAccount();
+  if (!isWeb3Active()) return { ...EMPTY_ACCOUNT, ...account } as any;
+  return account as any;
 }
 
 // 安全的useBalance hook
 export function useSafeBalance(config?: { address?: string }) {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider() || !config?.address) {
-    return EMPTY_BALANCE;
+  const result = useBalance({
+    address: config?.address as any,
+    query: {
+      enabled: Boolean(config?.address),
+      refetchInterval: 10_000,
+    },
+  } as any);
+  if (!config?.address || !isWeb3Active()) {
+    return { ...EMPTY_BALANCE, ...result } as any;
   }
-
-  try {
-    const { useBalance } = require('wagmi');
-    return useBalance(config);
-  } catch (error) {
-    console.warn('useBalance failed, falling back to empty state:', error);
-    return EMPTY_BALANCE;
-  }
+  return result as any;
 }
 
 // 安全的useConnect hook
 export function useSafeConnect() {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider()) {
-    return EMPTY_CONNECT;
-  }
-
-  try {
-    const { useConnect } = require('wagmi');
-    return useConnect();
-  } catch (error) {
-    console.warn('useConnect failed, falling back to empty state:', error);
-    return EMPTY_CONNECT;
-  }
+  const res = useConnect();
+  if (!isWeb3Active()) return { ...EMPTY_CONNECT, ...res } as any;
+  return res as any;
 }
 
 // 安全的useDisconnect hook
 export function useSafeDisconnect() {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider()) {
-    return EMPTY_DISCONNECT;
-  }
-
-  try {
-    const { useDisconnect } = require('wagmi');
-    return useDisconnect();
-  } catch (error) {
-    console.warn('useDisconnect failed, falling back to empty state:', error);
-    return EMPTY_DISCONNECT;
-  }
+  const res = useDisconnect();
+  if (!isWeb3Active()) return { ...EMPTY_DISCONNECT, ...res } as any;
+  return res as any;
 }
 
 // 安全的useEnsName hook
 export function useSafeEnsName(config?: { address?: string }) {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider() || !config?.address) {
-    return { data: undefined, error: null, isError: false, isLoading: false, isSuccess: false };
-  }
-
-  try {
-    const { useEnsName } = require('wagmi');
-    return useEnsName(config);
-  } catch (error) {
-    console.warn('useEnsName failed, falling back to empty state:', error);
-    return { data: undefined, error: null, isError: false, isLoading: false, isSuccess: false };
-  }
+  const res = useEnsName(config as any);
+  return res as any;
 }
 
 // 安全的useReadContract hook
 export function useSafeReadContract(config?: any) {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider() || !config) {
-    return { data: undefined, error: null, isError: false, isLoading: false, isSuccess: false };
-  }
-
-  try {
-    const { useReadContract } = require('wagmi');
-    return useReadContract(config);
-  } catch (error) {
-    console.warn('useReadContract failed, falling back to empty state:', error);
-    return { data: undefined, error: null, isError: false, isLoading: false, isSuccess: false };
-  }
+  const res = useReadContract(config as any);
+  return res as any;
 }
 
 // 安全的useWriteContract hook
 export function useSafeWriteContract() {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider()) {
-    return {
-      writeContract: () => {},
-      writeContractAsync: async () => { throw new Error('Web3 not initialized'); },
-      data: undefined,
-      error: null,
-      isError: false,
-      isIdle: true,
-      isPending: false,
-      isSuccess: false,
-      reset: () => {},
-      status: 'idle' as const,
-      variables: undefined,
-    };
-  }
-
-  try {
-    const { useWriteContract } = require('wagmi');
-    return useWriteContract();
-  } catch (error) {
-    console.warn('useWriteContract failed, falling back to empty state:', error);
-    return {
-      writeContract: () => {},
-      writeContractAsync: async () => { throw new Error('Web3 not initialized'); },
-      data: undefined,
-      error: null,
-      isError: false,
-      isIdle: true,
-      isPending: false,
-      isSuccess: false,
-      reset: () => {},
-      status: 'idle' as const,
-      variables: undefined,
-    };
-  }
+  const res = useWriteContract();
+  return res as any;
 }
 
 // 安全的useWaitForTransactionReceipt hook
 export function useSafeWaitForTransactionReceipt(config?: { hash?: string }) {
-  const { isWeb3Enabled } = useSafeWeb3();
-
-  if (!isWeb3Enabled || !isInWagmiProvider() || !config?.hash) {
-    return { isLoading: false, isSuccess: false, error: null };
-  }
-
-  try {
-    const { useWaitForTransactionReceipt } = require('wagmi');
-    return useWaitForTransactionReceipt(config);
-  } catch (error) {
-    console.warn('useWaitForTransactionReceipt failed, falling back to empty state:', error);
-    return { isLoading: false, isSuccess: false, error: null };
-  }
+  const res = useWaitForTransactionReceipt(config as any);
+  return res as any;
 }

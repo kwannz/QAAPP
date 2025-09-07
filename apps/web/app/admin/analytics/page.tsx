@@ -9,32 +9,23 @@ import {
   DollarSign,
   Users,
   Calendar,
-  Target,
-  Award,
-  Send,
-  Eye,
-  Settings,
   Download,
   Filter,
   Activity,
   Shield,
   UserCheck,
   AlertTriangle,
-  Key,
   Clock,
   CheckCircle,
   XCircle,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { Card, Button, Badge, Separator, MetricsCard } from '@/components/ui';
-import { cn } from '@/lib/utils';
 
-import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 import { FilterPanel } from '../../../components/common/FilterPanel';
 import { TabContainer } from '../../../components/common/TabContainer';
-import { Header } from '../../../components/layout/Header';
-import { useFeatureFlag } from '../../../lib/feature-flags';
+import { logger } from '@/lib/verbose-logger';
+import { Card, Button, Badge, Separator, MetricsCard, WalletConnectionManager } from '@/components/ui';
 
 
 interface AnalyticsData {
@@ -81,7 +72,13 @@ interface AnalyticsData {
 
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [_isLoading, setIsLoading] = useState(true);
+
+  // Local thresholds to avoid magic numbers in UI logic
+  const ABNORMAL_LOGS_WARNING_THRESHOLD = 50;
+  const COMPLIANCE_RATE_GOOD = 95;
+  const REVIEW_TIME_GOOD_DAYS = 3;
+  const PENDING_KYC_WARNING_THRESHOLD = 50;
 
   // 获取分析数据
   const fetchAnalyticsData = async () => {
@@ -91,7 +88,7 @@ export default function AnalyticsPage() {
       const { data } = await monitoringApi.getDashboard('24h');
       setAnalyticsData(data);
     } catch (error) {
-      console.error('获取分析数据失败:', error);
+      logger.error('AnalyticsPage', '获取分析数据失败', { error });
     } finally {
       setIsLoading(false);
     }
@@ -180,6 +177,22 @@ export default function AnalyticsPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {/* 调试：已连接覆盖 */}
+      {(() => {
+        const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+        const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const override = debug && sp?.get('e2e_wallet') === 'connected';
+        if (override) {
+          return (
+            <Card>
+              <div className="p-4">
+                <WalletConnectionManager showNetworkInfo showContractStatus />
+              </div>
+            </Card>
+          );
+        }
+        return null;
+      })()}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricsCard
           title="总佣金收入"
@@ -367,7 +380,7 @@ export default function AnalyticsPage() {
           title="异常记录"
           value={analyticsData?.audit?.abnormalLogs || 0}
           icon={<AlertTriangle className="h-5 w-5 text-yellow-600" />}
-          status={(analyticsData?.audit?.abnormalLogs || 0) > 50 ? 'warning' : 'success'}
+          status={(analyticsData?.audit?.abnormalLogs || 0) > ABNORMAL_LOGS_WARNING_THRESHOLD ? 'warning' : 'success'}
         />
         <MetricsCard
           title="严重警报"
@@ -400,13 +413,13 @@ export default function AnalyticsPage() {
           title="待审核KYC"
           value={analyticsData?.compliance?.pendingKYC || 0}
           icon={<Clock className="h-5 w-5 text-yellow-600" />}
-          status={(analyticsData?.compliance?.pendingKYC || 0) > 50 ? 'warning' : 'success'}
+          status={(analyticsData?.compliance?.pendingKYC || 0) > PENDING_KYC_WARNING_THRESHOLD ? 'warning' : 'success'}
         />
         <MetricsCard
           title="合规率"
           value={`${analyticsData?.compliance?.complianceRate || 0}%`}
           icon={<CheckCircle className="h-5 w-5 text-green-600" />}
-          status={(analyticsData?.compliance?.complianceRate || 0) >= 95 ? 'success' : 'warning'}
+          status={(analyticsData?.compliance?.complianceRate || 0) >= COMPLIANCE_RATE_GOOD ? 'success' : 'warning'}
         />
         <MetricsCard
           title="高风险用户"
@@ -418,7 +431,7 @@ export default function AnalyticsPage() {
           title="平均审核时间"
           value={`${analyticsData?.compliance?.averageReviewTime || 0}天`}
           icon={<UserCheck className="h-5 w-5 text-blue-600" />}
-          status={(analyticsData?.compliance?.averageReviewTime || 0) <= 3 ? 'success' : 'warning'}
+          status={(analyticsData?.compliance?.averageReviewTime || 0) <= REVIEW_TIME_GOOD_DAYS ? 'success' : 'warning'}
         />
       </div>
       <Card className="p-6">

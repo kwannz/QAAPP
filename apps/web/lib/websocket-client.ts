@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from './verbose-logger';
 
-import { useAuthStore } from './auth-context';
+// 常量配置
+/* eslint-disable no-magic-numbers */
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_INTERVAL_MS = 5 * 1000;
+const HEARTBEAT_INTERVAL_MS = 30_000;
+const MAX_NOTIFICATIONS = 50;
+/* eslint-enable no-magic-numbers */
+const WS_CLOSE_NORMAL = 1000;
 
 // 动态导入 toast 以避免 SSR 问题
 const getToast = () => {
@@ -31,8 +39,8 @@ export interface WebSocketMessage {
 class WebSocketClient {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectInterval = 5000;
+  private maxReconnectAttempts = MAX_RECONNECT_ATTEMPTS;
+  private reconnectInterval = RECONNECT_INTERVAL_MS;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private statusCallbacks: Array<(status: WebSocketStatus) => void> = [];
   private messageCallbacks: Array<(message: WebSocketMessage) => void> = [];
@@ -50,7 +58,7 @@ class WebSocketClient {
     }
 
     if (!this.accessToken) {
-      console.warn('No access token available for WebSocket connection');
+      logger.warn('WebSocket', 'No access token available for WebSocket connection');
       return;
     }
 
@@ -64,7 +72,7 @@ class WebSocketClient {
       this.ws.addEventListener('close', this.handleClose.bind(this));
       this.ws.onerror = this.handleError.bind(this);
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      logger.error('WebSocket', 'Failed to create WebSocket connection', { error });
       this.setStatus(WebSocketStatus.ERROR);
     }
   }
@@ -77,7 +85,7 @@ class WebSocketClient {
     }
 
     if (this.ws) {
-      this.ws.close(1000, 'Manual disconnect');
+      this.ws.close(WS_CLOSE_NORMAL, 'Manual disconnect');
       this.ws = null;
     }
 
@@ -94,7 +102,7 @@ class WebSocketClient {
       };
       this.ws.send(JSON.stringify(fullMessage));
     } else {
-      console.warn('WebSocket is not connected. Cannot send message:', message);
+      logger.warn('WebSocket', 'WebSocket is not connected. Cannot send message', { message });
     }
   }
 
@@ -147,7 +155,7 @@ class WebSocketClient {
 
   // 处理连接打开
   private handleOpen(): void {
-    console.log('WebSocket connection established');
+    logger.info('WebSocket', 'WebSocket connection established');
     this.setStatus(WebSocketStatus.CONNECTED);
     this.reconnectAttempts = 0;
 
@@ -181,17 +189,17 @@ class WebSocketClient {
         try {
           callback(message);
         } catch (error) {
-          console.error('Error in message callback:', error);
+          logger.error('WebSocket', 'Error in message callback', { error });
         }
       }
     } catch (error) {
-      console.error('Failed to parse WebSocket message:', error);
+      logger.error('WebSocket', 'Failed to parse WebSocket message', { error });
     }
   }
 
   // 处理连接关闭
   private handleClose(event: CloseEvent): void {
-    console.log('WebSocket connection closed:', event.code, event.reason);
+    logger.info('WebSocket', 'WebSocket connection closed', { code: event.code, reason: event.reason });
 
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
@@ -199,7 +207,7 @@ class WebSocketClient {
     }
 
     // 正常关闭不需要重连
-    if (event.code === 1000) {
+    if (event.code === WS_CLOSE_NORMAL) {
       this.setStatus(WebSocketStatus.DISCONNECTED);
       return;
     }
@@ -209,18 +217,18 @@ class WebSocketClient {
       this.setStatus(WebSocketStatus.RECONNECTING);
       setTimeout(() => {
         this.reconnectAttempts++;
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        logger.info('WebSocket', `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
         this.connect();
       }, this.reconnectInterval);
     } else {
-      console.error('Max reconnection attempts reached');
+      logger.error('WebSocket', 'Max reconnection attempts reached');
       this.setStatus(WebSocketStatus.ERROR);
     }
   }
 
   // 处理连接错误
   private handleError(event: Event): void {
-    console.error('WebSocket error:', event);
+    logger.error('WebSocket', 'WebSocket error', { event });
     this.setStatus(WebSocketStatus.ERROR);
   }
 
@@ -233,7 +241,7 @@ class WebSocketClient {
           payload: { timestamp: Date.now() },
         });
       }
-    }, 30_000); // 每30秒发送一次心跳
+    }, HEARTBEAT_INTERVAL_MS); // 每30秒发送一次心跳
   }
 
   // 设置状态并通知订阅者
@@ -242,7 +250,7 @@ class WebSocketClient {
       try {
         callback(status);
       } catch (error) {
-        console.error('Error in status callback:', error);
+        logger.error('WebSocket', 'Error in status callback', { error });
       }
     }
   }
@@ -324,7 +332,7 @@ export function useNotifications() {
     const unsubscribe = wsClient.onMessage((message) => {
       switch (message.type) {
       case 'notification': {
-        setNotifications(previous => [message.payload, ...previous].slice(0, 50)); // 最多保留50条
+        setNotifications(previous => [message.payload, ...previous].slice(0, MAX_NOTIFICATIONS)); // 最多保留固定条数
         if (!message.payload.isRead) {
           setUnreadCount(previous => previous + 1);
         }

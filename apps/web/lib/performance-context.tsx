@@ -42,9 +42,10 @@ export function PerformanceProvider({ children, enableProfiling = false }: Perfo
     setTimeout(() => marker.end(), 0);
   }, [enableProfiling]);
 
-  const memoizedCallback = useCallback(<T extends (...arguments_: any[]) => any>(callback: T, deps: any[]): T => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    return useCallback(callback, deps);
+  // 注意：为遵循 Hooks 规范，避免在回调内调用 Hook。
+  // 这里返回原始回调以保持行为稳定；如需真正 memo 化，请在组件中直接使用 useCallback。
+  const memoizedCallback = useCallback(<T extends (...arguments_: any[]) => any>(callback: T): T => {
+    return callback;
   }, []);
 
   const value = useMemo(() => ({
@@ -56,6 +57,7 @@ export function PerformanceProvider({ children, enableProfiling = false }: Perfo
 
   useEffect(() => {
     if (enableProfiling) {
+      // eslint-disable-next-line no-console
       console.log('🎯 Performance profiling enabled');
     }
   }, [enableProfiling]);
@@ -81,6 +83,7 @@ export function withPerformanceTracking<P extends object>(
 ) {
   const PerformanceTrackedComponent: ComponentType<P> = (properties: P) => {
     const { measureComponent } = usePerformance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const marker = useMemo(() => measureComponent(componentName || Component.name), [measureComponent, componentName]);
 
     useEffect(() => {

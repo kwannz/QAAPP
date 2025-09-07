@@ -1,32 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import {
-  Eye,
-  EyeOff,
-  Calendar,
-  Upload,
-  X,
-  Plus,
-  AlertCircle,
-  CheckCircle,
-} from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle, Calendar, Upload, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Checkbox,
-  Input,
-  Label,
-  Select,
-  Textarea,
-} from '@/components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Input, Label, Textarea } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 export interface FormField {
@@ -236,7 +215,8 @@ export function FormBuilder({
         setIsDirty(false);
       }
     } catch (error) {
-      console.error('Form submission error:', error);
+      const { logger } = await import('@/lib/verbose-logger');
+      logger.error('FormBuilder', 'Form submission error', error);
     }
   };
 

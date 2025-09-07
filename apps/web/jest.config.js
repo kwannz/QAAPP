@@ -18,8 +18,8 @@ const customJestConfig = {
   // Use the test-specific TypeScript configuration
   globals: {
     'ts-jest': {
-      tsconfig: 'tsconfig.test.json'
-    }
+      tsconfig: 'tsconfig.test.json',
+    },
   },
   
   
@@ -37,10 +37,13 @@ const customJestConfig = {
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: 'coverage',
   
+  // Ignore built artifacts to avoid haste map collisions
+  modulePathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/dist/'],
+  
   // Test patterns
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
-    '**/*.(test|spec).(js|jsx|ts|tsx)'
+    '**/*.(test|spec).(js|jsx|ts|tsx)',
   ],
   
   // Transform files

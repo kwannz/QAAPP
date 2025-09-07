@@ -3,7 +3,7 @@
 import { Wallet, Info, TrendingUp, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { ETHPaymentFlow } from '@/components/payments/ETHPaymentFlow';
 import {
@@ -15,9 +15,7 @@ import {
   Input,
   Alert,
   AlertDescription,
-  Badge,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Dialog,
@@ -25,11 +23,10 @@ import {
   DialogHeader,
   DialogTitle,
  WalletConnectionManager } from '@/components/ui';
-import { apiClient } from '@/lib/api-client';
+// import { apiClient } from '@/lib/api-client';
 import type { ProductType } from '@/lib/contracts/addresses';
 import { PRODUCT_CONFIG } from '@/lib/contracts/addresses';
 import { contractManager, useContractManager } from '@/lib/contracts/contract-manager';
-import { useTreasury, useUSDT } from '@/lib/hooks/use-contracts';
 
 interface EnhancedProductPurchaseProperties {
   productType: ProductType
@@ -46,12 +43,8 @@ export function ProductPurchase({
   onError,
   className = '',
 }: EnhancedProductPurchaseProperties) {
-  const { address, isConnected, chainId } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
+  const { isConnected, chainId } = useAccount();
 
-  const treasury = useTreasury();
-  const usdt = useUSDT();
   const { state: contractState, areContractsDeployed } = useContractManager();
 
   const [step, setStep] = useState<PurchaseStep>('selection');
@@ -61,6 +54,15 @@ export function ProductPurchase({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const productConfig = PRODUCT_CONFIG[productType];
+  const USD_PER_ETH = 2000;
+  const DAYS_PER_YEAR = 365;
+  const PERCENT_SCALE = 100;
+  const DECIMALS_TWO = 2;
+  const ONE_SECOND_MS = 1000;
+  // eslint-disable-next-line no-magic-numbers
+  const ETH_QUICK_AMOUNTS = [0.05, 0.1, 0.25] as const;
+  const MULTIPLIER_DOUBLE = 2;
+  const MULTIPLIER_FIVE = 5;
 
   // 初始化合约管理器
   useEffect(() => {
@@ -79,8 +81,8 @@ export function ProductPurchase({
     const amountNumber = Number.parseFloat(amount);
     if (isNaN(amountNumber) || amountNumber <= 0) return null;
 
-    const principal = paymentType === 'ETH' ? amountNumber * 2000 : amountNumber;
-    const dailyRate = productConfig.apr / 100 / 365;
+    const principal = paymentType === 'ETH' ? amountNumber * USD_PER_ETH : amountNumber;
+    const dailyRate = (productConfig.apr / PERCENT_SCALE) / DAYS_PER_YEAR;
     const totalReturn = principal * dailyRate * productConfig.duration;
 
     return {
@@ -100,7 +102,7 @@ export function ProductPurchase({
       return { isValid: false, error: '请输入有效的投资金额' };
     }
 
-    const equivalentUSDT = paymentType === 'ETH' ? amountNumber * 2000 : amountNumber;
+    const equivalentUSDT = paymentType === 'ETH' ? amountNumber * USD_PER_ETH : amountNumber;
 
     if (equivalentUSDT < productConfig.minInvestment) {
       return {
@@ -214,15 +216,15 @@ export function ProductPurchase({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder={`${productConfig.minInvestment} - ${productConfig.maxInvestment}`}
-              min={paymentType === 'ETH' ? productConfig.minInvestment / 2000 : productConfig.minInvestment}
-              max={paymentType === 'ETH' ? productConfig.maxInvestment / 2000 : productConfig.maxInvestment}
+              min={paymentType === 'ETH' ? productConfig.minInvestment / USD_PER_ETH : productConfig.minInvestment}
+              max={paymentType === 'ETH' ? productConfig.maxInvestment / USD_PER_ETH : productConfig.maxInvestment}
               step={paymentType === 'ETH' ? '0.001' : '1'}
             />
 
             {/* 快速金额按钮 */}
             <div className="flex gap-2">
               {paymentType === 'ETH'
-                ? [0.05, 0.1, 0.25].map(amount => (
+                ? ETH_QUICK_AMOUNTS.map(amount => (
                     <Button
                       key={amount}
                       variant="outline"
@@ -232,7 +234,11 @@ export function ProductPurchase({
                       {amount} ETH
                     </Button>
                   ))
-                : [productConfig.minInvestment, productConfig.minInvestment * 2, productConfig.minInvestment * 5].map(amount => (
+                : [
+                    productConfig.minInvestment,
+                    productConfig.minInvestment * MULTIPLIER_DOUBLE,
+                    productConfig.minInvestment * MULTIPLIER_FIVE,
+                  ].map(amount => (
                     <Button
                       key={amount}
                       variant="outline"
@@ -272,19 +278,19 @@ export function ProductPurchase({
                       <div className="flex justify-between">
                         <span className="text-gray-600">预期收益</span>
                         <span className="font-medium text-green-600">
-                          +{returns.totalReturn.toFixed(2)} USDT
+                          +{returns.totalReturn.toFixed(DECIMALS_TWO)} USDT
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">日均收益</span>
                         <span className="font-medium text-green-600">
-                          +{returns.dailyReturn.toFixed(2)} USDT
+                          +{returns.dailyReturn.toFixed(DECIMALS_TWO)} USDT
                         </span>
                       </div>
                       <div className="border-t pt-2 flex justify-between font-semibold">
                         <span>到期总值</span>
                         <span className="text-green-600">
-                          {returns.totalValue.toFixed(2)} USDT
+                          {returns.totalValue.toFixed(DECIMALS_TWO)} USDT
                         </span>
                       </div>
                     </>
@@ -368,7 +374,7 @@ export function ProductPurchase({
       <WalletConnectionManager
         onConnectionChange={(connected) => {
           if (connected) {
-            setTimeout(() => handleStepChange('selection'), 1000);
+            setTimeout(() => handleStepChange('selection'), ONE_SECOND_MS);
           }
         }}
         showNetworkInfo

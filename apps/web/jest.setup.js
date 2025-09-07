@@ -4,6 +4,7 @@
 // Used for __tests__/testing-library.js
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
+import { TextEncoder, TextDecoder } from 'util'
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
@@ -102,6 +103,29 @@ afterAll(() => {
   console.error = originalError;
 });
 
+// Mock RainbowKit ESM to avoid transform issues in unit tests
+jest.mock('@rainbow-me/rainbowkit', () => ({
+  getDefaultConfig: jest.fn(() => ({})),
+}));
+
+// Mock wagmi/viem ESM dependencies used in config
+jest.mock('wagmi', () => ({
+  createConfig: jest.fn(() => ({})),
+}));
+jest.mock('wagmi/connectors', () => ({
+  injected: jest.fn(() => ({})),
+}));
+jest.mock('wagmi/chains', () => ({
+  mainnet: { id: 1 },
+  polygon: { id: 137 },
+  arbitrum: { id: 42161 },
+  sepolia: { id: 11155111 },
+  hardhat: { id: 31337 },
+}));
+jest.mock('viem', () => ({
+  http: jest.fn(() => ({})),
+}));
+
 // Mock auth context
 jest.mock('./lib/auth-context', () => ({
   useAuth: jest.fn(() => ({
@@ -132,3 +156,13 @@ afterEach(() => {
   localStorage.clear();
   sessionStorage.clear();
 });
+
+// Polyfill TextEncoder/Decoder for libraries that expect them (e.g., viem)
+if (typeof global.TextEncoder === 'undefined') {
+  // @ts-ignore
+  global.TextEncoder = TextEncoder;
+}
+if (typeof global.TextDecoder === 'undefined') {
+  // @ts-ignore
+  global.TextDecoder = TextDecoder;
+}

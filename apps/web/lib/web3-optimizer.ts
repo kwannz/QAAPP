@@ -5,9 +5,11 @@
  * 解决WalletConnect重复初始化等性能问题
  */
 
+import { logger } from './verbose-logger';
+
 // 全局状态跟踪
-const walletConnectInitialized = false;
-const walletConnectCore: any = null;
+const _walletConnectInitialized = false;
+const _walletConnectCore: any = null;
 
 // WalletConnect初始化锁
 const walletConnectLock = {
@@ -51,7 +53,7 @@ export function cleanupWalletConnect() {
         walletConnectLock.instance.disconnect();
       }
     } catch (error) {
-      console.warn('WalletConnect清理失败:', error);
+      logger.warn('Web3Optimizer', 'WalletConnect清理失败', { error });
     }
   }
 }
@@ -63,21 +65,24 @@ export function preloadCriticalResources() {
   if (typeof window === 'undefined') return;
 
   // 预加载关键CSS和JS资源
-  const criticalResources = [
-    '/fonts/inter-var.woff2',
-    '/_next/static/css/app/globals.css',
-  ];
+  // 仅在客户端环境中执行DOM操作
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    const criticalResources = [
+      '/fonts/inter-var.woff2',
+      '/_next/static/css/app/globals.css',
+    ];
 
-  for (const resource of criticalResources) {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.href = resource;
-    link.as = resource.endsWith('.woff2') ? 'font' : 'style';
-    if (resource.endsWith('.woff2')) {
-      link.type = 'font/woff2';
-      link.crossOrigin = 'anonymous';
+    for (const resource of criticalResources) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.href = resource;
+      link.as = resource.endsWith('.woff2') ? 'font' : 'style';
+      if (resource.endsWith('.woff2')) {
+        link.type = 'font/woff2';
+        link.crossOrigin = 'anonymous';
+      }
+      document.head.append(link);
     }
-    document.head.append(link);
   }
 }
 
@@ -103,7 +108,7 @@ export class MemoryOptimizer {
       try {
         task();
       } catch (error) {
-        console.warn('内存清理任务执行失败:', error);
+        logger.warn('Web3Optimizer', '内存清理任务执行失败', { error });
       }
     }
     this.cleanupTasks = [];
@@ -113,27 +118,32 @@ export class MemoryOptimizer {
   private startMemoryMonitoring() {
     if (typeof window === 'undefined') return;
 
+    const BYTES_PER_KB = 1024;
+    const BYTES_IN_MB = BYTES_PER_KB * BYTES_PER_KB;
+    const MEMORY_HIGH_WATERMARK = 0.7;
+    const MEMORY_CHECK_INTERVAL_MS = 30_000;
+
     this.intervalId = setInterval(() => {
       // @ts-ignore
       if ((performance as any).memory) {
         // @ts-ignore
         const memInfo = (performance as any).memory;
-        const usedMB = Math.round(memInfo.usedJSHeapSize / 1024 / 1024);
-        const limitMB = Math.round(memInfo.jsHeapSizeLimit / 1024 / 1024);
+        const usedMB = Math.round(memInfo.usedJSHeapSize / BYTES_IN_MB);
+        const limitMB = Math.round(memInfo.jsHeapSizeLimit / BYTES_IN_MB);
 
         // 如果内存使用超过限制的70%，执行清理
-        if (usedMB > limitMB * 0.7) {
-          console.warn(`内存使用率过高: ${usedMB}MB / ${limitMB}MB，执行清理...`);
+        if (usedMB > limitMB * MEMORY_HIGH_WATERMARK) {
+          logger.warn('Web3Optimizer', `内存使用率过高: ${usedMB}MB / ${limitMB}MB，执行清理...`);
           this.cleanup();
 
           // 触发垃圾回收（如果支持）
-          if ('gc' in window) {
+          if (typeof window !== 'undefined' && 'gc' in window) {
             // @ts-ignore
             window.gc();
           }
         }
       }
-    }, 30_000); // 每30秒检查一次
+    }, MEMORY_CHECK_INTERVAL_MS); // 每30秒检查一次
   }
 
   // 停止监控
@@ -239,19 +249,29 @@ export function trackWebVitals() {
       // 记录关键性能指标
       switch (entry.entryType) {
         case 'paint': {
-          console.log(`${entry.name}: ${entry.startTime.toFixed(2)}ms`);
+          if (process.env.NODE_ENV === 'development') {
+            const DECIMALS_TWO = 2;
+            logger.debug('Web3Optimizer', `Navigation timing: ${entry.name}: ${entry.startTime.toFixed(DECIMALS_TWO)}ms`);
+          }
           break;
         }
         case 'largest-contentful-paint': {
-          console.log(`LCP: ${entry.startTime.toFixed(2)}ms`);
+          if (process.env.NODE_ENV === 'development') {
+            const DECIMALS_TWO = 2;
+            logger.debug('Web3Optimizer', `LCP: ${entry.startTime.toFixed(DECIMALS_TWO)}ms`);
+          }
           break;
         }
         case 'first-input': {
-          console.log(`FID: ${(entry as any).processingStart - entry.startTime}ms`);
+          if (process.env.NODE_ENV === 'development') {
+            logger.debug('Web3Optimizer', `FID: ${(entry as any).processingStart - entry.startTime}ms`);
+          }
           break;
         }
         case 'layout-shift': {
-          console.log(`CLS: ${(entry as any).value}`);
+          if (process.env.NODE_ENV === 'development') {
+            logger.debug('Web3Optimizer', `CLS: ${(entry as any).value}`);
+          }
           break;
         }
       }
@@ -261,6 +281,6 @@ export function trackWebVitals() {
   try {
     observer.observe({ entryTypes: ['paint', 'largest-contentful-paint', 'first-input', 'layout-shift'] });
   } catch (error) {
-    console.warn('Web Vitals监控启动失败:', error);
+    logger.warn('Web3Optimizer', 'Web Vitals监控启动失败', { error });
   }
 }

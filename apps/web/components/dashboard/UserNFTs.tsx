@@ -13,6 +13,14 @@ import {
 import { useState, useEffect } from 'react';
 import { formatUnits } from 'viem';
 
+
+import { apiClient } from '../../lib/api-client';
+import type { ProductType } from '../../lib/contracts/addresses';
+import { PRODUCT_CONFIG } from '../../lib/contracts/addresses';
+import { useQACard, useQACardInfo, useQACardPendingReward } from '../../lib/hooks/use-contracts';
+import { useSafeWalletStatus } from '../../lib/hooks/useSafeWalletConnection';
+import { useSafeToast } from '../../lib/use-safe-toast';
+import { logger } from '@/lib/verbose-logger';
 import {
   Card,
   CardContent,
@@ -24,12 +32,15 @@ import {
   AlertDescription,
 } from '@/components/ui';
 
-import { apiClient } from '../../lib/api-client';
-import type { ProductType } from '../../lib/contracts/addresses';
-import { PRODUCT_CONFIG } from '../../lib/contracts/addresses';
-import { useQACard } from '../../lib/hooks/use-contracts';
-import { useSafeWalletStatus } from '../../lib/hooks/useSafeWalletConnection';
-import { useSafeToast } from '../../lib/use-safe-toast';
+// Shared constants
+const DECIMALS_FOUR = 4;
+const PERCENT_SCALE = 100;
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SEC = 1000;
+const MS_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SEC;
+const SKELETON_COUNT = 3;
 
 interface NFTCardProperties {
   tokenId: bigint
@@ -41,25 +52,33 @@ interface PositionCardProperties {
   onClaim?: () => void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NFTCard({ tokenId, onClaim }: NFTCardProperties) {
   const qaCard = useQACard();
-  const { data: cardInfo } = qaCard.getCardInfo(tokenId);
-  const { data: pendingReward } = qaCard.getPendingReward(tokenId);
+  const { data: cardInfo } = useQACardInfo(tokenId);
+  const { data: pendingReward } = useQACardPendingReward(tokenId);
   const toast = useSafeToast();
 
   if (!cardInfo) return null;
 
   const productConfig = PRODUCT_CONFIG[cardInfo.productType as ProductType];
-  const principal = Number.parseFloat(formatUnits(cardInfo.principal, 6));
-  const reward = pendingReward ? Number.parseFloat(formatUnits(pendingReward, 6)) : 0;
+  const DECIMALS_SIX = 6;
+  const PERCENT_SCALE = 100;
+  const HOURS_PER_DAY = 24;
+  const MINUTES_PER_HOUR = 60;
+  const SECONDS_PER_MINUTE = 60;
+  const MS_PER_SEC = 1000;
+  const MS_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SEC;
+  const principal = Number.parseFloat(formatUnits(cardInfo.principal, DECIMALS_SIX));
+  const reward = pendingReward ? Number.parseFloat(formatUnits(pendingReward, DECIMALS_SIX)) : 0;
 
   // 计算投资进度
-  const startTime = Number(cardInfo.startTime) * 1000;
-  const duration = Number(cardInfo.duration) * 24 * 60 * 60 * 1000;
+  const startTime = Number(cardInfo.startTime) * MS_PER_SEC;
+  const duration = Number(cardInfo.duration) * MS_PER_DAY;
   const endTime = startTime + duration;
   const now = Date.now();
-  const progress = Math.min((now - startTime) / duration * 100, 100);
-  const daysLeft = Math.max(Math.ceil((endTime - now) / (24 * 60 * 60 * 1000)), 0);
+  const progress = Math.min(((now - startTime) / duration) * PERCENT_SCALE, PERCENT_SCALE);
+  const daysLeft = Math.max(Math.ceil((endTime - now) / MS_PER_DAY), 0);
 
   const handleClaim = async () => {
     try {
@@ -75,7 +94,7 @@ function NFTCard({ tokenId, onClaim }: NFTCardProperties) {
         onClaim?.();
       }
     } catch (error: any) {
-      console.error('Claim failed:', error);
+      logger.error('UserNFTs', 'Claim failed', error);
       toast.error(error?.message?.includes('User rejected') ? '交易已被用户取消' : '领取失败，请重试');
     }
   };
@@ -124,7 +143,7 @@ function NFTCard({ tokenId, onClaim }: NFTCardProperties) {
                 待领收益
               </p>
               <p className="font-semibold text-green-600">
-                {reward > 0 ? `+${reward.toFixed(4)} USDT` : '0 USDT'}
+                {reward > 0 ? `+${reward.toFixed(DECIMALS_FOUR)} USDT` : '0 USDT'}
               </p>
             </div>
           </div>
@@ -144,7 +163,7 @@ function NFTCard({ tokenId, onClaim }: NFTCardProperties) {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full bg-gradient-to-r ${productConfig.color} transition-all duration-300`}
-                style={{ width: `${Math.min(progress, 100)}%` }}
+                style={{ width: `${Math.min(progress, PERCENT_SCALE)}%` }}
               />
             </div>
 
@@ -219,8 +238,8 @@ function PositionCard({ position, onClaim }: PositionCardProperties) {
   const startTime = new Date(position.startDate || position.createdAt).getTime();
   const endTime = new Date(position.endDate).getTime();
   const now = Date.now();
-  const progress = Math.min((now - startTime) / (endTime - startTime) * 100, 100);
-  const daysLeft = Math.max(Math.ceil((endTime - now) / (24 * 60 * 60 * 1000)), 0);
+  const progress = Math.min(((now - startTime) / (endTime - startTime)) * PERCENT_SCALE, PERCENT_SCALE);
+  const daysLeft = Math.max(Math.ceil((endTime - now) / MS_PER_DAY), 0);
 
   const handleClaim = async () => {
     if (!position.tokenId || pendingReward <= 0) return;
@@ -242,7 +261,7 @@ function PositionCard({ position, onClaim }: PositionCardProperties) {
         window.location.reload(); // 简单的刷新，实际应该只刷新组件数据
       }
     } catch (error: any) {
-      console.error('Claim failed:', error);
+      logger.error('UserNFTs', 'Claim failed', error);
       toast.error(error?.message?.includes('User rejected') ? '交易已被用户取消' : '领取失败，请重试');
     } finally {
       setIsClaimingReward(false);
@@ -250,7 +269,7 @@ function PositionCard({ position, onClaim }: PositionCardProperties) {
   };
 
   const isActive = position.status === 'ACTIVE';
-  const isMatured = progress >= 100;
+  const isMatured = progress >= PERCENT_SCALE;
 
   return (
     <motion.div
@@ -309,7 +328,7 @@ function PositionCard({ position, onClaim }: PositionCardProperties) {
                 待领收益
               </span>
               <span className="font-semibold text-green-600">
-                {pendingReward > 0 ? `+${pendingReward.toFixed(4)} USDT` : '0 USDT'}
+                {pendingReward > 0 ? `+${pendingReward.toFixed(DECIMALS_FOUR)} USDT` : '0 USDT'}
               </span>
             </div>
           </div>
@@ -329,7 +348,7 @@ function PositionCard({ position, onClaim }: PositionCardProperties) {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full bg-gradient-to-r ${productConfig.color} transition-all duration-300`}
-                style={{ width: `${Math.min(progress, 100)}%` }}
+                style={{ width: `${Math.min(progress, PERCENT_SCALE)}%` }}
               />
             </div>
 
@@ -402,31 +421,10 @@ export function UserNFTs() {
         const positions = response.data || [];
 
         // 如果有持仓，获取对应的NFT信息
-        const positionsWithNFTData = await Promise.all(
-          positions.map(async (position: any) => {
-            if (position.tokenId) {
-              try {
-                // 从智能合约获取NFT的实时数据
-                const { data: cardInfo } = qaCard.getCardInfo(BigInt(position.tokenId));
-                const { data: pendingReward } = qaCard.getPendingReward(BigInt(position.tokenId));
-
-                return {
-                  ...position,
-                  cardInfo,
-                  pendingReward: pendingReward || '0',
-                };
-              } catch (error) {
-                console.warn(`Failed to fetch NFT data for token ${position.tokenId}:`, error);
-                return position;
-              }
-            }
-            return position;
-          }),
-        );
-
-        setUserPositions(positionsWithNFTData);
+        // 直接使用后端返回的数据；链上实时数据由子组件 hooks 获取
+        setUserPositions(positions);
       } catch (error) {
-        console.error('Failed to fetch user positions:', error);
+        logger.error('UserNFTs', 'Failed to fetch user positions', error);
 
         // 如果API失败，尝试直接从区块链获取
         try {
@@ -437,7 +435,7 @@ export function UserNFTs() {
             toast.error('暂时无法获取NFT数据，请联系技术支持');
           }
         } catch (contractError) {
-          console.error('Contract query failed:', contractError);
+          logger.error('UserNFTs', 'Contract query failed', contractError);
         }
       } finally {
         setIsLoading(false);
@@ -445,7 +443,7 @@ export function UserNFTs() {
     };
 
     fetchUserPositions();
-  }, [address, isConnected, qaCard.balance]);
+  }, [address, isConnected, qaCard.balance, toast]);
 
   const handleClaimSuccess = () => {
     // 刷新数据
@@ -471,8 +469,8 @@ export function UserNFTs() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((index) => (
-              <div key={index} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+            {Array.from({ length: SKELETON_COUNT }, (_, i) => `s${i}`).map((id) => (
+              <div key={id} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
             ))}
           </div>
         </CardContent>

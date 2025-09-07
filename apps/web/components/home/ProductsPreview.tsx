@@ -43,6 +43,8 @@ const sampleProducts = [
 ];
 
 export function ProductsPreview() {
+  const ANIM_DELAY_STEP = 0.1;
+  const PERCENT_SCALE = 100;
   return (
     <section className="qa-section bg-gradient-to-br from-gray-50 to-orange-50">
       <div className="qa-container">
@@ -70,10 +72,10 @@ export function ProductsPreview() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: 0.6, delay: index * ANIM_DELAY_STEP }}
               whileHover={{ 
                 y: -8, 
-                transition: { duration: 0.3 }
+                transition: { duration: 0.3 },
               }}
               className="group cursor-pointer"
               onClick={() => {
@@ -107,7 +109,7 @@ export function ProductsPreview() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">供应进度</span>
                       <span className="font-medium text-primary">
-                        {Math.round((product.currentSupply / product.totalSupply) * 100)}%
+                        {Math.round((product.currentSupply / product.totalSupply) * PERCENT_SCALE)}%
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -115,7 +117,7 @@ export function ProductsPreview() {
                         className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full"
                         initial={{ width: 0 }}
                         whileInView={{ 
-                          width: `${(product.currentSupply / product.totalSupply) * 100}%` 
+                          width: `${(product.currentSupply / product.totalSupply) * PERCENT_SCALE}%`, 
                         }}
                         transition={{ duration: 1, delay: 0.5 }}
                       />
@@ -153,7 +155,7 @@ export function ProductsPreview() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {sampleProducts.map((product) => {
-                    const supplyPercentage = (product.currentSupply / product.totalSupply) * 100;
+                    const supplyPercentage = (product.currentSupply / product.totalSupply) * PERCENT_SCALE;
 
                     return (
                       <tr key={product.name} className="hover:bg-gray-50 transition-colors">
@@ -183,7 +185,7 @@ export function ProductsPreview() {
                             <div className="w-16 bg-gray-200 rounded-full h-2">
                               <div
                                 className="bg-primary h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${Math.min(supplyPercentage, 100)}%` }}
+                                style={{ width: `${Math.min(supplyPercentage, PERCENT_SCALE)}%` }}
                               />
                             </div>
                             <span className="text-xs text-muted-foreground">

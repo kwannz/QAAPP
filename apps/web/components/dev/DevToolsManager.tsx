@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { useAuthStore } from '../../lib/auth-context';
 
@@ -112,7 +112,6 @@ export function DevToolsManager() {
   const [isHelpVisible, setIsHelpVisible] = useState(false);
 
   const isDevelopment = process.env.NODE_ENV === 'development';
-  if (!isDevelopment) return null;
 
   const hasPermission = (pagePermission: string) => {
     if (pagePermission === 'PUBLIC') return true;
@@ -135,7 +134,7 @@ export function DevToolsManager() {
     }
   };
 
-  const hasShortcutPermission = (permission?: string) => {
+  const hasShortcutPermission = useCallback((permission?: string) => {
     if (!permission) return true;
     if (!user) return false;
 
@@ -153,7 +152,7 @@ export function DevToolsManager() {
         return true;
       }
     }
-  };
+  }, [user]);
 
   const getPermissionIcon = (permission: string) => {
     switch (permission) {
@@ -201,8 +200,8 @@ export function DevToolsManager() {
   };
 
   const filteredPages = developmentPages.filter(page =>
-    page.name.toLowerCase().includes(searchTerm.toLowerCase())
-    || page.description.toLowerCase().includes(searchTerm.toLowerCase()),
+    page.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    page.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const groupedPages = filteredPages.reduce<Record<string, DevelopmentPage[]>>((accumulator, page) => {
@@ -213,7 +212,7 @@ export function DevToolsManager() {
     return accumulator;
   }, {});
 
-  const showHelpInConsole = () => {
+  const showHelpInConsole = useCallback(() => {
     const availableNumbers = Object.entries(shortcutMappings.numbers)
       .filter(([_, mapping]) => hasShortcutPermission(mapping.permission))
       .map(([key, mapping]) => `Ctrl/Cmd + Alt + ${key}: ${mapping.name}`)
@@ -224,7 +223,7 @@ export function DevToolsManager() {
       .map(([key, mapping]) => `Ctrl/Cmd + Alt + ${key.toUpperCase()}: ${mapping.name}`)
       .join('\n');
 
-    console.log(`
+    const message = `
 🚀 QA App 开发快捷键 (当前用户: ${user?.role || '游客'}):
 
 📱 数字键导航:
@@ -238,15 +237,18 @@ Ctrl/Cmd + Alt + H: 显示/隐藏此帮助
 Ctrl/Cmd + K: 快速搜索
 Ctrl/Cmd + Shift + D: 开发工具栏
 ESC: 关闭弹窗/面板
-`);
-  };
+`;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { logger } = require('@/lib/verbose-logger');
+    logger.info('DevTools', message);
+  }, [user, hasShortcutPermission]);
 
   // 键盘快捷键处理 (合并所有键盘事件处理)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const isInInput = (event.target as HTMLElement)?.tagName?.toLowerCase() === 'input'
-                        || (event.target as HTMLElement)?.tagName?.toLowerCase() === 'textarea'
-                        || (event.target as HTMLElement)?.contentEditable === 'true';
+      const isInInput = (event.target as HTMLElement)?.tagName?.toLowerCase() === 'input' ||
+                        (event.target as HTMLElement)?.tagName?.toLowerCase() === 'textarea' ||
+                        (event.target as HTMLElement)?.contentEditable === 'true';
 
       // Ctrl+Shift+D 切换 DevBar 显示
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
@@ -320,19 +322,19 @@ ESC: 关闭弹窗/面板
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // 在控制台显示快捷键提示
-    console.log(`
-🎯 QA App 开发快捷键已激活！ (用户: ${user?.role || '游客'})
-使用 Ctrl/Cmd + Alt + H 查看所有快捷键
-`);
+    // 在控制台显示快捷键提示（通过应用内logger）
+    const msg = `🎯 QA App 开发快捷键已激活！ (用户: ${user?.role || '游客'})\n使用 Ctrl/Cmd + Alt + H 查看所有快捷键`;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { logger } = require('@/lib/verbose-logger');
+    logger.info('DevTools', msg);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [router, user, isHelpVisible, isVisible, isExpanded]);
+  }, [router, user, isHelpVisible, isVisible, isExpanded, hasShortcutPermission, showHelpInConsole]);
 
   // 快捷键帮助模态框
-  if (isHelpVisible) {
+  if (isHelpVisible && isDevelopment) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={() => setIsHelpVisible(false)}>
         <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -407,6 +409,7 @@ ESC: 关闭弹窗/面板
   }
 
   return (
+    !isDevelopment ? null : (
     <>
       {/* 浮动触发按钮 */}
       <div className="fixed bottom-4 right-4 z-50">
@@ -632,5 +635,6 @@ ESC: 关闭弹窗/面板
         </div>
       )}
     </>
+    )
   );
 }

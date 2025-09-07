@@ -2,18 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
-
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import toast from 'react-hot-toast';
+import { useSafeToast } from '../../lib/use-safe-toast';
 
 // window.ethereum types are declared in /lib/web3/connection-manager.ts
 
-import { Button } from '@/components/ui';
 
 import { authApi } from '../../lib/api-client';
 import { useAuthStore } from '../../lib/auth-context';
 import { useSafeAccount } from '../../lib/hooks/use-safe-wagmi';
+import { Button } from '@/components/ui';
+
+const HTTP_409_CONFLICT = 409;
+const HTTP_400_BAD_REQUEST = 400;
+const ADDRESS_PREFIX_LEN = 6;
+const ADDRESS_SUFFIX_LEN = 4;
 
 interface Web3LoginSectionProperties {
   isRegister?: boolean
@@ -21,6 +23,8 @@ interface Web3LoginSectionProperties {
 }
 
 export function Web3LoginSection({ isRegister = false, referralCode }: Web3LoginSectionProperties) {
+  const toast = useSafeToast();
+  
   // Web3 功能已恢复
   const [isLoading, setIsLoading] = useState(false);
   const { address, isConnected } = useSafeAccount();
@@ -92,15 +96,13 @@ export function Web3LoginSection({ isRegister = false, referralCode }: Web3Login
       const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
       router.push(redirectUrl);
     } catch (error: any) {
-      console.error('Web3 auth error:', error);
-
-      if (error.response?.status === 409) {
+      if (error.response?.status === HTTP_409_CONFLICT) {
         if (isRegister) {
           toast.error('该钱包地址已被注册，请直接登录');
         } else {
           toast.error('该钱包地址未注册，请先注册');
         }
-      } else if (error.response?.status === 400) {
+      } else if (error.response?.status === HTTP_400_BAD_REQUEST) {
         toast.error('签名验证失败，请重试');
       } else {
         toast.error(error.response?.data?.message || `${isRegister ? '注册' : '登录'}失败`);
@@ -141,7 +143,7 @@ export function Web3LoginSection({ isRegister = false, referralCode }: Web3Login
       <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
         <span>已连接:</span>
         <span className="font-mono bg-gray-100 px-2 py-1 rounded">
-          {address?.slice(0, 6)}...{address?.slice(-4)}
+          {address?.slice(0, ADDRESS_PREFIX_LEN)}...{address?.slice(-ADDRESS_SUFFIX_LEN)}
         </span>
       </div>
     </div>

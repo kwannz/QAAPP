@@ -13,6 +13,7 @@ import {
   Clock,
 } from 'lucide-react';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { logger } from '@/lib/verbose-logger';
 
 import { PayoutDashboard } from '@/components/payouts/PayoutDashboard';
 import { UserPositions } from '@/components/positions/UserPositions';
@@ -74,7 +75,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
       const totalEarnings = summary.totalPaid || 0;
       const activePositions = summary.totalActive || 0;
       const claimableAmount = payoutsData.totalAmount || 0;
-      const totalROI = totalInvested > 0 ? (totalEarnings / totalInvested) * 100 : 0;
+      const totalROI = totalInvested > 0 ? (totalEarnings / totalInvested) * PERCENT_SCALE : 0;
 
       // 计算平均APR (简化计算)
       const averageAPR = 10.5; // 临时值，实际应该从持仓数据计算
@@ -89,7 +90,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
       });
     } catch (error_) {
       setError(error_ instanceof Error ? error_.message : '获取数据时发生未知错误');
-      console.error('Failed to fetch dashboard stats:', error_);
+      logger.error('InvestmentDashboard', 'Failed to fetch dashboard stats', error_);
     } finally {
       setLoading(false);
     }
@@ -106,14 +107,14 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
     
     return {
       totalPortfolioValue: stats.totalInvested + stats.totalEarnings,
-      monthlyReturn: stats.averageAPR / 12,
+      monthlyReturn: stats.averageAPR / MONTHS_PER_YEAR,
       investmentRatio: stats.totalInvested > 0 
-        ? (stats.totalInvested / (stats.totalInvested + stats.totalEarnings)) * 100 
+        ? (stats.totalInvested / (stats.totalInvested + stats.totalEarnings)) * PERCENT_SCALE 
         : 0,
       earningsRatio: stats.totalInvested > 0 
-        ? (stats.totalEarnings / (stats.totalInvested + stats.totalEarnings)) * 100 
+        ? (stats.totalEarnings / (stats.totalInvested + stats.totalEarnings)) * PERCENT_SCALE 
         : 0,
-      investmentDays: Math.floor(Math.random() * 30) + 15, // 临时值，实际应从API获取
+      investmentDays: Math.floor(Math.random() * RANDOM_DAYS_MAX) + RANDOM_DAYS_MIN, // 临时值，实际应从API获取
     };
   }, [stats]);
 
@@ -128,7 +129,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">总投资额</p>
-                <p className="text-2xl font-bold">${stats.totalInvested.toFixed(2)}</p>
+                <p className="text-2xl font-bold">${stats.totalInvested.toFixed(DECIMALS_TWO)}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {stats.activePositions} 个活跃持仓
                 </p>
@@ -145,9 +146,9 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">累计收益</p>
-                <p className="text-2xl font-bold text-green-600">${stats.totalEarnings.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">${stats.totalEarnings.toFixed(DECIMALS_TWO)}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  收益率 {stats.totalROI.toFixed(2)}%
+                  收益率 {stats.totalROI.toFixed(DECIMALS_TWO)}%
                 </p>
               </div>
               <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -162,7 +163,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">可领取收益</p>
-                <p className="text-2xl font-bold text-yellow-600">${stats.claimableAmount.toFixed(6)}</p>
+                <p className="text-2xl font-bold text-yellow-600">${stats.claimableAmount.toFixed(DECIMALS_SIX)}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   待领取
                 </p>
@@ -211,18 +212,18 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg">
               <h4 className="font-medium text-orange-900 mb-2">总投资组合价值</h4>
               <p className="text-2xl font-bold text-orange-600">
-                ${computedStats.totalPortfolioValue.toFixed(2)}
+                ${computedStats.totalPortfolioValue.toFixed(DECIMALS_TWO)}
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-xs text-green-600">+{stats.totalROI.toFixed(2)}%</span>
+                <span className="text-xs text-green-600">+{stats.totalROI.toFixed(DECIMALS_TWO)}%</span>
               </div>
             </div>
 
             <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
               <h4 className="font-medium text-green-900 mb-2">月化收益率</h4>
               <p className="text-2xl font-bold text-green-600">
-                {computedStats.monthlyReturn.toFixed(2)}%
+                {computedStats.monthlyReturn.toFixed(DECIMALS_TWO)}%
               </p>
               <p className="text-xs text-green-600">基于年化{stats.averageAPR}%</p>
             </div>
@@ -240,7 +241,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
             <Alert className="mt-4 border-yellow-200 bg-yellow-50">
               <Wallet className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-800">
-                您有 <strong>${stats.claimableAmount.toFixed(6)}</strong> 的收益可以领取！
+                您有 <strong>${stats.claimableAmount.toFixed(DECIMALS_SIX)}</strong> 的收益可以领取！
                 <Button
                   size="sm"
                   className="ml-2"
@@ -325,7 +326,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span>投资本金</span>
-                          <span>${stats?.totalInvested.toFixed(2)}</span>
+                          <span>${stats?.totalInvested.toFixed(DECIMALS_TWO)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
@@ -340,7 +341,7 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span>累计收益</span>
-                          <span className="text-green-600">${stats?.totalEarnings.toFixed(2)}</span>
+                          <span className="text-green-600">${stats?.totalEarnings.toFixed(DECIMALS_TWO)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
@@ -400,3 +401,9 @@ export function InvestmentDashboard({ userId = 'user-test-001', className = '' }
     </div>
   );
 }
+  const PERCENT_SCALE = 100;
+  const MONTHS_PER_YEAR = 12;
+  const RANDOM_DAYS_MAX = 30;
+  const RANDOM_DAYS_MIN = 15;
+  const DECIMALS_TWO = 2;
+  const DECIMALS_SIX = 6;

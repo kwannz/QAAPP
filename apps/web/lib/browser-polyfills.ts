@@ -60,7 +60,7 @@ class MockIDBIndex {
 }
 
 class MockIDBFactory {
-  open(name: string, version?: number) {
+  open(_name: string, _version?: number) {
     const request = new MockIDBRequest();
 
     // Simulate async behavior
@@ -73,7 +73,7 @@ class MockIDBFactory {
     return request;
   }
 
-  deleteDatabase(name: string) {
+  deleteDatabase(_name: string) {
     const request = new MockIDBRequest();
     setTimeout(() => {
       if (request.onsuccess) {
@@ -210,13 +210,45 @@ export function installBrowserPolyfills() {
       querySelectorAll: () => [],
       addEventListener: () => {},
       removeEventListener: () => {},
-      body: {},
-      head: {},
+      body: {
+        appendChild: () => {},
+        removeChild: () => {},
+        insertBefore: () => {},
+        replaceChild: () => {},
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        innerHTML: '',
+        textContent: '',
+        style: {},
+        classList: {
+          add: () => {},
+          remove: () => {},
+          contains: () => false,
+          toggle: () => false,
+        },
+      },
+      head: {
+        appendChild: () => {},
+        removeChild: () => {},
+        insertBefore: () => {},
+        replaceChild: () => {},
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        innerHTML: '',
+        textContent: '',
+        style: {},
+        classList: {
+          add: () => {},
+          remove: () => {},
+          contains: () => false,
+          toggle: () => false,
+        },
+      },
     } as any;
 
     // MutationObserver mock
     global.MutationObserver = global.MutationObserver || class MockMutationObserver {
-      constructor(callback: any) {}
+      constructor(_callback: any) {}
       observe() {}
       disconnect() {}
       takeRecords() { return []; }
@@ -224,18 +256,46 @@ export function installBrowserPolyfills() {
 
     // PerformanceObserver mock
     global.PerformanceObserver = global.PerformanceObserver || class MockPerformanceObserver {
-      constructor(callback: any) {}
+      constructor(_callback: any) {}
       observe() {}
       disconnect() {}
     } as any;
 
     // ResizeObserver mock
     global.ResizeObserver = global.ResizeObserver || class MockResizeObserver {
-      constructor(callback: any) {}
+      constructor(_callback: any) {}
       observe() {}
       disconnect() {}
       unobserve() {}
     } as any;
+
+    // SVG Elements mock - needed for @tanstack/query-devtools
+    if (!global.SVGElement) {
+      global.SVGElement = global.SVGElement || class MockSVGElement {
+        constructor() {}
+        setAttribute() {}
+        getAttribute() { return null; }
+        removeAttribute() {}
+        appendChild() {}
+        removeChild() {}
+        addEventListener() {}
+        removeEventListener() {}
+        style = {};
+      } as any;
+    }
+
+    // Additional SVG mocks that may be needed - define concrete classes to satisfy TS
+    class MockSVGSVGElement extends (global as any).SVGElement {}
+    class MockSVGPathElement extends (global as any).SVGElement {}
+    class MockSVGCircleElement extends (global as any).SVGElement {}
+    class MockSVGRectElement extends (global as any).SVGElement {}
+
+    // Assign mocks if not present
+    // Use any-casts to avoid DOM lib type mismatches in Node env
+    ;(global as any).SVGSVGElement = (global as any).SVGSVGElement || MockSVGSVGElement;
+    ;(global as any).SVGPathElement = (global as any).SVGPathElement || MockSVGPathElement;
+    ;(global as any).SVGCircleElement = (global as any).SVGCircleElement || MockSVGCircleElement;
+    ;(global as any).SVGRectElement = (global as any).SVGRectElement || MockSVGRectElement;
   }
 }
 

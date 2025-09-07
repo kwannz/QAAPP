@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { isBrowserEnvironment } from './browser-polyfills';
+import { logger } from './verbose-logger';
 
 // Types for toast functions
 export interface SafeToastAPI {
@@ -29,7 +30,7 @@ export function useSafeToast(): SafeToastAPI {
         setToast(toastModule.default);
         setIsLoaded(true);
       } catch (error) {
-        console.warn('Failed to load react-hot-toast, toasts disabled:', error);
+        logger.warn('SafeToast', 'Failed to load react-hot-toast, toasts disabled', { error });
         setIsLoaded(true);
       }
     };
@@ -43,7 +44,9 @@ export function useSafeToast(): SafeToastAPI {
         toast.success(message);
       } else {
         // Fallback for when toast is not loaded
-        console.info('Toast Success:', message);
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('SafeToast', 'Toast Success (fallback)', { message });
+        }
       }
     }, [isLoaded, toast]),
 
@@ -52,7 +55,7 @@ export function useSafeToast(): SafeToastAPI {
         toast.error(message);
       } else {
         // Fallback for when toast is not loaded
-        console.error('Toast Error:', message);
+        logger.error('SafeToast', 'Toast Error (fallback)', { message });
       }
     }, [isLoaded, toast]),
 
@@ -61,7 +64,9 @@ export function useSafeToast(): SafeToastAPI {
         return toast.loading(message);
       } else {
         // Fallback for when toast is not loaded
-        console.info('Toast Loading:', message);
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('SafeToast', 'Toast Loading (fallback)', { message });
+        }
       }
     }, [isLoaded, toast]),
 
@@ -69,7 +74,7 @@ export function useSafeToast(): SafeToastAPI {
       if (isLoaded && toast) {
         toast.dismiss();
       }
-    }, [isLoaded, toast])
+    }, [isLoaded, toast]),
   };
 
   return safeToastAPI;

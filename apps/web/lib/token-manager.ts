@@ -1,4 +1,6 @@
 // Token管理器 - 用于在React Context外部访问token
+import { logger } from './verbose-logger';
+
 class TokenManager {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -36,7 +38,7 @@ class TokenManager {
           this.refreshToken = parsedState.refreshToken || null;
         }
       } catch (error) {
-        console.warn('Failed to restore tokens from storage:', error);
+        logger.warn('TokenManager', 'Failed to restore tokens from storage', { error });
       }
     }
   }

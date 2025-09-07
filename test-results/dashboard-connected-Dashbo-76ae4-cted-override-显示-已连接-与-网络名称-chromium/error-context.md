@@ -1,0 +1,89 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [active]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - navigation [ref=e7]:
+            - button "previous" [disabled] [ref=e8]:
+              - img "previous" [ref=e9]
+            - generic [ref=e11]:
+              - generic [ref=e12]: 1/
+              - generic [ref=e13]: "1"
+            - button "next" [disabled] [ref=e14]:
+              - img "next" [ref=e15]
+          - img
+        - generic [ref=e17]:
+          - link "Next.js 15.5.0 (stale) Webpack" [ref=e18] [cursor=pointer]:
+            - /url: https://nextjs.org/docs/messages/version-staleness
+            - img [ref=e19] [cursor=pointer]
+            - generic "There is a newer version (15.5.2) available, upgrade recommended!" [ref=e21] [cursor=pointer]: Next.js 15.5.0 (stale)
+            - generic [ref=e22] [cursor=pointer]: Webpack
+          - img
+      - dialog "Runtime WagmiProviderNotFoundError" [ref=e24]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e31]: Runtime WagmiProviderNotFoundError
+              - generic [ref=e32]:
+                - button "Copy Error Info" [ref=e33] [cursor=pointer]:
+                  - img [ref=e34] [cursor=pointer]
+                - button "No related documentation found" [disabled] [ref=e36]:
+                  - img [ref=e37]
+                - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools" [ref=e39] [cursor=pointer]:
+                  - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+                  - img [ref=e40] [cursor=pointer]
+            - paragraph [ref=e49]: "`useConfig` must be used within `WagmiProvider`. Docs: https://wagmi.sh/react/api/WagmiProvider.html Version: wagmi@2.16.9"
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - paragraph [ref=e53]:
+                - img [ref=e55]
+                - generic [ref=e59]: lib/hooks/use-safe-wagmi.ts (88:29) @ useSafeAccount
+                - button "Open in editor" [ref=e60] [cursor=pointer]:
+                  - img [ref=e62] [cursor=pointer]
+              - generic [ref=e65]:
+                - generic [ref=e67]: "86 | export function useSafeAccount() {"
+                - generic [ref=e69]: 87 | // 始终调用 Hook；MockWagmiProvider 在无真实 Provider 时兜底
+                - generic [ref=e71]: "> 88 | const account = useAccount();"
+                - generic [ref=e73]: "| ^"
+                - generic [ref=e75]: "89 | if (!isWeb3Active()) return { ...EMPTY_ACCOUNT, ...account } as any;"
+                - generic [ref=e77]: 90 | return account as any;
+                - generic [ref=e79]: "91 | }"
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - paragraph [ref=e82]:
+                  - text: Call Stack
+                  - generic [ref=e83]: "16"
+                - button "Show 14 ignore-listed frame(s)" [ref=e84] [cursor=pointer]:
+                  - text: Show 14 ignore-listed frame(s)
+                  - img [ref=e85] [cursor=pointer]
+              - generic [ref=e87]:
+                - generic [ref=e88]:
+                  - text: useSafeAccount
+                  - button "Open useSafeAccount in editor" [ref=e89] [cursor=pointer]:
+                    - img [ref=e90] [cursor=pointer]
+                - generic [ref=e92]: lib/hooks/use-safe-wagmi.ts (88:29)
+              - generic [ref=e93]:
+                - generic [ref=e94]:
+                  - text: DashboardPage
+                  - button "Open DashboardPage in editor" [ref=e95] [cursor=pointer]:
+                    - img [ref=e96] [cursor=pointer]
+                - generic [ref=e98]: app/dashboard/page.tsx (410:66)
+        - generic [ref=e99]:
+          - generic [ref=e100]: "1"
+          - generic [ref=e101]: "2"
+    - generic [ref=e106] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e107] [cursor=pointer]:
+        - img [ref=e108] [cursor=pointer]
+      - generic [ref=e111] [cursor=pointer]:
+        - button "Open issues overlay" [ref=e112] [cursor=pointer]:
+          - generic [ref=e113] [cursor=pointer]:
+            - generic [ref=e114] [cursor=pointer]: "0"
+            - generic [ref=e115] [cursor=pointer]: "1"
+          - generic [ref=e116] [cursor=pointer]: Issue
+        - button "Collapse issues badge" [ref=e117] [cursor=pointer]:
+          - img [ref=e118] [cursor=pointer]
+  - 'heading "Application error: a client-side exception has occurred while loading localhost (see the browser console for more information)." [level=2] [ref=e122]'
+```

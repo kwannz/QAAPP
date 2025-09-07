@@ -58,6 +58,43 @@ function startWithPM2() {
   });
 }
 
+// Build helpers
+function runCommand({ cwd, command, args = [] }) {
+  return new Promise((resolve, reject) => {
+    console.log(`🏗️  Running: ${command} ${args.join(' ')} (cwd: ${cwd})`);
+    const child = spawn(command, args, { cwd, stdio: 'inherit', env: { ...process.env, NODE_ENV: 'production' } });
+    child.on('close', (code) => {
+      if (code === 0) return resolve();
+      reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`));
+    });
+  });
+}
+
+async function buildWeb() {
+  const webDir = path.join(PROJECT_ROOT, 'apps/web');
+  // Skip if standalone server already exists
+  const standaloneServer = path.join(webDir, 'dist/standalone/server.js');
+  if (fs.existsSync(standaloneServer)) {
+    console.log('✅ Web build already present (dist/standalone/server.js)');
+    return;
+  }
+  console.log('📦 Building Web application...');
+  await runCommand({ cwd: webDir, command: 'npm', args: ['run', 'build'] });
+  console.log('✅ Web build completed');
+}
+
+async function buildApi() {
+  const apiDir = path.join(PROJECT_ROOT, 'apps/api');
+  const apiDistMain = path.join(PROJECT_ROOT, 'apps/api/dist/apps/api/src/main.js');
+  if (fs.existsSync(apiDistMain)) {
+    console.log('✅ API build already present (dist/apps/api/src/main.js)');
+    return;
+  }
+  console.log('📦 Building API application...');
+  await runCommand({ cwd: apiDir, command: 'npm', args: ['run', 'build'] });
+  console.log('✅ API build completed');
+}
+
 // Start without PM2 (fallback)
 function startWithoutPM2() {
   return new Promise((resolve, reject) => {
@@ -120,6 +157,10 @@ function startWithoutPM2() {
 // Main function
 async function main() {
   try {
+    // Ensure builds exist before starting
+    await buildApi();
+    await buildWeb();
+
     console.log('🔍 Checking for PM2...');
     const hasPM2 = await checkPM2();
 

@@ -3,26 +3,21 @@
 import { motion } from 'framer-motion';
 import {
   BarChart3,
-  PieChart,
-  TrendingUp,
   Download,
   Calendar,
   Filter,
   Search,
   FileText,
-  DollarSign,
   Activity,
-  Users,
-  Target,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { useState } from 'react';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { Header } from '../../components/layout/Header';
 import { useSafeToast } from '../../lib/use-safe-toast';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, WalletConnectionManager } from '@/components/ui';
 
 // Mock data for reports
 const mockReports = [
@@ -34,7 +29,7 @@ const mockReports = [
     createdAt: '2024-02-01',
     status: 'completed',
     fileSize: '2.3MB',
-    description: '详细分析1月份投资组合表现和收益情况'
+    description: '详细分析1月份投资组合表现和收益情况',
   },
   {
     id: 'rpt-2',
@@ -44,7 +39,7 @@ const mockReports = [
     createdAt: '2024-01-28',
     status: 'completed',
     fileSize: '1.8MB',
-    description: '季度风险评估和投资建议报告'
+    description: '季度风险评估和投资建议报告',
   },
   {
     id: 'rpt-3',
@@ -54,7 +49,7 @@ const mockReports = [
     createdAt: '2024-01-25',
     status: 'completed',
     fileSize: '3.1MB',
-    description: '月度收益详细分析和趋势预测'
+    description: '月度收益详细分析和趋势预测',
   },
   {
     id: 'rpt-4',
@@ -64,29 +59,29 @@ const mockReports = [
     createdAt: '2024-02-03',
     status: 'processing',
     fileSize: null,
-    description: '当前市场趋势和投资机会分析'
-  }
+    description: '当前市场趋势和投资机会分析',
+  },
 ];
 
 const stats = {
   totalReports: 28,
   thisMonth: 4,
   avgDownloads: 156,
-  lastGenerated: '2024-02-03'
+  lastGenerated: '2024-02-03',
 };
 
 const quickAnalytics = {
   portfolioValue: 33475,
   monthlyGrowth: 8.5,
   riskScore: 6.2,
-  diversificationIndex: 74
+  diversificationIndex: 74,
 };
 
 export default function ReportsPage() {
   const toast = useSafeToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'portfolio' | 'risk' | 'revenue' | 'market'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'name' | 'type'>('date');
+  const [_sortBy, _setSortBy] = useState<'date' | 'name' | 'type'>('date');
 
   const filteredReports = mockReports.filter(report => {
     const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -136,7 +131,7 @@ export default function ReportsPage() {
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -144,7 +139,7 @@ export default function ReportsPage() {
     return new Date(dateString).toLocaleDateString('zh-CN');
   };
 
-  const handleDownloadReport = (reportId: string) => {
+  const handleDownloadReport = (_reportId: string) => {
     toast.success('报告下载已开始');
   };
 
@@ -164,6 +159,25 @@ export default function ReportsPage() {
         <main className="flex-1 bg-gray-50">
           <div className="qa-container py-8">
             <div className="space-y-8">
+              {/* 调试：已连接覆盖 */}
+              {(() => {
+                const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+                const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                const override = debug && sp?.get('e2e_wallet') === 'connected';
+                if (override) {
+                  return (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>钱包连接</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <WalletConnectionManager showNetworkInfo showContractStatus />
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              })()}
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -333,7 +347,7 @@ export default function ReportsPage() {
                 transition={{ delay: 0.4 }}
                 className="space-y-4"
               >
-                {filteredReports.map((report, index) => (
+                {filteredReports.map((report, _index) => (
                   <Card key={report.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">

@@ -1,0 +1,463 @@
+2025-09-06T13:13:25: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-06T13:13:25: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-06T13:13:25: node:internal/modules/cjs/loader:1372
+2025-09-06T13:13:25:   throw err;
+2025-09-06T13:13:25:   ^
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node'
+2025-09-06T13:13:25: Require stack:
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js
+2025-09-06T13:13:25:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-06T13:13:25:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-06T13:13:25:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-06T13:13:25:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-06T13:13:25:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-06T13:13:25:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-06T13:13:25:     at Module.require (node:internal/modules/cjs/loader:1449:12)
+2025-09-06T13:13:25:     at require (node:internal/modules/helpers:135:16)
+2025-09-06T13:13:25:     at Object.<anonymous> (/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js:6:16)
+2025-09-06T13:13:25:     at Module._compile (node:internal/modules/cjs/loader:1692:14) {
+2025-09-06T13:13:25:   code: 'MODULE_NOT_FOUND',
+2025-09-06T13:13:25:   requireStack: [
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-06T13:13:25:   ]
+2025-09-06T13:13:25: }
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25: Node.js v24.4.0
+2025-09-06T13:13:25: npm error Lifecycle script `start:prod` failed with error:
+2025-09-06T13:13:25: npm error code 1
+2025-09-06T13:13:25: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:25: npm error workspace @qa-app/api@1.0.0
+2025-09-06T13:13:25: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:25: npm error command failed
+2025-09-06T13:13:25: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-06T13:13:25: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-06T13:13:25: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-06T13:13:25: node:internal/modules/cjs/loader:1372
+2025-09-06T13:13:25:   throw err;
+2025-09-06T13:13:25:   ^
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node'
+2025-09-06T13:13:25: Require stack:
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js
+2025-09-06T13:13:25: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js
+2025-09-06T13:13:25:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-06T13:13:25:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-06T13:13:25:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-06T13:13:25:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-06T13:13:25:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-06T13:13:25:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-06T13:13:25:     at Module.require (node:internal/modules/cjs/loader:1449:12)
+2025-09-06T13:13:25:     at require (node:internal/modules/helpers:135:16)
+2025-09-06T13:13:25:     at Object.<anonymous> (/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js:6:16)
+2025-09-06T13:13:25:     at Module._compile (node:internal/modules/cjs/loader:1692:14) {
+2025-09-06T13:13:25:   code: 'MODULE_NOT_FOUND',
+2025-09-06T13:13:25:   requireStack: [
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js',
+2025-09-06T13:13:25:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-06T13:13:25:   ]
+2025-09-06T13:13:25: }
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25: Node.js v24.4.0
+2025-09-06T13:13:25: npm error Lifecycle script `start:prod` failed with error:
+2025-09-06T13:13:25: npm error code 1
+2025-09-06T13:13:25: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:25: npm error workspace @qa-app/api@1.0.0
+2025-09-06T13:13:25: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:25: npm error command failed
+2025-09-06T13:13:25: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-06T13:13:26: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-06T13:13:26: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-06T13:13:26: node:internal/modules/cjs/loader:1372
+2025-09-06T13:13:26:   throw err;
+2025-09-06T13:13:26:   ^
+2025-09-06T13:13:26: 
+2025-09-06T13:13:26: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node'
+2025-09-06T13:13:26: Require stack:
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js
+2025-09-06T13:13:26:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-06T13:13:26:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-06T13:13:26:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-06T13:13:26:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-06T13:13:26:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-06T13:13:26:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-06T13:13:26:     at Module.require (node:internal/modules/cjs/loader:1449:12)
+2025-09-06T13:13:26:     at require (node:internal/modules/helpers:135:16)
+2025-09-06T13:13:26:     at Object.<anonymous> (/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js:6:16)
+2025-09-06T13:13:26:     at Module._compile (node:internal/modules/cjs/loader:1692:14) {
+2025-09-06T13:13:26:   code: 'MODULE_NOT_FOUND',
+2025-09-06T13:13:26:   requireStack: [
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-06T13:13:26:   ]
+2025-09-06T13:13:26: }
+2025-09-06T13:13:26: 
+2025-09-06T13:13:26: Node.js v24.4.0
+2025-09-06T13:13:26: npm error Lifecycle script `start:prod` failed with error:
+2025-09-06T13:13:26: npm error code 1
+2025-09-06T13:13:26: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:26: npm error workspace @qa-app/api@1.0.0
+2025-09-06T13:13:26: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:26: npm error command failed
+2025-09-06T13:13:26: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-06T13:13:26: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-06T13:13:26: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-06T13:13:26: node:internal/modules/cjs/loader:1372
+2025-09-06T13:13:26:   throw err;
+2025-09-06T13:13:26:   ^
+2025-09-06T13:13:26: 
+2025-09-06T13:13:26: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node'
+2025-09-06T13:13:26: Require stack:
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js
+2025-09-06T13:13:26:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-06T13:13:26:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-06T13:13:26:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-06T13:13:26:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-06T13:13:26:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-06T13:13:26:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-06T13:13:26:     at Module.require (node:internal/modules/cjs/loader:1449:12)
+2025-09-06T13:13:26:     at require (node:internal/modules/helpers:135:16)
+2025-09-06T13:13:26:     at Object.<anonymous> (/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js:6:16)
+2025-09-06T13:13:26:     at Module._compile (node:internal/modules/cjs/loader:1692:14) {
+2025-09-06T13:13:26:   code: 'MODULE_NOT_FOUND',
+2025-09-06T13:13:26:   requireStack: [
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-06T13:13:26:   ]
+2025-09-06T13:13:26: }
+2025-09-06T13:13:26: 
+2025-09-06T13:13:26: Node.js v24.4.0
+2025-09-06T13:13:26: npm error Lifecycle script `start:prod` failed with error:
+2025-09-06T13:13:26: npm error code 1
+2025-09-06T13:13:26: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:26: npm error workspace @qa-app/api@1.0.0
+2025-09-06T13:13:26: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:26: npm error command failed
+2025-09-06T13:13:26: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-06T13:13:26: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-06T13:13:26: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-06T13:13:26: node:internal/modules/cjs/loader:1372
+2025-09-06T13:13:26:   throw err;
+2025-09-06T13:13:26:   ^
+2025-09-06T13:13:26: 
+2025-09-06T13:13:26: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node'
+2025-09-06T13:13:26: Require stack:
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js
+2025-09-06T13:13:26: - /Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js
+2025-09-06T13:13:26:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-06T13:13:26:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-06T13:13:26:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-06T13:13:26:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-06T13:13:26:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-06T13:13:26:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-06T13:13:26:     at Module.require (node:internal/modules/cjs/loader:1449:12)
+2025-09-06T13:13:26:     at require (node:internal/modules/helpers:135:16)
+2025-09-06T13:13:26:     at Object.<anonymous> (/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js:6:16)
+2025-09-06T13:13:26:     at Module._compile (node:internal/modules/cjs/loader:1692:14) {
+2025-09-06T13:13:26:   code: 'MODULE_NOT_FOUND',
+2025-09-06T13:13:26:   requireStack: [
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/bcrypt@5.1.1/node_modules/bcrypt/bcrypt.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.service.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.controller.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/auth/auth.module.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/app.module.js',
+2025-09-06T13:13:26:     '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-06T13:13:26:   ]
+2025-09-06T13:13:26: }
+2025-09-06T13:13:26: 
+2025-09-06T13:13:26: Node.js v24.4.0
+2025-09-06T13:13:26: npm error Lifecycle script `start:prod` failed with error:
+2025-09-06T13:13:26: npm error code 1
+2025-09-06T13:13:26: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:26: npm error workspace @qa-app/api@1.0.0
+2025-09-06T13:13:26: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-06T13:13:26: npm error command failed
+2025-09-06T13:13:26: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-07T00:05:21: node:internal/modules/cjs/loader:1372
+2025-09-07T00:05:21:   throw err;
+2025-09-07T00:05:21:   ^
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-07T00:05:21:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-07T00:05:21:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-07T00:05:21:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-07T00:05:21:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-07T00:05:21:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-07T00:05:21:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-07T00:05:21:     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)
+2025-09-07T00:05:21:     at node:internal/main/run_main_module:33:47 {
+2025-09-07T00:05:21:   code: 'MODULE_NOT_FOUND',
+2025-09-07T00:05:21:   requireStack: []
+2025-09-07T00:05:21: }
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Node.js v24.4.0
+2025-09-07T00:05:21: npm error Lifecycle script `start:prod` failed with error:
+2025-09-07T00:05:21: npm error code 1
+2025-09-07T00:05:21: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error workspace @qa-app/api@1.0.0
+2025-09-07T00:05:21: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error command failed
+2025-09-07T00:05:21: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-07T00:05:21: node:internal/modules/cjs/loader:1372
+2025-09-07T00:05:21:   throw err;
+2025-09-07T00:05:21:   ^
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-07T00:05:21:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-07T00:05:21:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-07T00:05:21:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-07T00:05:21:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-07T00:05:21:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-07T00:05:21:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-07T00:05:21:     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)
+2025-09-07T00:05:21:     at node:internal/main/run_main_module:33:47 {
+2025-09-07T00:05:21:   code: 'MODULE_NOT_FOUND',
+2025-09-07T00:05:21:   requireStack: []
+2025-09-07T00:05:21: }
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Node.js v24.4.0
+2025-09-07T00:05:21: npm error Lifecycle script `start:prod` failed with error:
+2025-09-07T00:05:21: npm error code 1
+2025-09-07T00:05:21: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error workspace @qa-app/api@1.0.0
+2025-09-07T00:05:21: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error command failed
+2025-09-07T00:05:21: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-07T00:05:21: node:internal/modules/cjs/loader:1372
+2025-09-07T00:05:21:   throw err;
+2025-09-07T00:05:21:   ^
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-07T00:05:21:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-07T00:05:21:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-07T00:05:21:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-07T00:05:21:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-07T00:05:21:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-07T00:05:21:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-07T00:05:21:     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)
+2025-09-07T00:05:21:     at node:internal/main/run_main_module:33:47 {
+2025-09-07T00:05:21:   code: 'MODULE_NOT_FOUND',
+2025-09-07T00:05:21:   requireStack: []
+2025-09-07T00:05:21: }
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Node.js v24.4.0
+2025-09-07T00:05:21: npm error Lifecycle script `start:prod` failed with error:
+2025-09-07T00:05:21: npm error code 1
+2025-09-07T00:05:21: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error workspace @qa-app/api@1.0.0
+2025-09-07T00:05:21: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error command failed
+2025-09-07T00:05:21: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-07T00:05:21: node:internal/modules/cjs/loader:1372
+2025-09-07T00:05:21:   throw err;
+2025-09-07T00:05:21:   ^
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-07T00:05:21:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-07T00:05:21:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-07T00:05:21:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-07T00:05:21:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-07T00:05:21:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-07T00:05:21:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-07T00:05:21:     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)
+2025-09-07T00:05:21:     at node:internal/main/run_main_module:33:47 {
+2025-09-07T00:05:21:   code: 'MODULE_NOT_FOUND',
+2025-09-07T00:05:21:   requireStack: []
+2025-09-07T00:05:21: }
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Node.js v24.4.0
+2025-09-07T00:05:21: npm error Lifecycle script `start:prod` failed with error:
+2025-09-07T00:05:21: npm error code 1
+2025-09-07T00:05:21: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error workspace @qa-app/api@1.0.0
+2025-09-07T00:05:21: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error command failed
+2025-09-07T00:05:21: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-07T00:05:21: node:internal/modules/cjs/loader:1372
+2025-09-07T00:05:21:   throw err;
+2025-09-07T00:05:21:   ^
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Error: Cannot find module '/Users/zhaoleon/Desktop/QAapp/apps/api/dist/apps/api/src/main.js'
+2025-09-07T00:05:21:     at Module._resolveFilename (node:internal/modules/cjs/loader:1369:15)
+2025-09-07T00:05:21:     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+2025-09-07T00:05:21:     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+2025-09-07T00:05:21:     at Module._load (node:internal/modules/cjs/loader:1179:37)
+2025-09-07T00:05:21:     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2025-09-07T00:05:21:     at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+2025-09-07T00:05:21:     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:152:5)
+2025-09-07T00:05:21:     at node:internal/main/run_main_module:33:47 {
+2025-09-07T00:05:21:   code: 'MODULE_NOT_FOUND',
+2025-09-07T00:05:21:   requireStack: []
+2025-09-07T00:05:21: }
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: Node.js v24.4.0
+2025-09-07T00:05:21: npm error Lifecycle script `start:prod` failed with error:
+2025-09-07T00:05:21: npm error code 1
+2025-09-07T00:05:21: npm error path /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error workspace @qa-app/api@1.0.0
+2025-09-07T00:05:21: npm error location /Users/zhaoleon/Desktop/QAapp/apps/api
+2025-09-07T00:05:21: npm error command failed
+2025-09-07T00:05:21: npm error command sh -c node dist/apps/api/src/main.js
+2025-09-07T00:54:40: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T00:54:40: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T00:54:40: [31m[Nest] 56658  - [39m2025/09/07 00:54:40 [31m  ERROR[39m [38;5;3m[BlockchainService] [39m[31m❌ Failed to connect to blockchain in production environment:[39m
+2025-09-07T00:54:40: [31m[Nest] 56658  - [39m2025/09/07 00:54:40 [31m  ERROR[39m [38;5;3m[BlockchainService] [39mTypeError: staticNetwork cannot be used on special network 'any' (argument="options", value={ "staticNetwork": true }, code=INVALID_ARGUMENT, version=6.15.0)
+2025-09-07T00:54:40:     at makeError (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:130:21)
+2025-09-07T00:54:40:     at assert (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:157:15)
+2025-09-07T00:54:40:     at assertArgument (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:169:5)
+2025-09-07T00:54:40:     at new JsonRpcApiProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:337:43)
+2025-09-07T00:54:40:     at new JsonRpcApiPollingProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:848:9)
+2025-09-07T00:54:40:     at new JsonRpcProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:893:9)
+2025-09-07T00:54:40:     at BlockchainService.initializeProvider [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:42:29[90m)[39m
+2025-09-07T00:54:40:     at new BlockchainService [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:26:14[90m)[39m
+2025-09-07T00:54:40:     at Injector.instantiateClass (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:418:19)
+2025-09-07T00:54:40:     at callback (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:70:45) {
+2025-09-07T00:54:40:   code: [32m'INVALID_ARGUMENT'[39m,
+2025-09-07T00:54:40:   argument: [32m'options'[39m,
+2025-09-07T00:54:40:   value: {
+2025-09-07T00:54:40:     staticNetwork: [33mtrue[39m
+2025-09-07T00:54:40:   },
+2025-09-07T00:54:40:   shortMessage: [32m"staticNetwork cannot be used on special network 'any'"[39m
+2025-09-07T00:54:40: }
+2025-09-07T00:54:40: [31m[Nest] 56658  - [39m2025/09/07 00:54:40 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +0ms[39m
+2025-09-07T01:04:38: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:04:38: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:04:39: [31m[Nest] 65000  - [39m2025/09/07 01:04:39 [31m  ERROR[39m [38;5;3m[BlockchainService] [39m[31m❌ Failed to connect to blockchain in production environment:[39m
+2025-09-07T01:04:39: [31m[Nest] 65000  - [39m2025/09/07 01:04:39 [31m  ERROR[39m [38;5;3m[BlockchainService] [39mTypeError: staticNetwork cannot be used on special network 'any' (argument="options", value={ "staticNetwork": true }, code=INVALID_ARGUMENT, version=6.15.0)
+2025-09-07T01:04:39:     at makeError (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:130:21)
+2025-09-07T01:04:39:     at assert (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:157:15)
+2025-09-07T01:04:39:     at assertArgument (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:169:5)
+2025-09-07T01:04:39:     at new JsonRpcApiProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:337:43)
+2025-09-07T01:04:39:     at new JsonRpcApiPollingProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:848:9)
+2025-09-07T01:04:39:     at new JsonRpcProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:893:9)
+2025-09-07T01:04:39:     at BlockchainService.initializeProvider [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:42:29[90m)[39m
+2025-09-07T01:04:39:     at new BlockchainService [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:26:14[90m)[39m
+2025-09-07T01:04:39:     at Injector.instantiateClass (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:418:19)
+2025-09-07T01:04:39:     at callback (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:70:45) {
+2025-09-07T01:04:39:   code: [32m'INVALID_ARGUMENT'[39m,
+2025-09-07T01:04:39:   argument: [32m'options'[39m,
+2025-09-07T01:04:39:   value: {
+2025-09-07T01:04:39:     staticNetwork: [33mtrue[39m
+2025-09-07T01:04:39:   },
+2025-09-07T01:04:39:   shortMessage: [32m"staticNetwork cannot be used on special network 'any'"[39m
+2025-09-07T01:04:39: }
+2025-09-07T01:48:35: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: [31m[Nest] 1875  - [39m2025/09/07 01:48:35 [31m  ERROR[39m [38;5;3m[BlockchainService] [39m[31m❌ Failed to connect to blockchain in production environment:[39m
+2025-09-07T01:48:35: [31m[Nest] 1875  - [39m2025/09/07 01:48:35 [31m  ERROR[39m [38;5;3m[BlockchainService] [39mTypeError: staticNetwork cannot be used on special network 'any' (argument="options", value={ "staticNetwork": true }, code=INVALID_ARGUMENT, version=6.15.0)
+2025-09-07T01:48:35:     at makeError (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:130:21)
+2025-09-07T01:48:35:     at assert (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:157:15)
+2025-09-07T01:48:35:     at assertArgument (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:169:5)
+2025-09-07T01:48:35:     at new JsonRpcApiProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:337:43)
+2025-09-07T01:48:35:     at new JsonRpcApiPollingProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:848:9)
+2025-09-07T01:48:35:     at new JsonRpcProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:893:9)
+2025-09-07T01:48:35:     at BlockchainService.initializeProvider [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:42:29[90m)[39m
+2025-09-07T01:48:35:     at new BlockchainService [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:26:14[90m)[39m
+2025-09-07T01:48:35:     at Injector.instantiateClass (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:418:19)
+2025-09-07T01:48:35:     at callback (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:70:45) {
+2025-09-07T01:48:35:   code: [32m'INVALID_ARGUMENT'[39m,
+2025-09-07T01:48:35:   argument: [32m'options'[39m,
+2025-09-07T01:48:35:   value: {
+2025-09-07T01:48:35:     staticNetwork: [33mtrue[39m
+2025-09-07T01:48:35:   },
+2025-09-07T01:48:35:   shortMessage: [32m"staticNetwork cannot be used on special network 'any'"[39m
+2025-09-07T01:48:35: }
+2025-09-07T02:01:00: (node:1875) TimeoutNegativeWarning: -1 is a negative number.
+2025-09-07T02:01:00: Timeout duration was set to 1.
+2025-09-07T02:01:00: (Use `node --trace-warnings ...` to show where the warning was created)
+2025-09-07T13:27:56: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T13:27:57: [31m[Nest] 47523  - [39m2025/09/07 13:27:57 [31m  ERROR[39m [38;5;3m[BlockchainService] [39m[31m❌ Failed to connect to blockchain in production environment:[39m
+2025-09-07T13:27:57: [31m[Nest] 47523  - [39m2025/09/07 13:27:57 [31m  ERROR[39m [38;5;3m[BlockchainService] [39mTypeError: staticNetwork cannot be used on special network 'any' (argument="options", value={ "staticNetwork": true }, code=INVALID_ARGUMENT, version=6.15.0)
+2025-09-07T13:27:57:     at makeError (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:130:21)
+2025-09-07T13:27:57:     at assert (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:157:15)
+2025-09-07T13:27:57:     at assertArgument (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/utils/errors.js:169:5)
+2025-09-07T13:27:57:     at new JsonRpcApiProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:337:43)
+2025-09-07T13:27:57:     at new JsonRpcApiPollingProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:848:9)
+2025-09-07T13:27:57:     at new JsonRpcProvider (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/ethers@6.15.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/[4methers[24m/lib.commonjs/providers/provider-jsonrpc.js:893:9)
+2025-09-07T13:27:57:     at BlockchainService.initializeProvider [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:42:29[90m)[39m
+2025-09-07T13:27:57:     at new BlockchainService [90m(/Users/zhaoleon/Desktop/QAapp/apps/api/[39mdist/apps/api/src/blockchain/blockchain.service.js:26:14[90m)[39m
+2025-09-07T13:27:57:     at Injector.instantiateClass (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:418:19)
+2025-09-07T13:27:57:     at callback (/Users/zhaoleon/Desktop/QAapp/node_modules/[4m.pnpm[24m/@nestjs+core@11.1.6_@nestjs+common@11.1.6_class-transformer@0.5.1_class-validator@0.14._eee9c3e244596ac016a0e95477e40580/node_modules/[4m@nestjs[24m/core/injector/injector.js:70:45) {
+2025-09-07T13:27:57:   code: [32m'INVALID_ARGUMENT'[39m,
+2025-09-07T13:27:57:   argument: [32m'options'[39m,
+2025-09-07T13:27:57:   value: {
+2025-09-07T13:27:57:     staticNetwork: [33mtrue[39m
+2025-09-07T13:27:57:   },
+2025-09-07T13:27:57:   shortMessage: [32m"staticNetwork cannot be used on special network 'any'"[39m
+2025-09-07T13:27:57: }
+2025-09-07T13:42:00: (node:47523) TimeoutNegativeWarning: -8 is a negative number.
+2025-09-07T13:42:00: Timeout duration was set to 1.
+2025-09-07T13:42:00: (Use `node --trace-warnings ...` to show where the warning was created)
+2025-09-07T14:09:04: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T14:09:04: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T14:09:04: [31m[Nest] 73457  - [39m2025/09/07 14:09:04 [31m  ERROR[39m [38;5;3m[BlockchainService] [39m[31m❌ Failed to connect to blockchain in production environment:[39m
+2025-09-07T14:09:04: [31m[Nest] 73457  - [39m2025/09/07 14:09:04 [31m  ERROR[39m [38;5;3m[BlockchainService] [39mAggregateError [ECONNREFUSED]: 
+2025-09-07T14:09:04: [90m    at internalConnectMultiple (node:net:1134:18)[39m
+2025-09-07T14:09:04: [90m    at afterConnectMultiple (node:net:1715:7)[39m {
+2025-09-07T14:09:04:   code: [32m'ECONNREFUSED'[39m,
+2025-09-07T14:09:04:   [errors]: [
+2025-09-07T14:09:04:     Error: connect ECONNREFUSED ::1:8545
+2025-09-07T14:09:04:     [90m    at createConnectionError (node:net:1678:14)[39m
+2025-09-07T14:09:04:     [90m    at afterConnectMultiple (node:net:1708:16)[39m {
+2025-09-07T14:09:04:       errno: [33m-61[39m,
+2025-09-07T14:09:04:       code: [32m'ECONNREFUSED'[39m,
+2025-09-07T14:09:04:       syscall: [32m'connect'[39m,
+2025-09-07T14:09:04:       address: [32m'::1'[39m,
+2025-09-07T14:09:04:       port: [33m8545[39m
+2025-09-07T14:09:04:     },
+2025-09-07T14:09:04:     Error: connect ECONNREFUSED 127.0.0.1:8545
+2025-09-07T14:09:04:     [90m    at createConnectionError (node:net:1678:14)[39m
+2025-09-07T14:09:04:     [90m    at afterConnectMultiple (node:net:1708:16)[39m {
+2025-09-07T14:09:04:       errno: [33m-61[39m,
+2025-09-07T14:09:04:       code: [32m'ECONNREFUSED'[39m,
+2025-09-07T14:09:04:       syscall: [32m'connect'[39m,
+2025-09-07T14:09:04:       address: [32m'127.0.0.1'[39m,
+2025-09-07T14:09:04:       port: [33m8545[39m
+2025-09-07T14:09:04:     }
+2025-09-07T14:09:04:   ]
+2025-09-07T14:09:04: }
+2025-09-07T14:09:04: [31m[Nest] 73457  - [39m2025/09/07 14:09:04 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +1ms[39m
+2025-09-07T14:51:00: (node:73457) TimeoutNegativeWarning: -6 is a negative number.
+2025-09-07T14:51:00: Timeout duration was set to 1.
+2025-09-07T14:51:00: (Use `node --trace-warnings ...` to show where the warning was created)

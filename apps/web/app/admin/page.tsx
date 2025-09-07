@@ -2,17 +2,12 @@
 
 import { motion } from 'framer-motion';
 import {
-  Users,
   UserCheck,
   ShoppingBag,
   CreditCard,
   TrendingUp,
   AlertTriangle,
   Activity,
-  DollarSign,
-  Clock,
-  CheckCircle,
-  XCircle,
   ArrowUp,
   ArrowDown,
   Eye,
@@ -21,10 +16,10 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 
 import { AdminGuard } from '../../components/admin/AdminGuard';
 import { AdminLayout } from '../../components/admin/AdminLayout';
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 
 // 模拟数据
 const adminStats = {
@@ -121,12 +116,14 @@ const quickStats = [
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('today');
+  const LOADING_DELAY_MS = 1000;
+  const SKELETON_KEYS = ['sk-1', 'sk-2', 'sk-3', 'sk-4'] as const;
 
   useEffect(() => {
     // 模拟数据加载
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, LOADING_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, []);
@@ -160,8 +157,8 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             <div className="h-8 bg-gray-200 rounded animate-pulse w-64" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+              {SKELETON_KEYS.map((key) => (
+                <div key={key} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -222,7 +219,7 @@ export default function AdminDashboard() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
-            {quickStats.map((stat, index) => {
+            {quickStats.map((stat, _index) => {
               const Icon = stat.icon;
               return (
                 <Card key={stat.title} className="cursor-pointer hover:shadow-lg transition-shadow">

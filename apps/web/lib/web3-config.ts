@@ -1,14 +1,17 @@
 // Web3配置文件
 import { http, createConfig } from 'wagmi';
-import { mainnet, sepolia, polygon, polygonMumbai, hardhat } from 'wagmi/chains';
+import { sepolia, hardhat } from 'wagmi/chains';
 import { injected, metaMask } from 'wagmi/connectors';
 
 // 支持的链配置 - 专注于开发和测试
+export const CHAIN_ID_LOCAL = hardhat.id;
+export const CHAIN_ID_SEPOLIA = sepolia.id;
+
 export const chains = [
   {
     ...hardhat,
     name: 'Hardhat Local',
-    id: 31_337,
+    id: CHAIN_ID_LOCAL,
     rpcUrls: {
       default: { http: ['http://127.0.0.1:8545'] },
       public: { http: ['http://127.0.0.1:8545'] },
@@ -41,8 +44,8 @@ export const wagmiConfig = createConfig({
   transports: {
     [hardhat.id]: http('http://127.0.0.1:8545'),
     [sepolia.id]: http(
-      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL
-      || `https://sepolia.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID || 'demo'}`,
+      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ||
+      `https://sepolia.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID || 'demo'}`,
     ),
   },
 });
@@ -50,14 +53,14 @@ export const wagmiConfig = createConfig({
 // 合约地址配置 - 简化为核心网络
 export const contractAddresses = {
   // 本地开发环境 (Hardhat)
-  31_337: {
+  [CHAIN_ID_LOCAL]: {
     Treasury: process.env.NEXT_PUBLIC_TREASURY_ADDRESS_LOCAL || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
     QACard: process.env.NEXT_PUBLIC_QACARD_ADDRESS_LOCAL || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
     USDT: process.env.NEXT_PUBLIC_USDT_ADDRESS_LOCAL || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
   },
 
   // Sepolia 测试网
-  11_155_111: {
+  [CHAIN_ID_SEPOLIA]: {
     Treasury: process.env.NEXT_PUBLIC_TREASURY_ADDRESS_SEPOLIA || '',
     QACard: process.env.NEXT_PUBLIC_QACARD_ADDRESS_SEPOLIA || '',
     USDT: process.env.NEXT_PUBLIC_USDT_ADDRESS_SEPOLIA || '',
@@ -65,7 +68,10 @@ export const contractAddresses = {
 } as const;
 
 // 根据链ID获取合约地址
-export const getContractAddress = (chainId: number, contractName: keyof typeof contractAddresses[31_337]) => {
+export const getContractAddress = (
+  chainId: number,
+  contractName: keyof typeof contractAddresses[typeof CHAIN_ID_LOCAL],
+) => {
   const addresses = contractAddresses[chainId as keyof typeof contractAddresses];
   return addresses?.[contractName] || '';
 };
@@ -77,8 +83,8 @@ export const supportedTokens = {
     symbol: 'USDT',
     decimals: 6,
     addresses: {
-      11_155_111: process.env.NEXT_PUBLIC_USDT_ADDRESS_SEPOLIA || '', // Sepolia 测试USDT
-      31_337: process.env.NEXT_PUBLIC_USDT_ADDRESS_LOCAL || '0x5FbDB2315678afecb367f032d93F642f64180aa3', // 本地测试USDT
+      [CHAIN_ID_SEPOLIA]: process.env.NEXT_PUBLIC_USDT_ADDRESS_SEPOLIA || '', // Sepolia 测试USDT
+      [CHAIN_ID_LOCAL]: process.env.NEXT_PUBLIC_USDT_ADDRESS_LOCAL || '0x5FbDB2315678afecb367f032d93F642f64180aa3', // 本地测试USDT
     },
   },
   ETH: {
@@ -86,8 +92,8 @@ export const supportedTokens = {
     symbol: 'ETH',
     decimals: 18,
     addresses: {
-      11_155_111: 'native', // Sepolia ETH
-      31_337: 'native', // 本地 ETH
+      [CHAIN_ID_SEPOLIA]: 'native', // Sepolia ETH
+      [CHAIN_ID_LOCAL]: 'native', // 本地 ETH
     },
   },
 } as const;
@@ -118,4 +124,4 @@ export const chainConfig = {
 } as const;
 
 export type SupportedChainId = keyof typeof contractAddresses
-export type ContractName = keyof typeof contractAddresses[31_337]
+export type ContractName = keyof typeof contractAddresses[typeof CHAIN_ID_LOCAL]

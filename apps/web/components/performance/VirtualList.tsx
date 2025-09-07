@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useMemo, useRef, useEffect, useState } from 'react';
+import React, { memo, useMemo, useRef, useState } from 'react';
 
 interface VirtualListProperties<T> {
   items: T[]
@@ -50,6 +50,7 @@ export const VirtualList = memo(<T, >({
       <div style={{ height: totalHeight, position: 'relative' }}>
         <div style={{ transform: `translateY(${offsetY}px)` }}>
           {visibleItems.map((item, index) => (
+            // eslint-disable-next-line react/no-array-index-key
             <div key={visibleRange.startIndex + index} style={{ height: itemHeight }}>
               {renderItem(item, visibleRange.startIndex + index)}
             </div>

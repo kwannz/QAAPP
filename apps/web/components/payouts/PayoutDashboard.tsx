@@ -1,25 +1,11 @@
 'use client';
 
-import {
-  Coins,
-  Clock,
-  DollarSign,
-  Calendar,
-  TrendingUp,
-  Download,
-  AlertCircle,
-  CheckCircle2,
-  RefreshCw,
-  Wallet,
-  History,
-} from 'lucide-react';
+import { Coins, AlertCircle, RefreshCw, Wallet, CheckCircle2, TrendingUp, History, Download } from 'lucide-react';
 import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   Badge,
   Button,
   Alert,
@@ -63,6 +49,8 @@ interface PayoutDashboardProperties {
   className?: string
 }
 
+const DECIMALS_SIX = 6;
+
 // 优化的收益项组件
 const PayoutItem = memo(({
   payout,
@@ -86,11 +74,12 @@ const PayoutItem = memo(({
             <div className="flex items-center gap-2">
               <Coins className="w-4 h-4 text-yellow-500" />
               <span className="font-semibold text-lg">
-                ${payout.amount.toFixed(6)}
+                ${payout.amount.toFixed(DECIMALS_SIX)}
               </span>
             </div>
             <p className="text-sm text-gray-600">
-              收益期间: {new Date(payout.periodStart).toLocaleDateString()} - {new Date(payout.periodEnd).toLocaleDateString()}
+              收益期间: {new Date(payout.periodStart).toLocaleDateString()} -{' '}
+              {new Date(payout.periodEnd).toLocaleDateString()}
             </p>
             <p className="text-xs text-gray-500">
               持仓ID: {payout.positionId}
@@ -123,7 +112,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
   const [activeTab, setActiveTab] = useState('claimable');
 
   // 获取可领取收益
-  const fetchClaimablePayouts = async () => {
+  const fetchClaimablePayouts = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -136,10 +125,10 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // 获取收益历史
-  const fetchPayoutHistory = async () => {
+  const fetchPayoutHistory = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -152,7 +141,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // 初始化数据
   useEffect(() => {
@@ -161,7 +150,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
     } else {
       fetchPayoutHistory();
     }
-  }, [userId, activeTab]);
+  }, [activeTab, fetchClaimablePayouts, fetchPayoutHistory]);
 
   // 处理收益选择
   const handlePayoutSelection = useCallback((payoutId: string, checked: boolean) => {
@@ -195,7 +184,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
     try {
       const { apiClient } = await import('@/lib/api-client');
       const { data: result } = await apiClient.post('/payouts/claim', { userId, payoutIds: selectedPayouts });
-      alert(`领取成功！\n金额: $${result.claimedAmount.toFixed(6)}\n交易哈希: ${result.txHash}`);
+      alert(`领取成功！\n金额: $${result.claimedAmount.toFixed(DECIMALS_SIX)}\n交易哈希: ${result.txHash}`);
 
       // 重置选择并刷新数据
       setSelectedPayouts([]);
@@ -229,11 +218,12 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                 <div className="flex items-center gap-2">
                   <Coins className="w-4 h-4 text-yellow-500" />
                   <span className="font-semibold text-lg">
-                    ${payout.amount.toFixed(6)}
+                    ${payout.amount.toFixed(DECIMALS_SIX)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  收益期间: {new Date(payout.periodStart).toLocaleDateString()} - {new Date(payout.periodEnd).toLocaleDateString()}
+                  收益期间: {new Date(payout.periodStart).toLocaleDateString()} -{' '}
+                  {new Date(payout.periodEnd).toLocaleDateString()}
                 </p>
                 {payout.claimTxHash && (
                   <p className="text-xs text-orange-600 break-all">
@@ -274,7 +264,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
               <div>
                 <p className="text-sm text-gray-600">可领取收益</p>
                 <p className="text-xl font-semibold text-green-600">
-                  ${claimableTotal.toFixed(6)}
+                  ${claimableTotal.toFixed(DECIMALS_SIX)}
                 </p>
               </div>
             </div>
@@ -288,7 +278,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
               <div>
                 <p className="text-sm text-gray-600">累计已领</p>
                 <p className="text-xl font-semibold">
-                  ${totalClaimed.toFixed(6)}
+                  ${totalClaimed.toFixed(DECIMALS_SIX)}
                 </p>
               </div>
             </div>
@@ -302,7 +292,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
               <div>
                 <p className="text-sm text-gray-600">总收益</p>
                 <p className="text-xl font-semibold">
-                  ${(totalClaimed + totalPending).toFixed(6)}
+                  {(totalClaimed + totalPending).toFixed(DECIMALS_SIX)}
                 </p>
               </div>
             </div>
@@ -361,7 +351,7 @@ export function PayoutDashboard({ userId = 'user-test-001', className = '' }: Pa
                     已选择 {selectedPayouts.length} 项收益
                     {selectedPayouts.length > 0 && (
                       <span className="font-semibold ml-2">
-                        (${selectedAmount.toFixed(6)})
+                        (${selectedAmount.toFixed(DECIMALS_SIX)})
                       </span>
                     )}
                   </span>

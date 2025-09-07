@@ -3,33 +3,26 @@
 import { motion } from 'framer-motion';
 import {
   User,
-  Mail,
-  Phone,
   Shield,
-  Key,
   Camera,
   Edit,
   Save,
   X,
   Check,
   Lock,
-  Upload,
   Copy,
   Eye,
   EyeOff,
-  MapPin,
-  Calendar,
-  Briefcase,
-  Link as LinkIcon,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { Header } from '../../components/layout/Header';
 import { useAuthStore } from '../../lib/auth-context';
 import { useSafeToast } from '../../lib/use-safe-toast';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui';
+import { logger } from '@/lib/verbose-logger';
 
 interface UserProfile {
   id: string;
@@ -94,7 +87,7 @@ const mockProfile: UserProfile = {
 
 export default function ProfilePage() {
   const toast = useSafeToast();
-  const { user } = useAuthStore();
+  const { user: _user } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile>(mockProfile);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile);
@@ -122,11 +115,14 @@ export default function ProfilePage() {
       toast.error('新密码确认不匹配');
       return;
     }
-    if (passwordForm.newPassword.length < 8) {
+    const MIN_PASSWORD_LENGTH = 8;
+    if (passwordForm.newPassword.length < MIN_PASSWORD_LENGTH) {
       toast.error('新密码至少需要8位字符');
       return;
     }
-    console.log('Changing password...');
+    if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+      logger.info('Profile', 'Changing password');
+    }
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     toast.success('密码修改成功');
   };
@@ -275,7 +271,10 @@ export default function ProfilePage() {
                             <label className="text-sm font-medium text-gray-700 mb-2 block">姓</label>
                             <Input
                               value={isEditing ? editedProfile.firstName || '' : profile.firstName || ''}
-                              onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, firstName: e.target.value }))}
+                              onChange={(e) => isEditing && setEditedProfile(prev => ({
+                                ...prev,
+                                firstName: e.target.value,
+                              }))}
                               disabled={!isEditing}
                               placeholder="请输入姓"
                             />
@@ -284,7 +283,10 @@ export default function ProfilePage() {
                             <label className="text-sm font-medium text-gray-700 mb-2 block">名</label>
                             <Input
                               value={isEditing ? editedProfile.lastName || '' : profile.lastName || ''}
-                              onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, lastName: e.target.value }))}
+                              onChange={(e) => isEditing && setEditedProfile(prev => ({
+                                ...prev,
+                                lastName: e.target.value,
+                              }))}
                               disabled={!isEditing}
                               placeholder="请输入名"
                             />
@@ -312,7 +314,10 @@ export default function ProfilePage() {
                             <div className="flex items-center space-x-2">
                               <Input
                                 value={isEditing ? editedProfile.phoneNumber || '' : profile.phoneNumber || ''}
-                                onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                                onChange={(e) => isEditing && setEditedProfile(prev => ({
+                                  ...prev,
+                                  phoneNumber: e.target.value,
+                                }))}
                                 disabled={!isEditing}
                                 placeholder="请输入手机号码"
                                 className="flex-1"
@@ -331,7 +336,10 @@ export default function ProfilePage() {
                             <label className="text-sm font-medium text-gray-700 mb-2 block">职业</label>
                             <Input
                               value={isEditing ? editedProfile.occupation || '' : profile.occupation || ''}
-                              onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, occupation: e.target.value }))}
+                              onChange={(e) => isEditing && setEditedProfile(prev => ({
+                                ...prev,
+                                occupation: e.target.value,
+                              }))}
                               disabled={!isEditing}
                               placeholder="请输入职业"
                             />
@@ -340,7 +348,10 @@ export default function ProfilePage() {
                             <label className="text-sm font-medium text-gray-700 mb-2 block">公司</label>
                             <Input
                               value={isEditing ? editedProfile.company || '' : profile.company || ''}
-                              onChange={(e) => isEditing && setEditedProfile(prev => ({ ...prev, company: e.target.value }))}
+                              onChange={(e) => isEditing && setEditedProfile(prev => ({
+                                ...prev,
+                                company: e.target.value,
+                              }))}
                               disabled={!isEditing}
                               placeholder="请输入公司"
                             />
@@ -385,7 +396,10 @@ export default function ProfilePage() {
                                 <Input
                                   type={showCurrentPassword ? 'text' : 'password'}
                                   value={passwordForm.currentPassword}
-                                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                                  onChange={(e) => setPasswordForm(prev => ({
+                                    ...prev,
+                                    currentPassword: e.target.value,
+                                  }))}
                                   placeholder="请输入当前密码"
                                 />
                                 <button
@@ -405,7 +419,10 @@ export default function ProfilePage() {
                                   <Input
                                     type={showNewPassword ? 'text' : 'password'}
                                     value={passwordForm.newPassword}
-                                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                                  onChange={(e) => setPasswordForm(prev => ({
+                                    ...prev,
+                                    newPassword: e.target.value,
+                                  }))}
                                     placeholder="请输入新密码"
                                   />
                                   <button
@@ -422,13 +439,19 @@ export default function ProfilePage() {
                                 <Input
                                   type="password"
                                   value={passwordForm.confirmPassword}
-                                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                  onChange={(e) => setPasswordForm(prev => ({
+                                    ...prev,
+                                    confirmPassword: e.target.value,
+                                  }))}
                                   placeholder="请再次输入新密码"
                                 />
                               </div>
                             </div>
                             
-                            <Button onClick={handlePasswordChange} disabled={!passwordForm.currentPassword || !passwordForm.newPassword}>
+                            <Button 
+                              onClick={handlePasswordChange} 
+                              disabled={!passwordForm.currentPassword || !passwordForm.newPassword}
+                            >
                               <Lock className="w-4 h-4 mr-2" />
                               更改密码
                             </Button>

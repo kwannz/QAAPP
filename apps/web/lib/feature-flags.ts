@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { logger } from './verbose-logger';
 
 type FeatureFlag =
   | 'newOperationsCenter'      // 新运营中心
@@ -110,6 +111,8 @@ class FeatureFlagService {
   private flags: Record<FeatureFlag, FeatureFlagConfig>;
   private userHash = 0;
   private environment: string;
+  // eslint-disable-next-line no-magic-numbers
+  private static readonly PERCENT_SCALE = 100;
 
   constructor() {
     this.flags = { ...FEATURE_FLAGS };
@@ -137,10 +140,12 @@ class FeatureFlagService {
     let hash = 0;
     for (let index = 0; index < string_.length; index++) {
       const char = string_.charCodeAt(index);
-      hash = ((hash << 5) - hash) + char;
+      const SHIFT_BITS = 5;
+      // eslint-disable-next-line no-magic-numbers
+      hash = ((hash << SHIFT_BITS) - hash) + char;
       hash = hash & hash;
     }
-    return Math.abs(hash) % 100;
+    return Math.abs(hash) % FeatureFlagService.PERCENT_SCALE;
   }
 
   /**
@@ -165,7 +170,7 @@ class FeatureFlagService {
     }
 
     // 用户分组检查（A/B测试）
-    if (config.rolloutPercentage < 100) {
+    if (config.rolloutPercentage < FeatureFlagService.PERCENT_SCALE) {
       return this.userHash < config.rolloutPercentage;
     }
 
@@ -206,7 +211,7 @@ class FeatureFlagService {
    */
   enableFlag(flag: FeatureFlag, percentage = 100): void {
     if (this.environment !== 'development') {
-      console.warn('Feature flags can only be modified in development environment');
+      logger.warn('FeatureFlags', 'Feature flags can only be modified in development environment');
       return;
     }
 
@@ -229,7 +234,7 @@ class FeatureFlagService {
    */
   disableFlag(flag: FeatureFlag): void {
     if (this.environment !== 'development') {
-      console.warn('Feature flags can only be modified in development environment');
+      logger.warn('FeatureFlags', 'Feature flags can only be modified in development environment');
       return;
     }
 
@@ -303,35 +308,46 @@ interface FeatureGateProperties {
 
 export function FeatureGate({ flag, children, fallback = null }: FeatureGateProperties) {
   const isEnabled = useFeatureFlag(flag);
-  return isEnabled ? React.createElement(React.Fragment, null, children) : React.createElement(React.Fragment, null, fallback);
+  return isEnabled 
+    ? React.createElement(React.Fragment, null, children) 
+    : React.createElement(React.Fragment, null, fallback);
 }
 
 // 开发工具（仅开发环境）
 export const DevTools = {
   showStatus: () => {
     if (process.env.NODE_ENV !== 'development') return;
-    console.table(featureFlags.getStatus());
+    const status = featureFlags.getStatus();
+    logger.info('FeatureFlags', 'Status', status);
   },
 
   enable: (flag: FeatureFlag, percentage = 100) => {
     featureFlags.enableFlag(flag, percentage);
-    console.log(`✅ Enabled ${flag} (${percentage}%)`);
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('FeatureFlags', `Enabled ${flag} (${percentage}%)`);
+    }
   },
 
   disable: (flag: FeatureFlag) => {
     featureFlags.disableFlag(flag);
-    console.log(`❌ Disabled ${flag}`);
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('FeatureFlags', `Disabled ${flag}`);
+    }
   },
 
   reset: () => {
     featureFlags.resetFlags();
-    console.log('🔄 Reset all feature flags');
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('FeatureFlags', 'Reset all feature flags');
+    }
   },
 
   test: (flag: FeatureFlag) => {
     const isEnabled = featureFlags.isEnabled(flag);
     const config = featureFlags.getFlagConfig(flag);
-    console.log(`🧪 Flag: ${flag}`, { isEnabled, config });
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug('FeatureFlags', `Flag: ${flag}`, { isEnabled, config });
+    }
   },
 };
 

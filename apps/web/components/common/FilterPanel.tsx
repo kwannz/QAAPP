@@ -1,7 +1,7 @@
 'use client';
 
 import { Search, Filter, X, Calendar, Download } from 'lucide-react';
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
 
 import { Button, Input } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -64,7 +64,7 @@ export function FilterPanel({
   };
 
   const activeFilterCount = Object.entries(values).filter(
-    ([key, value]) => value && value !== 'all' && value !== '',
+    ([_key, value]) => value && value !== 'all' && value !== '',
   ).length;
 
   return (

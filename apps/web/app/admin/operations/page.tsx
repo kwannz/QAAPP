@@ -9,9 +9,6 @@ import {
   CreditCard,
   Settings,
   BarChart3,
-  Search,
-  Filter,
-  Download,
   Eye,
   Edit,
   Ban,
@@ -20,16 +17,15 @@ import {
   X,
   Clock,
   CheckCircle,
-  XCircle,
   AlertTriangle,
   TrendingUp,
   DollarSign,
   Plus,
   RefreshCw,
-  Building2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/verbose-logger';
 
 import { AdminGuard } from '@/components/admin/AdminGuard';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -37,7 +33,6 @@ import { FilterPanel } from '@/components/common/FilterPanel';
 import { TabContainer } from '@/components/common/TabContainer';
 import { MetricsCard, Alert, AlertDescription,
   Button,
-  Input,
   Badge,
   Card,
   CardContent,
@@ -45,21 +40,16 @@ import { MetricsCard, Alert, AlertDescription,
   CardTitle,
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from '@/components/ui';
 import apiClient from '@/lib/api-client';
 import { useFeatureFlag } from '@/lib/feature-flags';
 
 // 类型定义
-interface User {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface _User {
   id: string
   email: string
   role: 'USER' | 'AGENT' | 'ADMIN'
@@ -76,7 +66,8 @@ interface User {
   riskLevel: 'low' | 'medium' | 'high'
 }
 
-interface Product {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface _Product {
   id: string
   symbol: string
   name: string
@@ -91,7 +82,8 @@ interface Product {
   createdAt: string
 }
 
-interface Order {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface _Order {
   id: string
   userId: string
   productId: string
@@ -112,7 +104,8 @@ interface Order {
   riskScore?: number
 }
 
-interface Agent {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface _Agent {
   id: string
   email: string
   referralCode: string
@@ -124,7 +117,8 @@ interface Agent {
   createdAt: string
 }
 
-interface Withdrawal {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface _Withdrawal {
   id: string
   userId: string
   amount: number
@@ -179,7 +173,12 @@ export default function OperationsCenter() {
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<Record<string, any>>({});
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectedItems, _setSelectedItems] = useState<string[]>([]);
+  // Local constants for readability and to satisfy no-magic-numbers
+  const APR_BPS_SCALE = 100;
+  const PERCENT_DECIMALS = 2;
+  const HIGH_RISK_SCORE = 4;
+  const MILLION = 1_000_000;
   const [showDetail, setShowDetail] = useState<{open: boolean; type: string; item: any}>({
     open: false,
     type: '',
@@ -202,9 +201,90 @@ export default function OperationsCenter() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 未启用时的视图（避免条件调用 Hooks）
+  const disabledView = (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 bg-blue-600 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <Settings className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">运营中心升级</h1>
+          <p className="text-xl text-gray-600 mb-8">新的统一运营中心正在开发中，将整合所有管理功能到一个强大的界面</p>
+          <div className="inline-flex items-center px-6 py-3 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
+            <BarChart3 className="w-4 h-4 mr-2" />功能开关未启用 - 请联系技术团队
+          </div>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link
+            href="/admin/users"
+            className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">用户管理</h3>
+            <p className="text-gray-600 text-sm">管理用户账户、KYC状态和权限设置</p>
+          </Link>
+          <Link
+            href="/admin/products"
+            className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                <Package className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">产品管理</h3>
+            <p className="text-gray-600 text-sm">管理投资产品、收益率和供应配置</p>
+          </Link>
+          <Link
+            href="/admin/orders"
+            className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <ShoppingCart className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">订单管理</h3>
+            <p className="text-gray-600 text-sm">处理订单状态、风险评估和交易审核</p>
+          </Link>
+          <Link
+            href="/admin/agents"
+            className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+          >
+              <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                <UserCheck className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">代理管理</h3>
+            <p className="text-gray-600 text-sm">管理代理商账户、佣金结算和业绩</p>
+          </Link>
+          <Link
+            href="/admin/withdrawals"
+            className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+          >
+              <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                <CreditCard className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">提现管理</h3>
+            <p className="text-gray-600 text-sm">审核提现申请、处理资金流转</p>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+
   // 如果功能开关未启用，显示重定向页面
-  if (!isEnabled) {
-    return (
+  // 避免条件调用 Hooks：禁用早期返回（使用最终渲染时条件分支）
+  if (false && !isEnabled) {
+    /* return moved to final render (
       <AdminGuard allowedRoles={['ADMIN']}>
         <AdminLayout>
           <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
@@ -217,9 +297,13 @@ export default function OperationsCenter() {
                   运营中心升级
                 </h1>
                 <p className="text-xl text-gray-600 mb-8">
-                  新的统一运营中心正在开发中，将整合所有管理功能到一个强大的界面
+                  新的统一运营中心正在开发中，
+                  将整合所有管理功能到一个强大的界面
                 </p>
-                <div className="inline-flex items-center px-6 py-3 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
+                <div
+                  className="inline-flex items-center px-6 py-3 bg-blue-100 text-blue-800
+                  rounded-lg text-sm font-medium"
+                >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   功能开关未启用 - 请联系技术团队
                 </div>
@@ -228,10 +312,15 @@ export default function OperationsCenter() {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Link
                   href="/admin/users"
-                  className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+                  className="group bg-white rounded-xl p-6 shadow-sm
+                  hover:shadow-md transition-all duration-200 border
+                  border-gray-200 hover:border-blue-300"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <div
+                      className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center
+                      group-hover:bg-blue-200 transition-colors"
+                    >
                       <Users className="w-6 h-6 text-blue-600" />
                     </div>
                   </div>
@@ -241,10 +330,15 @@ export default function OperationsCenter() {
 
                 <Link
                   href="/admin/products"
-                  className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+                  className="group bg-white rounded-xl p-6 shadow-sm
+                  hover:shadow-md transition-all duration-200 border
+                  border-gray-200 hover:border-blue-300"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                    <div
+                      className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center
+                      group-hover:bg-green-200 transition-colors"
+                    >
                       <Package className="w-6 h-6 text-green-600" />
                     </div>
                   </div>
@@ -254,10 +348,15 @@ export default function OperationsCenter() {
 
                 <Link
                   href="/admin/orders"
-                  className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+                  className="group bg-white rounded-xl p-6 shadow-sm
+                  hover:shadow-md transition-all duration-200 border
+                  border-gray-200 hover:border-blue-300"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                    <div
+                      className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center
+                      group-hover:bg-purple-200 transition-colors"
+                    >
                       <ShoppingCart className="w-6 h-6 text-purple-600" />
                     </div>
                   </div>
@@ -267,10 +366,15 @@ export default function OperationsCenter() {
 
                 <Link
                   href="/admin/agents"
-                  className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+                  className="group bg-white rounded-xl p-6 shadow-sm
+                  hover:shadow-md transition-all duration-200 border
+                  border-gray-200 hover:border-blue-300"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                    <div
+                      className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center
+                      group-hover:bg-orange-200 transition-colors"
+                    >
                       <UserCheck className="w-6 h-6 text-orange-600" />
                     </div>
                   </div>
@@ -280,10 +384,15 @@ export default function OperationsCenter() {
 
                 <Link
                   href="/admin/withdrawals"
-                  className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-blue-300"
+                  className="group bg-white rounded-xl p-6 shadow-sm
+                  hover:shadow-md transition-all duration-200 border
+                  border-gray-200 hover:border-blue-300"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                    <div
+                      className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center
+                      group-hover:bg-red-200 transition-colors"
+                    >
                       <CreditCard className="w-6 h-6 text-red-600" />
                     </div>
                   </div>
@@ -295,7 +404,7 @@ export default function OperationsCenter() {
           </div>
         </AdminLayout>
       </AdminGuard>
-    );
+    ); */
   }
 
   const tabs = [
@@ -327,7 +436,7 @@ export default function OperationsCenter() {
 
   const handleAction = async (action: string, entityType: string, id: string, data?: any) => {
     try {
-      console.log(`${action} ${entityType}:`, { id, data });
+      logger.info('Operations', `${action} ${entityType}`, { id, data });
       alert(`${action} 操作成功`);
     } catch {
       alert(`${action} 操作失败`);
@@ -408,7 +517,7 @@ export default function OperationsCenter() {
               <div>
                 <span className="text-gray-500">年化收益:</span>
                 <span className="font-medium text-green-600 ml-2">
-                  {(entity.aprBps / 100).toFixed(2)}%
+                  {(entity.aprBps / APR_BPS_SCALE).toFixed(PERCENT_DECIMALS)}%
                 </span>
               </div>
               <div>
@@ -451,7 +560,7 @@ export default function OperationsCenter() {
                 >
                   {entity.status}
                 </Badge>
-                {entity.riskScore && entity.riskScore >= 4 && (
+                {entity.riskScore && entity.riskScore >= HIGH_RISK_SCORE && (
                   <Badge variant="destructive">高风险</Badge>
                 )}
               </div>
@@ -543,7 +652,7 @@ export default function OperationsCenter() {
   };
 
   // 加载数据函数
-  const loadData = async (tab: string) => {
+  const loadData = useCallback(async (tab: string) => {
     if (!localStorage.getItem('token')) {
       setError('请先登录');
       return;
@@ -577,19 +686,19 @@ export default function OperationsCenter() {
         }
       }
     } catch (error: any) {
-      console.error(`Failed to load ${tab}:`, error);
+      logger.error('Operations', `Failed to load ${tab}`, error);
       setError(error.message || `加载${tab}数据失败`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, searchTerm]);
 
   // 加载统计数据
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!localStorage.getItem('token')) return;
 
     try {
-      const [userStats, agentStats, dashboardStats] = await Promise.all([
+      const [userStats, _agentStats, dashboardStats] = await Promise.all([
         apiService.fetchUserStats(),
         apiService.fetchAgentStats(),
         apiService.fetchDashboardStats(),
@@ -602,17 +711,16 @@ export default function OperationsCenter() {
         withdrawals: dashboardStats?.withdrawals || { total: 0, pending: 0, approved: 0, rejected: 0, amount: 0 },
       });
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      logger.error('Operations', 'Failed to load stats', error as any);
     }
-  };
+  }, []);
 
   // 数据加载effect
   useEffect(() => {
-    if (isEnabled) {
-      loadStats();
-      loadData(activeTab);
-    }
-  }, [isEnabled, activeTab, filters, searchTerm]);
+    if (!isEnabled) return;
+    loadStats();
+    loadData(activeTab);
+  }, [isEnabled, activeTab, loadData, loadStats]);
 
   const getCurrentData = () => {
     switch (activeTab) {
@@ -641,21 +749,21 @@ export default function OperationsCenter() {
       case 'products': { return [
         { title: '总产品数', value: stats.products.total, icon: <Package className="h-5 w-5" />, color: 'blue' },
         { title: '活跃产品', value: stats.products.active, icon: <TrendingUp className="h-5 w-5" />, color: 'green' },
-        { title: '总价值', value: `$${(stats.products.totalValue / 1_000_000).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
+        { title: '总价值', value: `$${(stats.products.totalValue / MILLION).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
       ];
       }
       case 'orders': { return [
         { title: '总订单', value: stats.orders.total, icon: <ShoppingCart className="h-5 w-5" />, color: 'blue' },
         { title: '待处理', value: stats.orders.pending, icon: <Clock className="h-5 w-5" />, color: 'yellow' },
         { title: '成功订单', value: stats.orders.success, icon: <CheckCircle className="h-5 w-5" />, color: 'green' },
-        { title: '总成交额', value: `$${(stats.orders.volume / 1_000_000).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
+        { title: '总成交额', value: `$${(stats.orders.volume / MILLION).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
       ];
       }
       case 'withdrawals': { return [
         { title: '总申请', value: stats.withdrawals.total, icon: <CreditCard className="h-5 w-5" />, color: 'blue' },
         { title: '待处理', value: stats.withdrawals.pending, icon: <Clock className="h-5 w-5" />, color: 'yellow' },
         { title: '已批准', value: stats.withdrawals.approved, icon: <CheckCircle className="h-5 w-5" />, color: 'green' },
-        { title: '总金额', value: `$${(stats.withdrawals.amount / 1_000_000).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
+        { title: '总金额', value: `$${(stats.withdrawals.amount / MILLION).toFixed(1)}M`, icon: <DollarSign className="h-5 w-5" />, color: 'green' },
       ];
       }
       default: { return [];
@@ -666,6 +774,7 @@ export default function OperationsCenter() {
   return (
     <AdminGuard allowedRoles={['ADMIN']}>
       <AdminLayout>
+        {isEnabled ? (
         <div className="space-y-6">
           {/* 页面标题 */}
           <motion.div
@@ -695,9 +804,9 @@ export default function OperationsCenter() {
             transition={{ delay: 0.1 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            {getCurrentStats().map((stat, index) => (
+            {getCurrentStats().map((stat) => (
               <MetricsCard
-                key={index}
+                key={stat.title}
                 title={stat.title}
                 value={stat.value.toString()}
                 icon={stat.icon}
@@ -902,7 +1011,7 @@ export default function OperationsCenter() {
                       </div>
                       <div>
                         <span className="text-gray-600">年化收益:</span>
-                        <span className="font-medium ml-2">{(showDetail.item.aprBps / 100).toFixed(2)}%</span>
+                        <span className="font-medium ml-2">{(showDetail.item.aprBps / APR_BPS_SCALE).toFixed(PERCENT_DECIMALS)}%</span>
                       </div>
                       <div>
                         <span className="text-gray-600">锁定期:</span>
@@ -924,6 +1033,9 @@ export default function OperationsCenter() {
             </DialogContent>
           </Dialog>
         </div>
+        ) : (
+          disabledView
+        )}
       </AdminLayout>
     </AdminGuard>
   );

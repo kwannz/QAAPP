@@ -1,6 +1,7 @@
 'use client';
 
 import { isBrowserEnvironment } from './browser-polyfills';
+import { logger } from './verbose-logger';
 
 // Dynamic import of react-hot-toast to prevent SSR issues
 let toast: any = null;
@@ -15,41 +16,45 @@ const getToast = async () => {
 
 // Safe toast wrapper for SSR compatibility
 export const safeToast = {
-  success: async (message: string, options?: any) => {
+  async success(message: string, options?: any) {
     if (isBrowserEnvironment()) {
       const toastInstance = await getToast();
       if (toastInstance) {
         toastInstance.success(message, options);
       }
     } else {
-      console.log('Toast (success):', message);
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug('Toast', 'Toast success (SSR fallback)', { message });
+      }
     }
   },
   
-  error: async (message: string, options?: any) => {
+  async error(message: string, options?: any) {
     if (isBrowserEnvironment()) {
       const toastInstance = await getToast();
       if (toastInstance) {
         toastInstance.error(message, options);
       }
     } else {
-      console.error('Toast (error):', message);
+      logger.error('Toast', 'Toast error (SSR fallback)', { message });
     }
   },
   
-  loading: async (message: string, options?: any) => {
+  async loading(message: string, options?: any) {
     if (isBrowserEnvironment()) {
       const toastInstance = await getToast();
       if (toastInstance) {
         return toastInstance.loading(message, options);
       }
     } else {
-      console.log('Toast (loading):', message);
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug('Toast', 'Toast loading (SSR fallback)', { message });
+      }
     }
     return 'mock-toast-id';
   },
   
-  dismiss: async (toastId?: string) => {
+  async dismiss(toastId?: string) {
     if (isBrowserEnvironment()) {
       const toastInstance = await getToast();
       if (toastInstance) {
@@ -58,34 +63,38 @@ export const safeToast = {
     }
   },
   
-  promise: async <T>(
-    promise: Promise<T>,
+  async promise<T>(
+    p: Promise<T>,
     msgs: {
       loading: string;
       success: (data: T) => string;
       error: (err: any) => string;
     },
     options?: any
-  ) => {
+  ) {
     if (isBrowserEnvironment()) {
       const toastInstance = await getToast();
       if (toastInstance) {
-        return toastInstance.promise(promise, msgs, options);
+        return toastInstance.promise(p, msgs as any, options);
       }
     } else {
-      console.log('Toast (promise loading):', msgs.loading);
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug('Toast', 'Toast promise loading', { message: msgs.loading });
+      }
     }
-    return promise.then(
+    return p.then(
       (data) => {
-        console.log('Toast (promise success):', msgs.success(data));
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('Toast', 'Toast promise success', { message: msgs.success(data), data });
+        }
         return data;
       },
       (err) => {
-        console.error('Toast (promise error):', msgs.error(err));
+        logger.error('Toast', 'Toast promise error', { message: msgs.error(err), error: err });
         throw err;
       }
     );
-  }
+  },
 };
 
 // Synchronous versions for backward compatibility (but less safe)
@@ -96,10 +105,14 @@ export const safeToastSync = {
       if (toast) {
         toast.success(message, options);
       } else {
-        console.log('Toast (success - sync fallback):', message);
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('Toast', 'Toast success (sync fallback)', { message });
+        }
       }
     } else {
-      console.log('Toast (success):', message);
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug('Toast', 'Toast success (SSR fallback)', { message });
+      }
     }
   },
   
@@ -108,10 +121,10 @@ export const safeToastSync = {
       if (toast) {
         toast.error(message, options);
       } else {
-        console.error('Toast (error - sync fallback):', message);
+        logger.error('Toast', 'Toast error (sync fallback)', { message });
       }
     } else {
-      console.error('Toast (error):', message);
+      logger.error('Toast', 'Toast error (SSR fallback)', { message });
     }
-  }
+  },
 };

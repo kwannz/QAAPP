@@ -7,22 +7,21 @@ import {
   PieChart,
   Calendar,
   Star,
-  ArrowUpRight,
   Plus,
   Filter,
   Search,
   Download,
   Eye,
   Activity,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { Header } from '../../components/layout/Header';
 import { useSafeToast } from '../../lib/use-safe-toast';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription, WalletConnectionManager } from '@/components/ui';
 
 // Mock data for investments
 const mockInvestments = [
@@ -39,7 +38,7 @@ const mockInvestments = [
     maturityDate: '2024-03-15',
     status: 'active',
     nextPayout: '2024-02-15',
-    payoutAmount: 41.67
+    payoutAmount: 41.67,
   },
   {
     id: 'inv-2',
@@ -54,7 +53,7 @@ const mockInvestments = [
     maturityDate: '2024-04-01',
     status: 'active',
     nextPayout: '2024-02-01',
-    payoutAmount: 74.18
+    payoutAmount: 74.18,
   },
   {
     id: 'inv-3',
@@ -69,8 +68,8 @@ const mockInvestments = [
     maturityDate: '2024-02-20',
     status: 'completed',
     nextPayout: null,
-    payoutAmount: 0
-  }
+    payoutAmount: 0,
+  },
 ];
 
 const stats = {
@@ -80,14 +79,16 @@ const stats = {
   totalPnLPercentage: 9.92,
   activeInvestments: 2,
   completedInvestments: 1,
-  pendingPayouts: 115.85
+  pendingPayouts: 115.85,
 };
 
 export default function InvestmentsPage() {
   const toast = useSafeToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'completed' | 'pending'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'value' | 'pnl'>('date');
+  const [_sortBy, _setSortBy] = useState<'date' | 'value' | 'pnl'>('date');
+
+  const PCT_DECIMALS = 2;
 
   const filteredInvestments = mockInvestments.filter(investment => {
     const matchesSearch = investment.productName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -117,7 +118,7 @@ export default function InvestmentsPage() {
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -129,7 +130,7 @@ export default function InvestmentsPage() {
     toast.success(`查看投资详情: ${investmentId}`);
   };
 
-  const handleClaimPayout = (investmentId: string) => {
+  const handleClaimPayout = (_investmentId: string) => {
     toast.success('收益领取成功');
   };
 
@@ -141,6 +142,25 @@ export default function InvestmentsPage() {
         <main className="flex-1 bg-gray-50">
           <div className="qa-container py-8">
             <div className="space-y-8">
+              {/* 调试：在开发/测试模式下，可通过 ?e2e_wallet=connected 覆盖为已连接状态 */}
+              {(() => {
+                const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+                const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                const override = debug && sp?.get('e2e_wallet') === 'connected';
+                if (override) {
+                  return (
+                    <Card className="mb-2">
+                      <CardHeader>
+                        <CardTitle>钱包连接</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <WalletConnectionManager showNetworkInfo showContractStatus />
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              })()}
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -201,7 +221,7 @@ export default function InvestmentsPage() {
                           {stats.totalPnL >= 0 ? '+' : ''}{formatCurrency(stats.totalPnL)}
                         </p>
                         <p className={`text-xs ${stats.totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {stats.totalPnL >= 0 ? '+' : ''}{stats.totalPnLPercentage.toFixed(2)}%
+                          {stats.totalPnL >= 0 ? '+' : ''}{stats.totalPnLPercentage.toFixed(PCT_DECIMALS)}%
                         </p>
                       </div>
                       <PieChart className="w-8 h-8 text-purple-600" />
@@ -272,7 +292,7 @@ export default function InvestmentsPage() {
                 transition={{ delay: 0.3 }}
                 className="space-y-4"
               >
-                {filteredInvestments.map((investment, index) => (
+                {filteredInvestments.map((investment, _index) => (
                   <Card key={investment.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
@@ -303,7 +323,7 @@ export default function InvestmentsPage() {
                               <p className={`font-medium ${investment.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {investment.pnl >= 0 ? '+' : ''}{formatCurrency(investment.pnl)}
                                 <span className="ml-1 text-xs">
-                                  ({investment.pnl >= 0 ? '+' : ''}{investment.pnlPercentage.toFixed(2)}%)
+                                  ({investment.pnl >= 0 ? '+' : ''}{investment.pnlPercentage.toFixed(PCT_DECIMALS)}%)
                                 </span>
                               </p>
                             </div>

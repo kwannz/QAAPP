@@ -1,0 +1,52 @@
+2025-09-07T13:49:10:  ⨯ Error [WagmiProviderNotFoundError]: `useConfig` must be used within `WagmiProvider`.
+2025-09-07T13:49:10: 
+2025-09-07T13:49:10: Docs: https://wagmi.sh/react/api/WagmiProvider.html
+2025-09-07T13:49:10: Version: wagmi@2.16.9
+2025-09-07T13:49:10:     at g (dist/server/chunks/3905.js:28:19162)
+2025-09-07T13:49:10:     at k (dist/server/chunks/3905.js:1:44736)
+2025-09-07T13:49:10:     at C (dist/server/app/products/purchase/[type]/page.js:18:184) {
+2025-09-07T13:49:10:   details: undefined,
+2025-09-07T13:49:10:   docsPath: '/api/WagmiProvider',
+2025-09-07T13:49:10:   metaMessages: undefined,
+2025-09-07T13:49:10:   shortMessage: '`useConfig` must be used within `WagmiProvider`.',
+2025-09-07T13:49:10:   digest: '3013478855'
+2025-09-07T13:49:10: }
+2025-09-07T14:06:54:  ⨯ Error [WagmiProviderNotFoundError]: `useConfig` must be used within `WagmiProvider`.
+2025-09-07T14:06:54: 
+2025-09-07T14:06:54: Docs: https://wagmi.sh/react/api/WagmiProvider.html
+2025-09-07T14:06:54: Version: wagmi@2.16.9
+2025-09-07T14:06:54:     at g (dist/server/chunks/3905.js:28:19162)
+2025-09-07T14:06:54:     at k (dist/server/chunks/3905.js:1:44736)
+2025-09-07T14:06:54:     at C (dist/server/app/products/purchase/[type]/page.js:19:184) {
+2025-09-07T14:06:54:   details: undefined,
+2025-09-07T14:06:54:   docsPath: '/api/WagmiProvider',
+2025-09-07T14:06:54:   metaMessages: undefined,
+2025-09-07T14:06:54:   shortMessage: '`useConfig` must be used within `WagmiProvider`.',
+2025-09-07T14:06:54:   digest: '1935302797'
+2025-09-07T14:06:54: }
+2025-09-07T14:12:34:  ⨯ Error [WagmiProviderNotFoundError]: `useConfig` must be used within `WagmiProvider`.
+2025-09-07T14:12:34: 
+2025-09-07T14:12:34: Docs: https://wagmi.sh/react/api/WagmiProvider.html
+2025-09-07T14:12:34: Version: wagmi@2.16.9
+2025-09-07T14:12:34:     at g (dist/server/chunks/3905.js:28:19162)
+2025-09-07T14:12:34:     at k (dist/server/chunks/3905.js:1:44736)
+2025-09-07T14:12:34:     at C (dist/server/app/products/purchase/[type]/page.js:19:184) {
+2025-09-07T14:12:34:   details: undefined,
+2025-09-07T14:12:34:   docsPath: '/api/WagmiProvider',
+2025-09-07T14:12:34:   metaMessages: undefined,
+2025-09-07T14:12:34:   shortMessage: '`useConfig` must be used within `WagmiProvider`.',
+2025-09-07T14:12:34:   digest: '1935302797'
+2025-09-07T14:12:34: }
+2025-09-07T14:14:51:  ⨯ Error [WagmiProviderNotFoundError]: `useConfig` must be used within `WagmiProvider`.
+2025-09-07T14:14:51: 
+2025-09-07T14:14:51: Docs: https://wagmi.sh/react/api/WagmiProvider.html
+2025-09-07T14:14:51: Version: wagmi@2.16.9
+2025-09-07T14:14:51:     at g (dist/server/chunks/3905.js:28:19162)
+2025-09-07T14:14:51:     at k (dist/server/chunks/3905.js:1:44736)
+2025-09-07T14:14:51:     at C (dist/server/app/products/purchase/[type]/page.js:19:184) {
+2025-09-07T14:14:51:   details: undefined,
+2025-09-07T14:14:51:   docsPath: '/api/WagmiProvider',
+2025-09-07T14:14:51:   metaMessages: undefined,
+2025-09-07T14:14:51:   shortMessage: '`useConfig` must be used within `WagmiProvider`.',
+2025-09-07T14:14:51:   digest: '1935302797'
+2025-09-07T14:14:51: }

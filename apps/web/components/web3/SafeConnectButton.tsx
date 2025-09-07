@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { isBrowserEnvironment } from '../../lib/browser-polyfills';
 import { Button } from '@/components/ui';
+import { logger } from '@/lib/verbose-logger';
 
 export function SafeConnectButton() {
   const [ConnectButton, setConnectButton] = useState<any>(null);
@@ -18,7 +19,7 @@ export function SafeConnectButton() {
 
       try {
         // Try to detect if we're in a real WagmiProvider context (not mock)
-        const wagmiModule = await import('wagmi');
+        const _wagmiModule = await import('wagmi');
         const rainbowkitModule = await import('@rainbow-me/rainbowkit');
         
         // Check if we're in a real Wagmi context by examining the DOM
@@ -34,8 +35,10 @@ export function SafeConnectButton() {
           setIsWagmiAvailable(false);
         }
         setIsLoading(false);
-      } catch (error) {
-        console.warn('WagmiProvider context not available, using fallback button');
+      } catch {
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('SafeConnectButton', 'WagmiProvider context not available, using fallback button');
+        }
         setIsWagmiAvailable(false);
         setIsLoading(false);
       }
@@ -59,7 +62,9 @@ export function SafeConnectButton() {
         size="sm"
         onClick={() => {
           // Provide user feedback that Web3 is not available
-          console.info('Web3 wallet connection is not available in fallback mode');
+          if (process.env.NODE_ENV === 'development') {
+            logger.info('SafeConnectButton', 'Web3 wallet connection is not available in fallback mode');
+          }
         }}
         title="Web3 功能暂不可用"
       >
@@ -72,7 +77,7 @@ export function SafeConnectButton() {
   try {
     return <ConnectButton />;
   } catch (error) {
-    console.warn('ConnectButton render error, falling back to safe button:', error);
+    logger.warn('SafeConnectButton', 'ConnectButton render error, falling back to safe button', { error });
     return (
       <Button 
         variant="outline" 

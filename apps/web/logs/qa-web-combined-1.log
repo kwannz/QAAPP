@@ -1,0 +1,285 @@
+2025-09-06T13:13:25: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-06T13:13:25: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25: > @qa-app/web@1.0.0 start
+2025-09-06T13:13:25: > next start
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25:    ▲ Next.js 15.5.0
+2025-09-06T13:13:25:    - Local:        http://localhost:3002
+2025-09-06T13:13:25:    - Network:      http://127.0.2.2:3002
+2025-09-06T13:13:25: 
+2025-09-06T13:13:25:  ✓ Starting...
+2025-09-06T13:13:25:  ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+2025-09-06T13:13:25:  ✓ Ready in 159ms
+2025-09-07T00:05:21: 
+2025-09-07T00:05:21: > @qa-app/web@1.0.0 start
+2025-09-07T00:05:21: > next start
+2025-09-07T00:05:21: 
+2025-09-07T00:05:22:    ▲ Next.js 15.5.0
+2025-09-07T00:05:22:    - Local:        http://localhost:3002
+2025-09-07T00:05:22:    - Network:      http://127.0.2.2:3002
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22:  ✓ Starting...
+2025-09-07T00:05:22: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T00:05:22: npm error Lifecycle script `start` failed with error:
+2025-09-07T00:05:22: npm error code 1
+2025-09-07T00:05:22: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:22: npm error workspace @qa-app/web@1.0.0
+2025-09-07T00:05:22: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:22: npm error command failed
+2025-09-07T00:05:22: npm error command sh -c next start
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22: > @qa-app/web@1.0.0 start
+2025-09-07T00:05:22: > next start
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22:    ▲ Next.js 15.5.0
+2025-09-07T00:05:22:    - Local:        http://localhost:3002
+2025-09-07T00:05:22:    - Network:      http://127.0.2.2:3002
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22:  ✓ Starting...
+2025-09-07T00:05:22: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T00:05:22: npm error Lifecycle script `start` failed with error:
+2025-09-07T00:05:22: npm error code 1
+2025-09-07T00:05:22: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:22: npm error workspace @qa-app/web@1.0.0
+2025-09-07T00:05:22: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:22: npm error command failed
+2025-09-07T00:05:22: npm error command sh -c next start
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22: > @qa-app/web@1.0.0 start
+2025-09-07T00:05:22: > next start
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22:    ▲ Next.js 15.5.0
+2025-09-07T00:05:22:    - Local:        http://localhost:3002
+2025-09-07T00:05:22:    - Network:      http://127.0.2.2:3002
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22:  ✓ Starting...
+2025-09-07T00:05:22: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T00:05:22: npm error Lifecycle script `start` failed with error:
+2025-09-07T00:05:22: npm error code 1
+2025-09-07T00:05:22: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:22: npm error workspace @qa-app/web@1.0.0
+2025-09-07T00:05:22: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:22: npm error command failed
+2025-09-07T00:05:22: npm error command sh -c next start
+2025-09-07T00:05:22: 
+2025-09-07T00:05:22: > @qa-app/web@1.0.0 start
+2025-09-07T00:05:22: > next start
+2025-09-07T00:05:22: 
+2025-09-07T00:05:23:    ▲ Next.js 15.5.0
+2025-09-07T00:05:23:    - Local:        http://localhost:3002
+2025-09-07T00:05:23:    - Network:      http://127.0.2.2:3002
+2025-09-07T00:05:23: 
+2025-09-07T00:05:23:  ✓ Starting...
+2025-09-07T00:05:23: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T00:05:23: npm error Lifecycle script `start` failed with error:
+2025-09-07T00:05:23: npm error code 1
+2025-09-07T00:05:23: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:23: npm error workspace @qa-app/web@1.0.0
+2025-09-07T00:05:23: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:23: npm error command failed
+2025-09-07T00:05:23: npm error command sh -c next start
+2025-09-07T00:05:23: 
+2025-09-07T00:05:23: > @qa-app/web@1.0.0 start
+2025-09-07T00:05:23: > next start
+2025-09-07T00:05:23: 
+2025-09-07T00:05:23:    ▲ Next.js 15.5.0
+2025-09-07T00:05:23:    - Local:        http://localhost:3002
+2025-09-07T00:05:23:    - Network:      http://127.0.2.2:3002
+2025-09-07T00:05:23: 
+2025-09-07T00:05:23:  ✓ Starting...
+2025-09-07T00:05:23: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T00:05:23: npm error Lifecycle script `start` failed with error:
+2025-09-07T00:05:23: npm error code 1
+2025-09-07T00:05:23: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:23: npm error workspace @qa-app/web@1.0.0
+2025-09-07T00:05:23: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T00:05:23: npm error command failed
+2025-09-07T00:05:23: npm error command sh -c next start
+2025-09-07T00:54:40: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T00:54:40: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T00:54:40: 
+2025-09-07T00:54:40: > @qa-app/web@1.0.0 start
+2025-09-07T00:54:40: > next start
+2025-09-07T00:54:40: 
+2025-09-07T00:54:40:    ▲ Next.js 15.5.0
+2025-09-07T00:54:40:    - Local:        http://localhost:3002
+2025-09-07T00:54:40:    - Network:      http://127.0.2.2:3002
+2025-09-07T00:54:40: 
+2025-09-07T00:54:40:  ✓ Starting...
+2025-09-07T00:54:40:  ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+2025-09-07T00:54:40:  ✓ Ready in 165ms
+2025-09-07T01:05:09:  ⨯ [Error: Cannot find module './vendor-chunks/viem@2.37.3_bufferutil@4.0.9_typescript@5.9.2_utf-8-validate@5.0.10_zod@3.25.76.js'
+2025-09-07T01:05:09: Require stack:
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/apps/web/dist/server/webpack-runtime.js
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/apps/web/dist/server/app/_not-found/page.js
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/require.js
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next-server.js
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next.js
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/start-server.js
+2025-09-07T01:05:09: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/cli/next-start.js] {
+2025-09-07T01:05:09:   code: 'MODULE_NOT_FOUND',
+2025-09-07T01:05:09:   requireStack: [Array]
+2025-09-07T01:05:09: }
+2025-09-07T01:05:10:  ⨯ [Error: Cannot find module './vendor-chunks/viem@2.37.3_bufferutil@4.0.9_typescript@5.9.2_utf-8-validate@5.0.10_zod@3.25.76.js'
+2025-09-07T01:05:10: Require stack:
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/apps/web/dist/server/webpack-runtime.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/apps/web/dist/server/app/_not-found/page.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/require.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next-server.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/start-server.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/cli/next-start.js] {
+2025-09-07T01:05:10:   code: 'MODULE_NOT_FOUND',
+2025-09-07T01:05:10:   requireStack: [Array]
+2025-09-07T01:05:10: }
+2025-09-07T01:05:10:  ⨯ [Error: Cannot find module './vendor-chunks/@tanstack+query-core@5.87.1.js'
+2025-09-07T01:05:10: Require stack:
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/apps/web/dist/server/webpack-runtime.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/apps/web/dist/server/app/_not-found/page.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/require.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next-server.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/next.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/server/lib/start-server.js
+2025-09-07T01:05:10: - /Users/zhaoleon/Desktop/QAapp/node_modules/.pnpm/next@15.5.0_@playwright+test@1.55.0_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/next/dist/cli/next-start.js] {
+2025-09-07T01:05:10:   code: 'MODULE_NOT_FOUND',
+2025-09-07T01:05:10:   requireStack: [Array]
+2025-09-07T01:05:10: }
+2025-09-07T01:48:35: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35: > @qa-app/web@1.0.0 start
+2025-09-07T01:48:35: > next start
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35:    ▲ Next.js 15.5.0
+2025-09-07T01:48:35:    - Local:        http://localhost:3002
+2025-09-07T01:48:35:    - Network:      http://127.0.2.2:3002
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35:  ✓ Starting...
+2025-09-07T01:48:35: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T01:48:35: npm error Lifecycle script `start` failed with error:
+2025-09-07T01:48:35: npm error code 1
+2025-09-07T01:48:35: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:35: npm error workspace @qa-app/web@1.0.0
+2025-09-07T01:48:35: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:35: npm error command failed
+2025-09-07T01:48:35: npm error command sh -c next start
+2025-09-07T01:48:35: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35: > @qa-app/web@1.0.0 start
+2025-09-07T01:48:35: > next start
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35:    ▲ Next.js 15.5.0
+2025-09-07T01:48:35:    - Local:        http://localhost:3002
+2025-09-07T01:48:35:    - Network:      http://127.0.2.2:3002
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35:  ✓ Starting...
+2025-09-07T01:48:35: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T01:48:35: npm error Lifecycle script `start` failed with error:
+2025-09-07T01:48:35: npm error code 1
+2025-09-07T01:48:35: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:35: npm error workspace @qa-app/web@1.0.0
+2025-09-07T01:48:35: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:35: npm error command failed
+2025-09-07T01:48:35: npm error command sh -c next start
+2025-09-07T01:48:35: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35: > @qa-app/web@1.0.0 start
+2025-09-07T01:48:35: > next start
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35:    ▲ Next.js 15.5.0
+2025-09-07T01:48:35:    - Local:        http://localhost:3002
+2025-09-07T01:48:35:    - Network:      http://127.0.2.2:3002
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35:  ✓ Starting...
+2025-09-07T01:48:35: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T01:48:35: npm error Lifecycle script `start` failed with error:
+2025-09-07T01:48:35: npm error code 1
+2025-09-07T01:48:35: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:35: npm error workspace @qa-app/web@1.0.0
+2025-09-07T01:48:35: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:35: npm error command failed
+2025-09-07T01:48:35: npm error command sh -c next start
+2025-09-07T01:48:35: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:48:35: 
+2025-09-07T01:48:35: > @qa-app/web@1.0.0 start
+2025-09-07T01:48:35: > next start
+2025-09-07T01:48:35: 
+2025-09-07T01:48:36:    ▲ Next.js 15.5.0
+2025-09-07T01:48:36:    - Local:        http://localhost:3002
+2025-09-07T01:48:36:    - Network:      http://127.0.2.2:3002
+2025-09-07T01:48:36: 
+2025-09-07T01:48:36:  ✓ Starting...
+2025-09-07T01:48:36: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T01:48:36: npm error Lifecycle script `start` failed with error:
+2025-09-07T01:48:36: npm error code 1
+2025-09-07T01:48:36: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:36: npm error workspace @qa-app/web@1.0.0
+2025-09-07T01:48:36: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:36: npm error command failed
+2025-09-07T01:48:36: npm error command sh -c next start
+2025-09-07T01:48:36: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:48:36: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:48:36: 
+2025-09-07T01:48:36: > @qa-app/web@1.0.0 start
+2025-09-07T01:48:36: > next start
+2025-09-07T01:48:36: 
+2025-09-07T01:48:36:    ▲ Next.js 15.5.0
+2025-09-07T01:48:36:    - Local:        http://localhost:3002
+2025-09-07T01:48:36:    - Network:      http://127.0.2.2:3002
+2025-09-07T01:48:36: 
+2025-09-07T01:48:36:  ✓ Starting...
+2025-09-07T01:48:36: [Error: Could not find a production build in the 'dist' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id]
+2025-09-07T01:48:36: npm error Lifecycle script `start` failed with error:
+2025-09-07T01:48:36: npm error code 1
+2025-09-07T01:48:36: npm error path /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:36: npm error workspace @qa-app/web@1.0.0
+2025-09-07T01:48:36: npm error location /Users/zhaoleon/Desktop/QAapp/apps/web
+2025-09-07T01:48:36: npm error command failed
+2025-09-07T01:48:36: npm error command sh -c next start
+2025-09-07T01:52:57: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T01:52:57: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T01:52:57: 
+2025-09-07T01:52:57: > @qa-app/web@1.0.0 start
+2025-09-07T01:52:57: > next start
+2025-09-07T01:52:57: 
+2025-09-07T01:52:57:    ▲ Next.js 15.5.0
+2025-09-07T01:52:57:    - Local:        http://localhost:3002
+2025-09-07T01:52:57:    - Network:      http://127.0.2.2:3002
+2025-09-07T01:52:57: 
+2025-09-07T01:52:57:  ✓ Starting...
+2025-09-07T01:52:57:  ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+2025-09-07T01:52:57:  ✓ Ready in 137ms
+2025-09-07T13:27:56: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: Unknown command: "dist/standalone/server.js"
+2025-09-07T13:27:56: 
+2025-09-07T13:27:56: To see a list of supported npm commands, run:
+2025-09-07T13:27:56:   npm help
+2025-09-07T13:27:56: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: Unknown command: "dist/standalone/server.js"
+2025-09-07T13:27:56: 
+2025-09-07T13:27:56: To see a list of supported npm commands, run:
+2025-09-07T13:27:56:   npm help
+2025-09-07T13:27:56: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T13:27:56: Unknown command: "dist/standalone/server.js"
+2025-09-07T13:27:56: 
+2025-09-07T13:27:56: To see a list of supported npm commands, run:
+2025-09-07T13:27:56:   npm help
+2025-09-07T13:27:57: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T13:27:57: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T13:27:57: Unknown command: "dist/standalone/server.js"
+2025-09-07T13:27:57: 
+2025-09-07T13:27:57: To see a list of supported npm commands, run:
+2025-09-07T13:27:57:   npm help
+2025-09-07T13:27:57: npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+2025-09-07T13:27:57: npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+2025-09-07T13:27:57: Unknown command: "dist/standalone/server.js"
+2025-09-07T13:27:57: 
+2025-09-07T13:27:57: To see a list of supported npm commands, run:
+2025-09-07T13:27:57:   npm help

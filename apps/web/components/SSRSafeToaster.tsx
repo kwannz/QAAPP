@@ -21,7 +21,10 @@ export function SSRSafeToaster() {
         setToaster(() => toastModule.Toaster);
         setIsMounted(true);
       } catch (error) {
-        console.warn('Failed to load react-hot-toast, toasts disabled:', error);
+        if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to load react-hot-toast, toasts disabled:', error);
+        }
         setIsMounted(true);
       }
     };

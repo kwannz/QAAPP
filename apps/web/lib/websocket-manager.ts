@@ -3,6 +3,11 @@ import { EventEmitter } from 'node:events';
 import apiClient from './api-client';
 import logger from './logger';
 
+// 配置常量
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY_MS = 1000;
+const HEARTBEAT_INTERVAL_MS = 30_000;
+
 export interface WebSocketMessage {
   type: 'audit_log' | 'system_event' | 'alert' | 'notification' | 'metrics'
   event: 'create' | 'update' | 'delete' | 'alert'
@@ -14,8 +19,8 @@ export class WebSocketManager extends EventEmitter {
   private ws: WebSocket | null = null;
   private url: string;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private maxReconnectAttempts = MAX_RECONNECT_ATTEMPTS;
+  private reconnectDelay = RECONNECT_DELAY_MS;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private isConnected = false;
   private messageQueue: WebSocketMessage[] = [];
@@ -52,24 +57,24 @@ export class WebSocketManager extends EventEmitter {
           const message: WebSocketMessage = JSON.parse(event.data);
           this.handleMessage(message);
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
+          logger.error('WebSocket', 'Failed to parse WebSocket message', error as any);
         }
       };
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        logger.error('WebSocket', 'WebSocket error', error as any);
         this.emit('error', error);
       };
 
       this.ws.addEventListener('close', () => {
-        console.log('WebSocket disconnected');
+        logger.info('WebSocket', 'WebSocket disconnected');
         this.isConnected = false;
         this.emit('disconnected');
         this.stopHeartbeat();
         this.attemptReconnect();
       });
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
+      logger.error('WebSocket', 'Failed to connect WebSocket', error as any);
       this.emit('error', error);
     }
   }
@@ -108,13 +113,13 @@ export class WebSocketManager extends EventEmitter {
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      logger.error('WebSocket', 'Max reconnection attempts reached');
       this.emit('reconnect:failed');
       return;
     }
 
     this.reconnectAttempts++;
-    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+    logger.info('WebSocket', `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
     // 检查后端服务是否运行
     if (typeof window !== 'undefined') {
@@ -128,7 +133,7 @@ export class WebSocketManager extends EventEmitter {
           }, this.reconnectDelay * this.reconnectAttempts);
         })
         .catch(() => {
-          console.warn('Backend service not available, skipping WebSocket reconnection');
+          logger.warn('WebSocket', 'Backend service not available, skipping WebSocket reconnection');
         });
     }
   }
@@ -138,7 +143,7 @@ export class WebSocketManager extends EventEmitter {
       if (this.ws?.readyState === WebSocket.OPEN) {
         this.send({ type: 'ping' });
       }
-    }, 30_000); // 每30秒发送一次心跳
+    }, HEARTBEAT_INTERVAL_MS); // 每30秒发送一次心跳
   }
 
   private stopHeartbeat(): void {
@@ -170,7 +175,9 @@ export class WebSocketManager extends EventEmitter {
     } else {
       // 如果未连接，将消息加入队列
       this.messageQueue.push(message);
-      console.log('WebSocket not connected, message queued');
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug('WebSocket', 'WebSocket not connected, message queued');
+      }
     }
   }
 
@@ -178,7 +185,7 @@ export class WebSocketManager extends EventEmitter {
     try {
       this.ws?.send(JSON.stringify(message));
     } catch (error) {
-      console.error('Failed to send WebSocket message:', error);
+      logger.error('WebSocket', 'Failed to send WebSocket message', error as any);
       this.messageQueue.push(message);
     }
   }

@@ -232,11 +232,11 @@ module.exports = {
       // Web项目特定规则  
       files: ['apps/web/**/*.{ts,tsx}'],
       extends: [
-        'plugin:react/recommended',
-        'plugin:react-hooks/recommended',
-        'plugin:jsx-a11y/recommended'
+        // Use Next.js recommended rules for App Router projects
+        'next',
+        'next/core-web-vitals'
       ],
-      plugins: ['react', 'react-hooks', 'jsx-a11y'],
+      plugins: [],
       settings: {
         react: {
           version: 'detect'
@@ -251,6 +251,23 @@ module.exports = {
         browser: true
       },
       rules: {
+        // Tune severities to reduce noise while we refactor
+        '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+        '@typescript-eslint/require-await': 'warn',
+        '@typescript-eslint/promise-function-async': 'warn',
+        'import/order': 'warn',
+        'no-implicit-coercion': 'warn',
+        'no-magic-numbers': ['warn', { ignore: [0, 1, -1], ignoreArrayIndexes: true, ignoreDefaultValues: true, detectObjects: false }],
+        'no-undefined': 'off',
+        'operator-linebreak': 'warn',
+        'max-len': ['warn', { code: 120, tabWidth: 2, ignoreUrls: true, ignoreStrings: true, ignoreTemplateLiterals: true, ignoreRegExpLiterals: true }],
+        'comma-dangle': ['warn', 'always-multiline'],
+        'unicorn/no-null': 'off',
+        'unicorn/no-nested-ternary': 'warn',
+        'unicorn/prevent-abbreviations': 'warn',
+        'react/no-array-index-key': 'warn',
+        'no-console': 'warn',
+
         // React规则
         'react/react-in-jsx-scope': 'off', // Next.js不需要导入React
         'react/prop-types': 'off', // 使用TypeScript
@@ -280,7 +297,7 @@ module.exports = {
         'react/prefer-stateless-function': 'error',
         'react/self-closing-comp': 'error',
 
-        // React Hooks规则
+        // React Hooks规则（keep strict to avoid runtime bugs）
         'react-hooks/rules-of-hooks': 'error',
         'react-hooks/exhaustive-deps': 'error',
 

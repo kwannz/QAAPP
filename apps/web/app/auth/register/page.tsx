@@ -5,23 +5,24 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, ArrowLeft, Mail, Lock, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
-import { useSafeToast } from '../../../lib/use-safe-toast';
 import { z } from 'zod';
+import { useSafeToast } from '../../../lib/use-safe-toast';
 
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 import { GoogleLoginButton } from '../../../components/auth/GoogleLoginButton';
 import { Web3LoginSection } from '../../../components/auth/Web3LoginSection';
 import { authApi } from '../../../lib/api-client';
 import { useAuthStore } from '../../../lib/auth-context';
+import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
+const MIN_PASSWORD_LENGTH = 8;
 const registerSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z
     .string()
-    .min(8, '密码至少8位')
+    .min(MIN_PASSWORD_LENGTH, '密码至少8位')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!$%&*?@])[\d!$%&*?@A-Za-z]/,
       '密码必须包含大小写字母、数字和特殊字符'),
   confirmPassword: z.string(),
@@ -34,7 +35,8 @@ const registerSchema = z.object({
 
 type RegisterForm = z.infer<typeof registerSchema>
 
-export default function RegisterPage() {
+// 包装使用useSearchParams的组件
+function RegisterPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,7 +52,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
+    setValue: _setValue,
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -146,6 +148,7 @@ export default function RegisterPage() {
                   error={errors.email?.message}
                   leftIcon={<Mail className="h-4 w-4" />}
                   loading={isLoading}
+                  autoComplete="email"
                 />
 
                 <Input
@@ -166,6 +169,7 @@ export default function RegisterPage() {
                     </button>
                   }
                   loading={isLoading}
+                  autoComplete="new-password"
                 />
 
                 <Input
@@ -185,6 +189,7 @@ export default function RegisterPage() {
                     </button>
                   }
                   loading={isLoading}
+                  autoComplete="new-password"
                 />
 
                 <Input
@@ -279,5 +284,18 @@ export default function RegisterPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// 主页面组件，使用Suspense包装
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

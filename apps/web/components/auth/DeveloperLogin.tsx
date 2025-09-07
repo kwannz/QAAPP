@@ -5,12 +5,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { authApi } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/auth-context';
-import toast from 'react-hot-toast';
+import { useSafeToast } from '@/lib/use-safe-toast';
+import { logger } from '@/lib/verbose-logger';
 
 export function DeveloperLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { setUser, setTokens } = useAuthStore();
+  const toast = useSafeToast();
 
   // Only show in development mode
   if (process.env.NODE_ENV !== 'development') {
@@ -22,7 +24,7 @@ export function DeveloperLogin() {
     try {
       const response = await authApi.login({
         email: 'dev@qa-app.com',
-        password: 'Dev123!'
+        password: 'Dev123!',
       });
 
       if (response.data?.success && response.data?.data) {
@@ -37,7 +39,7 @@ export function DeveloperLogin() {
         throw new Error('Invalid response format');
       }
     } catch (error: any) {
-      console.error('Developer login failed:', error);
+      logger.error('DeveloperLogin', 'Developer login failed', { error });
       toast.error(`开发者登录失败: ${error.response?.data?.message || error.message}`);
     } finally {
       setIsLoading(false);

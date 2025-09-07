@@ -1,0 +1,13 @@
+
+> @qa-app/api@1.0.0 test /Users/zhaoleon/Desktop/QAapp/apps/api
+> jest
+
+No tests found, exiting with code 1
+Run with `--passWithNoTests` to exit with code 0
+In /Users/zhaoleon/Desktop/QAapp/apps/api
+  360 files checked.
+  testMatch: /Users/zhaoleon/Desktop/QAapp/apps/api/src/**/*.spec.ts, /Users/zhaoleon/Desktop/QAapp/apps/api/test/**/*.spec.ts - 0 matches
+  testPathIgnorePatterns: /Users/zhaoleon/Desktop/QAapp/apps/api/test/.*.e2e-spec.ts$ - 351 matches
+  testRegex:  - 0 matches
+Pattern:  - 0 matches
+ ELIFECYCLE  Test failed. See above for more details.

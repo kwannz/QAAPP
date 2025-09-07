@@ -9,31 +9,18 @@ import {
   MoreHorizontal,
   User,
   Mail,
-  Phone,
-  Shield,
-  Key,
   Bell,
   Globe,
-  CreditCard,
-  FileText,
   Camera,
   Edit,
   Save,
   X,
   Check,
   AlertTriangle,
-  Lock,
-  Unlock,
   Eye,
-  EyeOff,
-  Upload,
-  Download,
   Trash2,
   RefreshCw,
   Settings,
-  MapPin,
-  Calendar,
-  Briefcase,
   Link as LinkIcon,
   Smartphone,
   Laptop,
@@ -42,25 +29,17 @@ import {
   ExternalLink,
   AlertCircle,
   CheckCircle,
-  Plus,
   BellRing,
   Search,
-  Archive,
   Star,
   Clock,
-  Activity,
-  MessageSquare,
-  Info,
-  Volume2,
-  VolumeX,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { safeToast } from '../../lib/toast';
 import { formatUnits } from 'viem';
+import { safeToast } from '../../lib/toast';
 
-import { Button, InvestmentDashboard, WalletConnect, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui';
 
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { TabContainer } from '../../components/common/TabContainer';
@@ -76,7 +55,9 @@ import { getContractAddresses } from '../../lib/contracts/addresses';
 import { useFeatureFlag } from '../../lib/feature-flags';
 import { useUSDT } from '../../lib/hooks/use-contracts';
 import { useSafeAccount, useSafeConnect, useSafeDisconnect, useSafeBalance, useSafeEnsName } from '../../lib/hooks/use-safe-wagmi';
-import { notificationApi } from '../../lib/api-client';
+// import { notificationApi } from '../../lib/api-client';
+import { logger } from '@/lib/verbose-logger';
+import { Button, InvestmentDashboard, WalletConnect, WalletConnectionManager, Card, CardContent, CardHeader, CardTitle, Input, Badge, Alert, AlertDescription } from '@/components/ui';
 
 // 用户资料类型定义
 interface UserProfile {
@@ -408,16 +389,16 @@ export default function DashboardPage() {
   // State for all integrated features
   const [profile, setProfile] = useState<UserProfile>(mockProfile);
   const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(mockSecuritySettings);
-  const [kycDocuments] = useState<KYCDocument[]>(mockKYCDocuments);
-  const [loginDevices] = useState<LoginDevice[]>(mockLoginDevices);
+  const [_kycDocuments] = useState<KYCDocument[]>(mockKYCDocuments);
+  const [_loginDevices] = useState<LoginDevice[]>(mockLoginDevices);
   const [notifications, setNotifications] = useState<UserNotification[]>(mockNotifications);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(mockNotificationSettings);
+  const [_notificationSettings, _setNotificationSettings] = useState<NotificationSettings>(mockNotificationSettings);
 
   // Profile editing state
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>(mockProfile);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [_showCurrentPassword, _setShowCurrentPassword] = useState(false);
+  const [_showNewPassword, _setShowNewPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -436,24 +417,31 @@ export default function DashboardPage() {
   // Notification state
   const [selectedNotificationType, setSelectedNotificationType] = useState<'all' | 'SYSTEM' | 'TRANSACTION' | 'MARKETING' | 'SECURITY' | 'PROMOTION'>('all');
   const [notificationSearchTerm, setNotificationSearchTerm] = useState('');
-  const [selectedNotificationItems, setSelectedNotificationItems] = useState<string[]>([]);
+  const [_selectedNotificationItems, _setSelectedNotificationItems] = useState<string[]>([]);
+
+  const LOADING_DELAY_MS = 1000;
+  const COPY_RESET_MS = 2000;
 
   useEffect(() => {
     // 模拟数据加载
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, LOADING_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, []);
 
   const handleClaimRewards = () => {
-    console.log('Claiming rewards...');
+    if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+      logger.info('Dashboard', 'Claiming rewards');
+    }
     safeToast.success('收益领取成功!');
   };
 
   const handleViewPosition = (positionId: string) => {
-    console.log('Viewing position:', positionId);
+    if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+      logger.info('Dashboard', 'Viewing position', { positionId });
+    }
   };
 
   // Profile handlers
@@ -468,17 +456,19 @@ export default function DashboardPage() {
     setIsEditing(false);
   };
 
-  const handlePasswordChange = () => {
+  const _handlePasswordChange = () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       safeToast.error('新密码确认不匹配');
       return;
     }
-    console.log('Changing password...');
+    if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+      logger.info('Dashboard', 'Changing password');
+    }
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     safeToast.success('密码修改成功');
   };
 
-  const handleToggle2FA = () => {
+  const _handleToggle2FA = () => {
     setSecuritySettings(previous => ({
       ...previous,
       twoFactorEnabled: !previous.twoFactorEnabled,
@@ -486,13 +476,17 @@ export default function DashboardPage() {
     safeToast.success(securitySettings.twoFactorEnabled ? '双重认证已禁用' : '双重认证已启用');
   };
 
-  const handleUploadDocument = (type: string) => {
-    console.log('Uploading document type:', type);
+  const _handleUploadDocument = (type: string) => {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+      logger.info('Dashboard', 'Uploading document', { type });
+    }
     safeToast.success('文档上传成功');
   };
 
-  const handleRevokeDevice = (deviceId: string) => {
-    console.log('Revoking device:', deviceId);
+  const _handleRevokeDevice = (deviceId: string) => {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+      logger.info('Dashboard', 'Revoking device', { deviceId });
+    }
     safeToast.success('设备会话已撤销');
   };
 
@@ -504,7 +498,7 @@ export default function DashboardPage() {
       await navigator.clipboard.writeText(address);
       setIsCopied(true);
       safeToast.success('地址已复制到剪贴板');
-      setTimeout(() => setIsCopied(false), 2000);
+      setTimeout(() => setIsCopied(false), COPY_RESET_MS);
     } catch {
       safeToast.error('复制失败');
     }
@@ -540,7 +534,7 @@ export default function DashboardPage() {
 
   const handleDeleteNotification = async (id: string) => {
     setNotifications(previous => previous.filter(notif => notif.id !== id));
-    setSelectedNotificationItems(previous => previous.filter(itemId => itemId !== id));
+    _setSelectedNotificationItems(previous => previous.filter(itemId => itemId !== id));
     safeToast.success('通知已删除');
   };
 
@@ -558,11 +552,13 @@ export default function DashboardPage() {
     return `${explorers[chainId] || 'https://etherscan.io'}/address/${address}`;
   };
 
+  const ADDRESS_PREFIX_LEN = 6;
+  const ADDRESS_SUFFIX_LEN = 4;
   const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, ADDRESS_PREFIX_LEN)}...${addr.slice(-ADDRESS_SUFFIX_LEN)}`;
   };
 
-  const getKYCStatusColor = (status: string) => {
+  const _getKYCStatusColor = (status: string) => {
     switch (status) {
       case 'APPROVED': { return 'text-green-600 bg-green-100';
       }
@@ -577,7 +573,7 @@ export default function DashboardPage() {
     }
   };
 
-  const getDocumentTypeName = (type: string) => {
+  const _getDocumentTypeName = (type: string) => {
     switch (type) {
       case 'ID_CARD': { return '身份证';
       }
@@ -592,7 +588,7 @@ export default function DashboardPage() {
     }
   };
 
-  const getDeviceIcon = (type: string) => {
+  const _getDeviceIcon = (type: string) => {
     switch (type) {
       case 'MOBILE': { return Smartphone;
       }
@@ -605,11 +601,11 @@ export default function DashboardPage() {
     }
   };
 
-  const formatFileSize = (sizeInMB: number) => {
+  const _formatFileSize = (sizeInMB: number) => {
     return `${sizeInMB.toFixed(1)} MB`;
   };
 
-  const formatDate = (dateString: string) => {
+  const _formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'long',
@@ -617,20 +613,26 @@ export default function DashboardPage() {
     });
   };
 
-  const formatDateTime = (dateString: string) => {
+  const _formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN');
   };
+
+  const MS_PER_SEC = 1000;
+  const SEC_PER_MIN = 60;
+  const MIN_PER_HOUR = 60;
+  const HOURS_PER_DAY = 24;
+  const TWO_DAYS_HOURS = 48;
 
   const formatNotificationDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - date.getTime()) / (MS_PER_SEC * SEC_PER_MIN * MIN_PER_HOUR);
 
     if (diffInHours < 1) {
       return '刚刚';
-    } else if (diffInHours < 24) {
+    } else if (diffInHours < HOURS_PER_DAY) {
       return `${Math.floor(diffInHours)}小时前`;
-    } else if (diffInHours < 48) {
+    } else if (diffInHours < TWO_DAYS_HOURS) {
       return '1天前';
     }
       return date.toLocaleDateString('zh-CN');
@@ -695,13 +697,16 @@ export default function DashboardPage() {
   // Filter notifications
   const filteredNotifications = notifications.filter(notification => {
     const matchesType = selectedNotificationType === 'all' || notification.type === selectedNotificationType;
-    const matchesSearch = notification.title.toLowerCase().includes(notificationSearchTerm.toLowerCase())
-                         || notification.message.toLowerCase().includes(notificationSearchTerm.toLowerCase());
+    const matchesSearch = notification.title.toLowerCase().includes(notificationSearchTerm.toLowerCase()) ||
+                         notification.message.toLowerCase().includes(notificationSearchTerm.toLowerCase());
     return matchesType && matchesSearch;
   });
 
   const unreadNotificationCount = notifications.filter(n => !n.isRead).length;
-  const contracts = getContractAddresses(chainId || 1);
+  const _contracts = getContractAddresses(chainId || 1);
+  const ETH_DECIMALS = 18;
+  const DISPLAY_DECIMALS = 4;
+  const NOTIFICATIONS_PREVIEW_COUNT = 10;
 
   // Tab configuration
   const tabs = [
@@ -763,7 +768,15 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <WalletConnect />
+        {(() => {
+          const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+          const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const override = debug && sp?.get('e2e_wallet') === 'connected';
+          if (override) {
+            return <WalletConnectionManager showNetworkInfo showContractStatus />;
+          }
+          return <WalletConnect />;
+        })()}
       </motion.div>
 
       {/* 快捷操作 */}
@@ -774,7 +787,7 @@ export default function DashboardPage() {
       >
         <h2 className="text-xl font-semibold mb-4">快捷操作</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {quickActions.map((action, index) => {
+          {quickActions.map((action, _index) => {
             const Icon = action.icon;
             return (
               <Link key={action.title} href={action.href}>
@@ -859,8 +872,8 @@ export default function DashboardPage() {
                   time: '3天前',
                   status: 'success',
                 },
-              ].map((activity, index) => (
-                <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+              ].map((activity) => (
+                <div key={`${activity.type}-${activity.time}`} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center space-x-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       activity.type === 'investment'
@@ -908,8 +921,8 @@ export default function DashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+                {['sk-1','sk-2','sk-3','sk-4'].map((key) => (
+                  <div key={key} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
                 ))}
               </div>
 
@@ -991,7 +1004,10 @@ export default function DashboardPage() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">姓</label>
                 <Input
                   value={isEditing ? editedProfile.firstName || '' : profile.firstName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, firstName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({
+                    ...previous,
+                    firstName: e.target.value,
+                  }))}
                   disabled={!isEditing}
                   placeholder="请输入姓"
                 />
@@ -1000,7 +1016,10 @@ export default function DashboardPage() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">名</label>
                 <Input
                   value={isEditing ? editedProfile.lastName || '' : profile.lastName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, lastName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({
+                    ...previous,
+                    lastName: e.target.value,
+                  }))}
                   disabled={!isEditing}
                   placeholder="请输入名"
                 />
@@ -1030,7 +1049,10 @@ export default function DashboardPage() {
                 <div className="flex items-center space-x-2">
                   <Input
                     value={isEditing ? editedProfile.phoneNumber || '' : profile.phoneNumber || ''}
-                    onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, phoneNumber: e.target.value }))}
+                    onChange={(e) => isEditing && setEditedProfile(previous => ({
+                      ...previous,
+                      phoneNumber: e.target.value,
+                    }))}
                     disabled={!isEditing}
                     placeholder="请输入手机号码"
                     className="flex-1"
@@ -1147,7 +1169,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">以太坊</p>
                       <p className="font-semibold">
-                        {ethBalance ? Number.parseFloat(formatUnits(ethBalance.value, 18)).toFixed(4) : '0.0000'} ETH
+                        {ethBalance ? Number.parseFloat(formatUnits(ethBalance.value, ETH_DECIMALS)).toFixed(DISPLAY_DECIMALS) : '0.0000'} ETH
                       </p>
                     </div>
                   </div>
@@ -1304,7 +1326,7 @@ export default function DashboardPage() {
 
       {/* 通知列表 */}
       <div className="space-y-3">
-        {filteredNotifications.slice(0, 10).map((notification) => {
+        {filteredNotifications.slice(0, NOTIFICATIONS_PREVIEW_COUNT).map((notification) => {
           const TypeIcon = getNotificationTypeIcon(notification.type);
           const ChannelIcon = getChannelIcon(notification.channel);
           const isExpired = notification.expiresAt && new Date(notification.expiresAt) < new Date();

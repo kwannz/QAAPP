@@ -6,10 +6,6 @@ import {
   User,
   Shield,
   Bell,
-  CreditCard,
-  Globe,
-  Moon,
-  Sun,
   Smartphone,
   Mail,
   Lock,
@@ -20,15 +16,13 @@ import {
   LogOut,
   Trash2,
   AlertTriangle,
-  CheckCircle
 } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Switch, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from '@/components/ui';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { Header } from '../../components/layout/Header';
 import { useSafeToast } from '../../lib/use-safe-toast';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Switch, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, WalletConnectionManager } from '@/components/ui';
 
 interface SettingsState {
   // Profile Settings
@@ -99,17 +93,20 @@ export default function SettingsPage() {
   const handleInputChange = (field: keyof SettingsState, value: any) => {
     setSettings(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
+
+  const MS_PER_SEC = 1000;
+  const MIN_PASSWORD_LENGTH = 8;
 
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
       // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, MS_PER_SEC));
       toast.success('个人资料已更新');
-    } catch (error) {
+    } catch {
       toast.error('更新失败，请重试');
     } finally {
       setIsLoading(false);
@@ -122,7 +119,7 @@ export default function SettingsPage() {
       return;
     }
     
-    if (settings.newPassword.length < 8) {
+    if (settings.newPassword.length < MIN_PASSWORD_LENGTH) {
       toast.error('新密码至少需要8位');
       return;
     }
@@ -130,15 +127,15 @@ export default function SettingsPage() {
     setIsLoading(true);
     try {
       // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, MS_PER_SEC));
       toast.success('密码修改成功');
       setSettings(prev => ({
         ...prev,
         currentPassword: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
       }));
-    } catch (error) {
+    } catch {
       toast.error('密码修改失败，请重试');
     } finally {
       setIsLoading(false);
@@ -149,9 +146,9 @@ export default function SettingsPage() {
     setIsLoading(true);
     try {
       // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, MS_PER_SEC));
       toast.success('设置已保存');
-    } catch (error) {
+    } catch {
       toast.error('保存失败，请重试');
     } finally {
       setIsLoading(false);
@@ -184,6 +181,25 @@ export default function SettingsPage() {
         <main className="flex-1 bg-gray-50">
           <div className="qa-container py-8">
             <div className="space-y-8">
+              {/* 调试：已连接覆盖 */}
+              {(() => {
+                const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+                const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                const override = debug && sp?.get('e2e_wallet') === 'connected';
+                if (override) {
+                  return (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>钱包连接</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <WalletConnectionManager showNetworkInfo showContractStatus />
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                return null;
+              })()}
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

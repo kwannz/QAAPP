@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, User, Shield, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, User, Shield } from 'lucide-react';
 import * as React from 'react';
 import type { ReactNode } from 'react';
 
@@ -260,9 +260,10 @@ function ProductCard({
   onClick,
 }: ProductCardProperties) {
   return (
-    <Card className={cn('overflow-hidden transition-all hover:shadow-lg', className)}>
+    <Card className={cn('overflow-hidden transition-all hover:shadow-lg', className)} onClick={onClick}>
       {image && (
         <div className="aspect-video relative overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={image}
             alt={title}
@@ -291,8 +292,8 @@ function ProductCard({
 
         {tags && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {tags.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
+            {tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs">
                 {tag}
               </Badge>
             ))}
@@ -334,7 +335,7 @@ function ProductCard({
           <div className="flex gap-2 w-full">
             {actions.map((action, index) => (
               <Button
-                key={index}
+                key={`action-${action.label}`}
                 variant={action.variant || 'default'}
                 onClick={action.onClick}
                 disabled={action.disabled}
@@ -396,7 +397,9 @@ export function RevenueMetricsCard({ revenue, change }: { revenue: number; chang
 }
 
 export function SystemHealthCard({ health }: { health: number }) {
-  const status = health >= 95 ? 'success' : (health >= 90 ? 'warning' : 'error');
+  const HEALTH_SUCCESS = 95;
+  const HEALTH_WARN = 90;
+  const status = health >= HEALTH_SUCCESS ? 'success' : (health >= HEALTH_WARN ? 'warning' : 'error');
 
   return (
     <MetricsCard
@@ -404,7 +407,7 @@ export function SystemHealthCard({ health }: { health: number }) {
       value={`${health}%`}
       icon={<Shield className="h-5 w-5 text-blue-600" />}
       status={status}
-      description={health >= 95 ? '系统运行良好' : (health >= 90 ? '需要关注' : '需要立即处理')}
+      description={health >= HEALTH_SUCCESS ? '系统运行良好' : (health >= HEALTH_WARN ? '需要关注' : '需要立即处理')}
     />
   );
 }

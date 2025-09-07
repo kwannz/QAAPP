@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 
-import { LazyWrapper, PageLoader, CardLoader } from '../components/ui/LazyComponentLoader';
+import { LazyWrapper, PageLoader } from '../components/ui/LazyComponentLoader';
 
 // 懒加载主要页面组件
 export const LazyDashboard = lazy(async () => import('../app/dashboard/page'));

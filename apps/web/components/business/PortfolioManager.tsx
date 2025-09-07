@@ -1,43 +1,13 @@
 'use client';
 
-import {
-  TrendingUp,
-  Clock,
-  DollarSign,
-  Calendar,
-  Target,
-  Award,
-  AlertCircle,
-  CheckCircle2,
-  RefreshCw,
-  Package,
-  PieChart,
-  Activity,
-  Info,
-  ArrowRight,
-  Plus,
-  Eye,
-} from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Target, RefreshCw, Package, PieChart, Activity, Info, Plus, Eye } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Badge,
-  Button,
-  Alert,
-  AlertDescription,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Input,
-} from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger, Input } from '@/components/ui';
 import apiClient from '@/lib/api-client';
-import { ProductType, PRODUCT_CONFIG } from '@/lib/contracts/addresses';
+import { ProductType } from '@/lib/contracts/addresses';
 import { useSafeToast } from '@/lib/use-safe-toast';
+import { logger } from '@/lib/verbose-logger';
 
 // 类型定义 (整合自 positions 和 products)
 interface Position {
@@ -99,6 +69,7 @@ export function PortfolioManager({
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const toast = useSafeToast();
+  const PERCENT_SCALE = 100;
 
   // API 服务（使用统一 apiClient）
   const fetchUserPositions = async () => {
@@ -126,7 +97,7 @@ export function PortfolioManager({
 
   const loadData = async () => {
     if (!localStorage.getItem('token')) {
-      console.error('No auth token found');
+      logger.warn('PortfolioManager', 'No auth token found');
       return;
     }
 
@@ -148,7 +119,7 @@ export function PortfolioManager({
       setProducts(productsData);
       setSummary(summaryData);
     } catch (error: any) {
-      console.error('Failed to load portfolio data:', error);
+      logger.error('PortfolioManager', 'Failed to load portfolio data', error);
 
       // Set empty states to avoid errors
       setPositions([]);
@@ -167,6 +138,7 @@ export function PortfolioManager({
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const handleProductPurchase = async (product: Product, amount: number) => {
@@ -179,7 +151,7 @@ export function PortfolioManager({
       // 刷新数据
       await loadData();
     } catch (error: any) {
-      console.error('Investment failed:', error);
+      logger.error('PortfolioManager', 'Investment failed', error);
       toast.error(`投资失败: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -343,7 +315,12 @@ export function PortfolioManager({
   const renderProducts = () => (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {products.map((product) => (
+        {products.map((product) => {
+          const progressPercent =
+            (product.totalInvested /
+              (product.totalInvested + product.availableCapacity)) *
+            PERCENT_SCALE;
+          return (
           <Card key={product.id} className="relative">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -394,12 +371,12 @@ export function PortfolioManager({
               <div className="pt-2">
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span>投资进度</span>
-                  <span>{((product.totalInvested / (product.totalInvested + product.availableCapacity)) * 100).toFixed(1)}%</span>
+                  <span>{progressPercent.toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${(product.totalInvested / (product.totalInvested + product.availableCapacity)) * 100}%` }}
+                    style={{ width: `${progressPercent}%` }}
                   />
                 </div>
               </div>
@@ -419,7 +396,8 @@ export function PortfolioManager({
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {selectedProduct && (
@@ -446,7 +424,10 @@ export function PortfolioManager({
             <div className="space-y-3">
               {products.map((product) => {
                 const userPosition = positions.find(p => p.productId === product.id);
-                const percentage = userPosition ? ((userPosition.currentValue / (summary?.totalValue || 1)) * 100) : 0;
+                const percentage = userPosition
+                  ? ((userPosition.currentValue / (summary?.totalValue || 1)) *
+                      PERCENT_SCALE)
+                  : 0;
 
                 return (
                   <div key={product.id} className="flex items-center justify-between">
@@ -592,8 +573,8 @@ function ProductInvestmentModal({
 }
 
 // Hook for portfolio management
-export function usePortfolioManager(userId?: string) {
-  const [isEnabled, setIsEnabled] = useState(true);
+export function usePortfolioManager(_userId?: string) {
+  const [isEnabled] = useState(true);
 
   return { isEnabled };
 }

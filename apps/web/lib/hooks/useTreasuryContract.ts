@@ -1,16 +1,28 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import toast from 'react-hot-toast';
 import type { Address } from 'viem';
 import { parseUnits, formatUnits } from 'viem';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance, useChainId } from 'wagmi';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { mainnet, polygon, arbitrum, sepolia } from 'wagmi/chains';
+import { useSafeToast } from '../use-safe-toast';
+import { logger } from '../verbose-logger';
 
 import { web3ConnectionManager } from '../web3/connection-manager';
 
 import { useWalletStatus } from './useWalletConnection';
 
+// Chain and unit constants
+const CHAIN_ID_MAINNET = 1;
+const CHAIN_ID_POLYGON = 137;
+const CHAIN_ID_ARBITRUM = 42_161; // arbitrum one
+const CHAIN_ID_SEPOLIA = 11_155_111;
+const DECIMALS_USDT = 6;
+const DECIMALS_ETH = 18;
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
 
 // Treasury合约ABI (简化版)
 export const TREASURY_ABI = [
@@ -214,6 +226,7 @@ export interface PeriodRewardInfo {
 }
 
 export function useTreasuryContract() {
+  const toast = useSafeToast();
   const { isConnected, address, chainId, isNetworkSupported } = useWalletStatus();
   const [contractAddress, setContractAddress] = useState<Address>();
   const { writeContract, data: hash, isPending: isWritePending } = useWriteContract();
@@ -236,13 +249,13 @@ export function useTreasuryContract() {
   // 获取链对象的辅助函数
   const getChainObject = useCallback(() => {
     switch (chainId) {
-      case 1: { return mainnet;
+      case CHAIN_ID_MAINNET: { return mainnet;
       }
-      case 137: { return polygon;
+      case CHAIN_ID_POLYGON: { return polygon;
       }
-      case 42_161: { return arbitrum;
+      case CHAIN_ID_ARBITRUM: { return arbitrum;
       }
-      case 11_155_111: { return sepolia;
+      case CHAIN_ID_SEPOLIA: { return sepolia;
       }
       default: { return sepolia;
       } // 默认使用sepolia
@@ -300,7 +313,7 @@ export function useTreasuryContract() {
     }
 
     try {
-      const amountInWei = parseUnits(amount, 6); // USDT是6位小数
+      const amountInWei = parseUnits(amount, DECIMALS_USDT); // USDT是6位小数
       await writeContract({
         address: contractAddress,
         abi: TREASURY_ABI,
@@ -311,11 +324,11 @@ export function useTreasuryContract() {
       });
       toast.success('交易已提交，等待确认...');
     } catch (error: any) {
-      console.error('Purchase failed:', error);
+      logger.error('TreasuryContract', 'Purchase failed', { error });
       toast.error(`购买失败: ${error.message}`);
       throw error;
     }
-  }, [contractAddress, writeContract]);
+  }, [contractAddress, writeContract, address, getChainObject, toast]);
 
   // 购买产品带推荐人 (USDT)
   const purchaseWithReferral = useCallback(async (productId: number, amount: string, referrer: Address) => {
@@ -325,7 +338,7 @@ export function useTreasuryContract() {
     }
 
     try {
-      const amountInWei = parseUnits(amount, 6);
+      const amountInWei = parseUnits(amount, DECIMALS_USDT);
       await writeContract({
         address: contractAddress,
         abi: TREASURY_ABI,
@@ -336,11 +349,11 @@ export function useTreasuryContract() {
       });
       toast.success('交易已提交，等待确认...');
     } catch (error: any) {
-      console.error('Purchase with referral failed:', error);
+      logger.error('TreasuryContract', 'Purchase with referral failed', { error });
       toast.error(`购买失败: ${error.message}`);
       throw error;
     }
-  }, [contractAddress, writeContract]);
+  }, [contractAddress, writeContract, address, getChainObject, toast]);
 
   // 购买产品 (ETH)
   const purchaseWithETH = useCallback(async (productId: number, ethAmount: string) => {
@@ -350,7 +363,7 @@ export function useTreasuryContract() {
     }
 
     try {
-      const amountInWei = parseUnits(ethAmount, 18);
+      const amountInWei = parseUnits(ethAmount, DECIMALS_ETH);
       await writeContract({
         address: contractAddress,
         abi: TREASURY_ABI,
@@ -362,11 +375,11 @@ export function useTreasuryContract() {
       });
       toast.success('交易已提交，等待确认...');
     } catch (error: any) {
-      console.error('ETH purchase failed:', error);
+      logger.error('TreasuryContract', 'ETH purchase failed', { error });
       toast.error(`ETH购买失败: ${error.message}`);
       throw error;
     }
-  }, [contractAddress, writeContract]);
+  }, [contractAddress, writeContract, address, getChainObject, toast]);
 
   // 设置推荐人
   const setReferrer = useCallback(async (referrer: Address) => {
@@ -386,11 +399,11 @@ export function useTreasuryContract() {
       });
       toast.success('推荐人设置已提交，等待确认...');
     } catch (error: any) {
-      console.error('Set referrer failed:', error);
+      logger.error('TreasuryContract', 'Set referrer failed', { error });
       toast.error(`设置推荐人失败: ${error.message}`);
       throw error;
     }
-  }, [contractAddress, writeContract]);
+  }, [contractAddress, writeContract, address, getChainObject, toast]);
 
   // 领取推荐佣金
   const claimReferralCommission = useCallback(async () => {
@@ -409,11 +422,11 @@ export function useTreasuryContract() {
       });
       toast.success('佣金领取已提交，等待确认...');
     } catch (error: any) {
-      console.error('Claim referral commission failed:', error);
+      logger.error('TreasuryContract', 'Claim referral commission failed', { error });
       toast.error(`领取佣金失败: ${error.message}`);
       throw error;
     }
-  }, [contractAddress, writeContract]);
+  }, [contractAddress, writeContract, address, getChainObject, toast]);
 
   // 领取周期奖励
   const claimPeriodReward = useCallback(async (periodId: number) => {
@@ -433,11 +446,11 @@ export function useTreasuryContract() {
       });
       toast.success('周期奖励领取已提交，等待确认...');
     } catch (error: any) {
-      console.error('Claim period reward failed:', error);
+      logger.error('TreasuryContract', 'Claim period reward failed', { error });
       toast.error(`领取周期奖励失败: ${error.message}`);
       throw error;
     }
-  }, [contractAddress, writeContract]);
+  }, [contractAddress, writeContract, address, getChainObject, toast]);
 
   // 刷新所有数据
   const refreshData = useCallback(() => {
@@ -453,19 +466,20 @@ export function useTreasuryContract() {
       toast.success('交易已确认！');
       refreshData();
     }
-  }, [isSuccess, refreshData]);
+  }, [isSuccess, refreshData, toast]);
 
   // 格式化工具函数
   const formatUSDT = useCallback((amount: bigint) => {
-    return formatUnits(amount, 6);
+    return formatUnits(amount, DECIMALS_USDT);
   }, []);
 
+  const DECIMALS_PERCENT = 2;
   const formatAPY = useCallback((apy: bigint) => {
-    return formatUnits(apy, 2); // APY以百分比形式存储，如1200表示12.00%
+    return formatUnits(apy, DECIMALS_PERCENT); // APY以百分比形式存储，如1200表示12.00%
   }, []);
 
   const formatDuration = useCallback((duration: bigint) => {
-    const days = Number(duration) / (24 * 60 * 60);
+    const days = Number(duration) / SECONDS_PER_DAY;
     return `${days} 天`;
   }, []);
 

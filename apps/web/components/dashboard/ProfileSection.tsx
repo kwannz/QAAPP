@@ -1,8 +1,6 @@
 'use client';
 
-import {
-  User, Mail, Check, Camera, Edit, Save, X, Link as LinkIcon,
-} from 'lucide-react';
+import { User, Check, Camera, Edit, Save, X, Link as LinkIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/components/ui';
@@ -156,7 +154,10 @@ export function ProfileSection() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">姓</label>
                 <Input
                   value={isEditing ? editedProfile.firstName || '' : profile.firstName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, firstName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({
+                    ...previous,
+                    firstName: e.target.value,
+                  }))}
                   disabled={!isEditing}
                   placeholder="请输入姓"
                 />
@@ -165,7 +166,10 @@ export function ProfileSection() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">名</label>
                 <Input
                   value={isEditing ? editedProfile.lastName || '' : profile.lastName || ''}
-                  onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, lastName: e.target.value }))}
+                  onChange={(e) => isEditing && setEditedProfile(previous => ({
+                    ...previous,
+                    lastName: e.target.value,
+                  }))}
                   disabled={!isEditing}
                   placeholder="请输入名"
                 />
@@ -195,7 +199,10 @@ export function ProfileSection() {
                 <div className="flex items-center space-x-2">
                   <Input
                     value={isEditing ? editedProfile.phoneNumber || '' : profile.phoneNumber || ''}
-                    onChange={(e) => isEditing && setEditedProfile(previous => ({ ...previous, phoneNumber: e.target.value }))}
+                    onChange={(e) => isEditing && setEditedProfile(previous => ({
+                      ...previous,
+                      phoneNumber: e.target.value,
+                    }))}
                     disabled={!isEditing}
                     placeholder="请输入手机号码"
                     className="flex-1"

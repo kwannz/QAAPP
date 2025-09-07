@@ -27,6 +27,7 @@ import {
   Badge,
   Alert,
   AlertDescription,
+  WalletConnectionManager,
 } from '@/components/ui';
 
 interface Product {
@@ -119,10 +120,25 @@ export default function ProductsPage() {
     ? mockProducts 
     : mockProducts.filter(product => product.category === selectedCategory);
 
+  const getPurchaseSlug = (product: Product) => {
+    // 简单映射：按类别映射到购买页面的产品类型
+    switch (product.category) {
+      case 'STABLE':
+        return 'silver';
+      case 'GROWTH':
+        return 'gold';
+      case 'PREMIUM':
+        return 'diamond';
+      default:
+        return 'silver';
+    }
+  };
+
   const renderProductCard = (product: Product) => {
     const riskConfig = riskLevelConfig[product.riskLevel];
     const statusConfigItem = statusConfig[product.status];
-    const progress = parseFloat(product.totalRaised.replace(/[^0-9.]/g, '')) / parseFloat(product.targetAmount.replace(/[^0-9.]/g, '')) * 100;
+    const PERCENT = 100;
+    const progress = parseFloat(product.totalRaised.replace(/[^0-9.]/g, '')) / parseFloat(product.targetAmount.replace(/[^0-9.]/g, '')) * PERCENT;
 
     return (
       <Card key={product.id} className="group hover:shadow-lg transition-all duration-200 border-gray-200">
@@ -184,7 +200,7 @@ export default function ProductsPage() {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${Math.min(progress, 100)}%` }}
+                style={{ width: `${Math.min(progress, PERCENT)}%` }}
               />
             </div>
             <div className="flex items-center justify-between text-xs text-gray-500">
@@ -200,8 +216,8 @@ export default function ProductsPage() {
               <span className="text-sm text-gray-600">{product.investorCount} 位投资者</span>
             </div>
             <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              {['a','b','c','d','e'].map((pos) => (
+                <Star key={`${product.id}-star-${pos}`} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
           </div>
@@ -221,7 +237,7 @@ export default function ProductsPage() {
           {/* 操作按钮 */}
           <div className="pt-2">
             {product.status === 'AVAILABLE' ? (
-              <Link href="/auth/login">
+              <Link href={`/products/purchase/${getPurchaseSlug(product)}`}>
                 <Button className="w-full group">
                   立即投资
                   <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
@@ -249,6 +265,25 @@ export default function ProductsPage() {
       <Header />
       <main className="flex-1 bg-gray-50">
         <div className="container mx-auto py-8 px-4">
+          {/* 调试：在开发/测试模式下，可通过 ?e2e_wallet=connected 覆盖为已连接状态 */}
+          {(() => {
+            const debug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+            const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+            const override = debug && sp?.get('e2e_wallet') === 'connected';
+            if (override) {
+              return (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>钱包连接</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <WalletConnectionManager showNetworkInfo showContractStatus />
+                  </CardContent>
+                </Card>
+              );
+            }
+            return null;
+          })()}
           {/* 页面标题 */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">

@@ -1,0 +1,46 @@
+
+> @qa-app/web@1.0.0 build /Users/zhaoleon/Desktop/QAapp/apps/web
+> next build
+
+   ▲ Next.js 15.5.0
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 13.0s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/20) ...
+   Generating static pages (5/20) 
+   Generating static pages (10/20) 
+   Generating static pages (15/20) 
+ ✓ Generating static pages (20/20)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    8.64 kB         207 kB
+├ ○ /_not-found                          1.01 kB         106 kB
+├ ○ /admin                               4.36 kB         203 kB
+├ ○ /admin/analytics                     5.42 kB         196 kB
+├ ○ /admin/monitoring                     113 kB         337 kB
+├ ○ /admin/operations                    10.3 kB         234 kB
+├ ○ /admin/settings                      5.38 kB         196 kB
+├ ○ /auth/login                          2.32 kB         245 kB
+├ ○ /auth/register                       11.3 kB         379 kB
+├ ○ /dashboard                           17.1 kB         340 kB
+├ ○ /dashboard/activity                  5.21 kB         204 kB
+├ ○ /investments                         3.99 kB         202 kB
+├ ○ /notifications                        4.5 kB         203 kB
+├ ○ /products                            4.02 kB         202 kB
+├ ○ /profile                             4.43 kB         203 kB
+├ ○ /referral                             101 kB         405 kB
+├ ○ /reports                             3.92 kB         202 kB
+└ ○ /settings                            4.96 kB         203 kB
++ First Load JS shared by all             105 kB
+  ├ chunks/7172-2bdf00936654fd3a.js      45.7 kB
+  ├ chunks/c72dce66-bb9e8a8008ed5973.js  54.2 kB
+  └ other shared chunks (total)          4.73 kB
+
+
+○  (Static)  prerendered as static content
+

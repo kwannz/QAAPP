@@ -9,6 +9,19 @@ import { Button } from '@/components/ui';
 
 export function HeroSection() {
   const [currentStat, setCurrentStat] = useState(0);
+  const ANIM_DELAY_STEP = 0.1;
+  const EASE_HALF = 0.5;
+  const OPACITY_LOW = 0.2;
+  const OPACITY_MED = 0.4;
+  const FLOAT_Y_SMALL = 15;
+  const FLOAT_X_SMALL = 5;
+  const ROTATE_HALF = 180;
+  const ROTATE_FULL = 360;
+  const SCALE_UP_110 = 1.1;
+  const SCALE_UP_120 = 1.2;
+  const DURATION6 = 6;
+  const DURATION7 = 7;
+  const DURATION8 = 8;
 
   const stats = [
     { value: '$12.5M', label: '总投资额', animation: 'fadeInUp' },
@@ -18,10 +31,11 @@ export function HeroSection() {
   ];
 
   // 轮播统计数据
+  const ROTATE_INTERVAL_MS = 3000;
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentStat((previous) => (previous + 1) % stats.length);
-    }, 3000);
+    }, ROTATE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [stats.length]);
 
@@ -118,7 +132,7 @@ export function HeroSection() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    transition={{ duration: 0.6, delay: index * ANIM_DELAY_STEP }}
                     className={`text-center transition-all duration-500 ${
                       currentStat === index 
                         ? 'scale-110 text-primary transform' 
@@ -141,9 +155,9 @@ export function HeroSection() {
 
               {/* 进度指示器 */}
               <div className="flex justify-center mt-8 space-x-3">
-                {stats.map((_, index) => (
+                {stats.map((stat, index) => (
                   <motion.div
-                    key={index}
+                    key={`${stat.label}-dot`}
                     className={`h-2 rounded-full transition-all duration-500 cursor-pointer ${
                       currentStat === index 
                         ? 'bg-primary w-12 shadow-lg' 
@@ -163,15 +177,15 @@ export function HeroSection() {
       <div className="absolute top-1/2 left-4 -translate-y-1/2 hidden xl:block">
         <motion.div
           animate={{ 
-            y: [-15, 15, -15],
-            rotate: [0, 180, 360],
-            scale: [1, 1.1, 1]
+            y: [-FLOAT_Y_SMALL, FLOAT_Y_SMALL, -FLOAT_Y_SMALL],
+            rotate: [0, ROTATE_HALF, ROTATE_FULL],
+            scale: [1, SCALE_UP_110, 1],
           }}
           transition={{ 
-            duration: 6, 
+            duration: DURATION6, 
             repeat: Infinity, 
             ease: 'easeInOut',
-            times: [0, 0.5, 1]
+            times: [0, EASE_HALF, 1],
           }}
           className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 opacity-25 blur-sm shadow-lg"
         />
@@ -180,15 +194,15 @@ export function HeroSection() {
       <div className="absolute top-1/4 right-8 hidden xl:block">
         <motion.div
           animate={{ 
-            y: [15, -15, 15],
-            x: [-5, 5, -5],
-            scale: [1, 1.2, 1]
+            y: [FLOAT_Y_SMALL, -FLOAT_Y_SMALL, FLOAT_Y_SMALL],
+            x: [-FLOAT_X_SMALL, FLOAT_X_SMALL, -FLOAT_X_SMALL],
+            scale: [1, SCALE_UP_120, 1],
           }}
           transition={{ 
-            duration: 7, 
+            duration: DURATION7, 
             repeat: Infinity, 
             ease: 'easeInOut',
-            times: [0, 0.5, 1]
+            times: [0, EASE_HALF, 1],
           }}
           className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-35 blur-sm shadow-md"
         />
@@ -198,13 +212,13 @@ export function HeroSection() {
       <div className="absolute bottom-1/4 left-1/4 hidden lg:block">
         <motion.div
           animate={{ 
-            rotate: [0, -180, -360],
-            opacity: [0.2, 0.4, 0.2]
+            rotate: [0, -ROTATE_HALF, -ROTATE_FULL],
+            opacity: [OPACITY_LOW, OPACITY_MED, OPACITY_LOW],
           }}
           transition={{ 
-            duration: 8, 
+            duration: DURATION8, 
             repeat: Infinity, 
-            ease: 'linear'
+            ease: 'linear',
           }}
           className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 opacity-20 blur-sm"
         />

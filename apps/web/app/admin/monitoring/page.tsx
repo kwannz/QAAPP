@@ -5,7 +5,6 @@ import {
   Activity,
   BarChart3,
   TrendingUp,
-  TrendingDown,
   Users,
   DollarSign,
   ShoppingBag,
@@ -21,12 +20,13 @@ import {
 import { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
 
-import { MetricsCard, SystemHealthCard, Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { monitoringApi } from '@/lib/api-client';
 
 import { AdminGuard } from '../../../components/admin/AdminGuard';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { TabContainer } from '../../../components/common/TabContainer';
+import { MetricsCard, SystemHealthCard, Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { monitoringApi } from '@/lib/api-client';
+import { logger } from '@/lib/verbose-logger';
 
 
 interface SystemMetrics {
@@ -72,6 +72,42 @@ interface PerformanceMetrics {
     averageQueryTime: number
   }
 }
+
+// 常量参数（提取魔法数字）
+const CPU_WARN_THRESHOLD = 80;
+const AVAILABILITY_GOOD = 99.9;
+const CACHE_HIT_GOOD = 0.9;
+const INTERVAL_MS = 30_000;
+const CPU_MIN = 20;
+const CPU_MAX = 80;
+const MEM_MIN = 50;
+const MEM_MAX = 90;
+const RESP_MIN = 50;
+const RESP_MAX = 200;
+const RAND_DELTA_SMALL = 0.5;
+const RAND_DELTA_MED = 5;
+const RAND_DELTA_RESP = 10;
+const CACHE_HIT_MIN = 0.8;
+const CACHE_HIT_MAX = 0.98;
+const CACHE_HIT_JITTER = 0.02;
+const MARGIN_TOP = 10;
+const MARGIN_RIGHT = 20;
+const MARGIN_BOTTOM = 0;
+const MARGIN_LEFT = 0;
+const ONE_HUNDRED = 100;
+const P95_MULT = 1.6;
+const P99_MULT = 2.2;
+const RANDOM_SCALE_SMALL = 3;
+const SUCCESS_LATENCY_MS = 120;
+const RESPONSE_JITTER_RANGE = 20;
+const ANIM_DURATION_S = 0.8;
+const OPTIMIZED_RATIO_GOOD = 0.8;
+const CACHE_RATIO_QUERY = 0.6;
+const CACHE_RATIO_RESPONSE = 0.4;
+const MEMORY_USAGE_GOOD_MAX = 300;
+const RESP_FAST_THRESHOLD = 100;
+const CACHE_HIT_OK = 0.7;
+const RECOMMENDATIONS_PREVIEW_COUNT = 3;
 
 // 模拟数据
 const mockSystemMetrics: SystemMetrics = {
@@ -124,8 +160,8 @@ export default function AdminMonitoringCenter() {
   const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics>(mockBusinessMetrics);
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>(mockPerformanceMetrics);
   const [metricsData, setMetricsData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [realTimeData, setRealTimeData] = useState<any>(null);
+  const [_isLoading, setIsLoading] = useState(true);
+  const [_realTimeData, _setRealTimeData] = useState<any>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const tabs = [
@@ -138,19 +174,19 @@ export default function AdminMonitoringCenter() {
       id: 'system',
       label: '系统监控',
       icon: <Server className="h-4 w-4" />,
-      badge: systemMetrics.cpu > 80 ? '警告' : '正常',
+      badge: systemMetrics.cpu > CPU_WARN_THRESHOLD ? '警告' : '正常',
     },
     {
       id: 'performance',
       label: '性能分析',
       icon: <Activity className="h-4 w-4" />,
-      badge: performanceMetrics.availability >= 99.9 ? '优秀' : '一般',
+      badge: performanceMetrics.availability >= AVAILABILITY_GOOD ? '优秀' : '一般',
     },
     {
       id: 'cache',
       label: '缓存性能',
       icon: <Database className="h-4 w-4" />,
-      badge: performanceMetrics.optimizer.cacheHitRate >= 0.9 ? '优秀' : '良好',
+      badge: performanceMetrics.optimizer.cacheHitRate >= CACHE_HIT_GOOD ? '优秀' : '良好',
     },
     {
       id: 'business',
@@ -252,7 +288,7 @@ export default function AdminMonitoringCenter() {
         setIsLoading(false);
         setLastUpdated(new Date());
       } catch (error) {
-        console.error('Failed to load monitoring data:', error);
+        logger.error('Monitoring', 'Failed to load monitoring data', error as any);
 
         // 回退使用本地mock
         setIsLoading(false);
@@ -271,23 +307,48 @@ export default function AdminMonitoringCenter() {
         // 模拟一些指标的轻微变化
         setSystemMetrics(previous => ({
           ...previous,
-          cpu: Math.max(20, Math.min(80, previous.cpu + (Math.random() - 0.5) * 5)),
-          memory: Math.max(50, Math.min(90, previous.memory + (Math.random() - 0.5) * 3)),
-          responseTime: Math.max(50, Math.min(200, previous.responseTime + (Math.random() - 0.5) * 10)),
+          cpu: Math.max(
+            CPU_MIN,
+            Math.min(
+              CPU_MAX,
+              previous.cpu + (Math.random() - RAND_DELTA_SMALL) * RAND_DELTA_MED,
+            ),
+          ),
+          memory: Math.max(
+            MEM_MIN,
+            Math.min(
+              MEM_MAX,
+              previous.memory + (Math.random() - RAND_DELTA_SMALL) * RANDOM_SCALE_SMALL,
+            ),
+          ),
+          responseTime: Math.max(
+            RESP_MIN,
+            Math.min(
+              RESP_MAX,
+              previous.responseTime + (Math.random() - RAND_DELTA_SMALL) * RAND_DELTA_RESP,
+            ),
+          ),
         }));
 
         setPerformanceMetrics(previous => ({
           ...previous,
           optimizer: {
             ...previous.optimizer,
-            queryOptimizations: previous.optimizer.queryOptimizations + Math.floor(Math.random() * 3),
-            cacheHitRate: Math.max(0.8, Math.min(0.98, previous.optimizer.cacheHitRate + (Math.random() - 0.5) * 0.02)),
+            queryOptimizations:
+              previous.optimizer.queryOptimizations + Math.floor(Math.random() * RANDOM_SCALE_SMALL),
+            cacheHitRate: Math.max(
+              CACHE_HIT_MIN,
+              Math.min(
+                CACHE_HIT_MAX,
+                previous.optimizer.cacheHitRate + (Math.random() - RAND_DELTA_SMALL) * CACHE_HIT_JITTER,
+              ),
+            ),
           },
         }));
       } catch (error) {
-        console.error('Failed to update real-time data:', error);
+        logger.error('Monitoring', 'Failed to update real-time data', error as any);
       }
-    }, 30_000); // 30秒更新一次
+    }, INTERVAL_MS); // 30秒更新一次
 
     return () => {
       clearInterval(interval);
@@ -322,9 +383,9 @@ export default function AdminMonitoringCenter() {
         />
         <MetricsCard
           title="查询优化率"
-          value={`${((performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries) * 100).toFixed(1)}%`}
+          value={`${((performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries) * ONE_HUNDRED).toFixed(1)}%`}
           icon={<TrendingUp className="h-5 w-5 text-purple-600" />}
-          status={performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries >= 0.8 ? 'success' : 'warning'}
+          status={performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries >= OPTIMIZED_RATIO_GOOD ? 'success' : 'warning'}
           change={{ value: 5.2, type: 'increase', label: '比昨日' }}
           description={`已优化 ${performanceMetrics.queries.optimizedQueries} 个查询`}
         />
@@ -354,7 +415,7 @@ export default function AdminMonitoringCenter() {
             title="平均响应时间"
             value={`${metricsData.performance?.avgResponseTime ?? performanceMetrics.apiLatency} ms`}
             icon={<Clock className="h-5 w-5 text-purple-600" />}
-            status={(metricsData.performance?.avgResponseTime ?? performanceMetrics.apiLatency) < 120 ? 'success' : 'warning'}
+            status={(metricsData.performance?.avgResponseTime ?? performanceMetrics.apiLatency) < SUCCESS_LATENCY_MS ? 'success' : 'warning'}
           />
         </div>
       )}
@@ -368,14 +429,21 @@ export default function AdminMonitoringCenter() {
           <CardContent style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={(metricsData?.performance?.metrics || Array.from({ length: 12 }).map((_, index) => ({
-                  name: `${index + 1}`,
-                  responseTime: performanceMetrics.apiLatency + Math.round((Math.random() - 0.5) * 20),
-                }))).map((m: any, index: number) => ({
-                  name: m.name || `${index + 1}`,
-                  responseTime: m.responseTime || m.avgResponseTime || performanceMetrics.apiLatency,
-                }))}
-                margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
+                data={
+                  (
+                    metricsData?.performance?.metrics ||
+                    Array.from({ length: 12 }).map((_, index) => ({
+                      name: `${index + 1}`,
+                      responseTime:
+                        performanceMetrics.apiLatency +
+                        Math.round((Math.random() - RAND_DELTA_SMALL) * RESPONSE_JITTER_RANGE),
+                    }))
+                  ).map((m: any, index: number) => ({
+                    name: m.name || `${index + 1}`,
+                    responseTime: m.responseTime || m.avgResponseTime || performanceMetrics.apiLatency,
+                  }))
+                }
+                margin={{ top: MARGIN_TOP, right: MARGIN_RIGHT, bottom: MARGIN_BOTTOM, left: MARGIN_LEFT }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -403,7 +471,7 @@ strokeWidth={2} dot={false}
                   resolved: metricsData?.alerts?.resolved || 0,
                   critical: metricsData?.alerts?.critical || 0,
                 }]}
-                margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
+                margin={{ top: MARGIN_TOP, right: MARGIN_RIGHT, bottom: MARGIN_BOTTOM, left: MARGIN_LEFT }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -429,14 +497,16 @@ strokeWidth={2} dot={false}
               <LineChart
                 data={Array.from({ length: 12 }).map((_, index) => ({
                   name: `${index + 1}`,
-                  errorRate: +(metricsData?.performance?.errorRate ?? performanceMetrics.errorRate) * (0.8 + (Math.random() * 0.4)),
+                  errorRate: Number(
+                    metricsData?.performance?.errorRate ?? performanceMetrics.errorRate
+                  ) * (CACHE_HIT_MIN + (Math.random() * (CACHE_RATIO_RESPONSE))),
                 }))}
-                margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
+                margin={{ top: MARGIN_TOP, right: MARGIN_RIGHT, bottom: MARGIN_BOTTOM, left: MARGIN_LEFT }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} domain={[0, 1]} tickFormatter={(v) => `${Math.round(v * 100)}%`} />
-                <Tooltip formatter={(v: any) => `${Math.round(v * 100)}%`} />
+                <YAxis tick={{ fontSize: 12 }} domain={[0, 1]} tickFormatter={(v) => `${Math.round(v * ONE_HUNDRED)}%`} />
+                <Tooltip formatter={(v: any) => `${Math.round(v * ONE_HUNDRED)}%`} />
                 <Line
 type="monotone" dataKey="errorRate" stroke="#ef4444"
 strokeWidth={2} dot={false}
@@ -455,11 +525,18 @@ strokeWidth={2} dot={false}
               <BarChart
                 data={[{
                   name: 'Query Time',
-                  avg: metricsData?.performance?.queries?.averageQueryTime ?? performanceMetrics.queries.averageQueryTime,
-                  p95: Math.round((metricsData?.performance?.queries?.averageQueryTime ?? performanceMetrics.queries.averageQueryTime) * 1.6),
-                  p99: Math.round((metricsData?.performance?.queries?.averageQueryTime ?? performanceMetrics.queries.averageQueryTime) * 2.2),
+                  avg: metricsData?.performance?.queries?.averageQueryTime ?? 
+                    performanceMetrics.queries.averageQueryTime,
+                  p95: Math.round((
+                    metricsData?.performance?.queries?.averageQueryTime ?? 
+                    performanceMetrics.queries.averageQueryTime
+                  ) * P95_MULT),
+                  p99: Math.round((
+                    metricsData?.performance?.queries?.averageQueryTime ?? 
+                    performanceMetrics.queries.averageQueryTime
+                  ) * P99_MULT),
                 }]}
-                margin={{ top: 10, right: 20, bottom: 0, left: 0 }}
+                margin={{ top: MARGIN_TOP, right: MARGIN_RIGHT, bottom: MARGIN_BOTTOM, left: MARGIN_LEFT }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -503,7 +580,7 @@ strokeWidth={2} dot={false}
                     className={`h-2 rounded-full ${metric.color}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${metric.value}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    transition={{ duration: ANIM_DURATION_S, ease: 'easeOut' }}
                   />
                 </div>
               </div>
@@ -555,7 +632,7 @@ strokeWidth={2} dot={false}
                 <div className="text-sm text-blue-600">优化次数</div>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{(performanceMetrics.optimizer.cacheHitRate * 100).toFixed(1)}%</div>
+                <div className="text-2xl font-bold text-green-600">{(performanceMetrics.optimizer.cacheHitRate * ONE_HUNDRED).toFixed(1)}%</div>
                 <div className="text-sm text-green-600">缓存命中</div>
               </div>
             </div>
@@ -625,7 +702,7 @@ strokeWidth={2} dot={false}
           title="响应时间"
           value={`${systemMetrics.responseTime}ms`}
           icon={<Activity className="h-5 w-5 text-purple-600" />}
-          status={systemMetrics.responseTime < 100 ? 'success' : 'warning'}
+          status={systemMetrics.responseTime < RESP_FAST_THRESHOLD ? 'success' : 'warning'}
         />
       </div>
 
@@ -691,13 +768,13 @@ strokeWidth={2} dot={false}
           title="可用性"
           value={`${performanceMetrics.availability}%`}
           icon={<CheckCircle className="h-5 w-5 text-green-600" />}
-          status={performanceMetrics.availability >= 99.9 ? 'success' : 'warning'}
+          status={performanceMetrics.availability >= AVAILABILITY_GOOD ? 'success' : 'warning'}
         />
         <MetricsCard
           title="缓存命中率"
-          value={`${(performanceMetrics.optimizer.cacheHitRate * 100).toFixed(1)}%`}
+          value={`${(performanceMetrics.optimizer.cacheHitRate * ONE_HUNDRED).toFixed(1)}%`}
           icon={<Database className="h-5 w-5 text-blue-600" />}
-          status={performanceMetrics.optimizer.cacheHitRate >= 0.9 ? 'success' : 'warning'}
+          status={performanceMetrics.optimizer.cacheHitRate >= CACHE_HIT_GOOD ? 'success' : 'warning'}
           description={'优化器缓存性能'}
         />
         <MetricsCard
@@ -711,7 +788,7 @@ strokeWidth={2} dot={false}
           title="内存使用"
           value={`${performanceMetrics.optimizer.memoryUsage.toFixed(1)}MB`}
           icon={<HardDrive className="h-5 w-5 text-orange-600" />}
-          status={performanceMetrics.optimizer.memoryUsage < 300 ? 'success' : 'warning'}
+          status={performanceMetrics.optimizer.memoryUsage < MEMORY_USAGE_GOOD_MAX ? 'success' : 'warning'}
         />
       </div>
 
@@ -748,13 +825,13 @@ strokeWidth={2} dot={false}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>查询优化率</span>
-                <span className="font-medium">{((performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries) * 100).toFixed(1)}%</span>
+                <span className="font-medium">{((performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries) * ONE_HUNDRED).toFixed(1)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <motion.div
                   className="h-2 rounded-full bg-gradient-to-r from-blue-400 to-green-400"
                   initial={{ width: 0 }}
-                  animate={{ width: `${(performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries) * 100}%` }}
+                  animate={{ width: `${(performanceMetrics.queries.optimizedQueries / performanceMetrics.queries.totalQueries) * ONE_HUNDRED}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                 />
               </div>
@@ -789,8 +866,8 @@ strokeWidth={2} dot={false}
                 {performanceMetrics.optimizer.recommendations.length > 0
 ? (
                   <ul className="space-y-1">
-                    {performanceMetrics.optimizer.recommendations.slice(0, 3).map((rec, index) => (
-                      <li key={index} className="text-sm text-gray-600 flex items-center space-x-2">
+                    {performanceMetrics.optimizer.recommendations.slice(0, RECOMMENDATIONS_PREVIEW_COUNT).map((rec) => (
+                      <li key={rec} className="text-sm text-gray-600 flex items-center space-x-2">
                         <div className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
                         <span>{rec}</span>
                       </li>
@@ -817,7 +894,7 @@ strokeWidth={2} dot={false}
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600 mb-2">{(performanceMetrics.optimizer.cacheHitRate * 100).toFixed(1)}%</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">{(performanceMetrics.optimizer.cacheHitRate * ONE_HUNDRED).toFixed(1)}%</div>
               <div className="text-sm text-blue-600 font-medium">缓存命中率</div>
               <div className="text-xs text-blue-500 mt-1">优化器核心指标</div>
             </div>
@@ -843,26 +920,26 @@ strokeWidth={2} dot={false}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricsCard
           title="缓存命中率"
-          value={`${(performanceMetrics.optimizer.cacheHitRate * 100).toFixed(1)}%`}
+          value={`${(performanceMetrics.optimizer.cacheHitRate * ONE_HUNDRED).toFixed(1)}%`}
           icon={<Database className="h-5 w-5 text-blue-600" />}
-          status={performanceMetrics.optimizer.cacheHitRate >= 0.9 ? 'success' : 'warning'}
+          status={performanceMetrics.optimizer.cacheHitRate >= CACHE_HIT_GOOD ? 'success' : 'warning'}
           change={{ value: 2.3, type: 'increase', label: '比昨日' }}
         />
         <MetricsCard
           title="缓存内存使用"
           value={`${performanceMetrics.optimizer.memoryUsage.toFixed(1)}MB`}
           icon={<HardDrive className="h-5 w-5 text-purple-600" />}
-          status={performanceMetrics.optimizer.memoryUsage < 300 ? 'success' : 'warning'}
+          status={performanceMetrics.optimizer.memoryUsage < MEMORY_USAGE_GOOD_MAX ? 'success' : 'warning'}
         />
         <MetricsCard
           title="查询缓存数"
-          value={Math.floor(performanceMetrics.queries.totalQueries * 0.6)}
+          value={Math.floor(performanceMetrics.queries.totalQueries * CACHE_RATIO_QUERY)}
           icon={<Server className="h-5 w-5 text-green-600" />}
           description="活跃缓存条目"
         />
         <MetricsCard
           title="响应缓存数"
-          value={Math.floor(performanceMetrics.queries.totalQueries * 0.4)}
+          value={Math.floor(performanceMetrics.queries.totalQueries * CACHE_RATIO_RESPONSE)}
           icon={<Wifi className="h-5 w-5 text-orange-600" />}
           description="响应级缓存"
         />
@@ -883,14 +960,14 @@ strokeWidth={2} dot={false}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>查询缓存命中率</span>
-                  <span className="font-medium">{(performanceMetrics.optimizer.cacheHitRate * 100).toFixed(1)}%</span>
+                  <span className="font-medium">{(performanceMetrics.optimizer.cacheHitRate * ONE_HUNDRED).toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <motion.div
                     className="h-3 rounded-full bg-gradient-to-r from-blue-400 to-green-400"
                     initial={{ width: 0 }}
-                    animate={{ width: `${performanceMetrics.optimizer.cacheHitRate * 100}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    animate={{ width: `${performanceMetrics.optimizer.cacheHitRate * ONE_HUNDRED}%` }}
+                    transition={{ duration: ANIM_DURATION_S, ease: 'easeOut' }}
                   />
                 </div>
               </div>
@@ -910,9 +987,9 @@ strokeWidth={2} dot={false}
               {/* 效率评级 */}
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg">
                 <div className="text-lg font-bold text-blue-600 mb-1">
-                  {performanceMetrics.optimizer.cacheHitRate >= 0.9
+                  {performanceMetrics.optimizer.cacheHitRate >= CACHE_HIT_GOOD
 ? '优秀'
-                   : (performanceMetrics.optimizer.cacheHitRate >= 0.7 ? '良好' : '需改进')}
+                   : (performanceMetrics.optimizer.cacheHitRate >= CACHE_HIT_OK ? '良好' : '需改进')}
                 </div>
                 <div className="text-sm text-gray-600">缓存效率评级</div>
               </div>
@@ -963,8 +1040,8 @@ strokeWidth={2} dot={false}
                 {performanceMetrics.optimizer.recommendations.length > 0
 ? (
                   <ul className="space-y-2">
-                    {performanceMetrics.optimizer.recommendations.map((rec, index) => (
-                      <li key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    {performanceMetrics.optimizer.recommendations.map((rec) => (
+                      <li key={rec} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                         <div className="w-2 h-2 bg-blue-400 rounded-full mt-2" />
                         <div className="flex-1">
                           <p className="text-sm text-gray-700">{rec}</p>
@@ -1000,14 +1077,14 @@ strokeWidth={2} dot={false}
                     <div className="w-3 h-3 bg-blue-400 rounded-full" />
                     <span className="text-sm font-medium">查询缓存</span>
                   </div>
-                  <span className="text-sm text-blue-600">{Math.floor(performanceMetrics.queries.totalQueries * 0.6)} 条目</span>
+                  <span className="text-sm text-blue-600">{Math.floor(performanceMetrics.queries.totalQueries * CACHE_RATIO_QUERY)} 条目</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-400 rounded-full" />
                     <span className="text-sm font-medium">响应缓存</span>
                   </div>
-                  <span className="text-sm text-green-600">{Math.floor(performanceMetrics.queries.totalQueries * 0.4)} 条目</span>
+                  <span className="text-sm text-green-600">{Math.floor(performanceMetrics.queries.totalQueries * CACHE_RATIO_RESPONSE)} 条目</span>
                 </div>
               </div>
             </div>

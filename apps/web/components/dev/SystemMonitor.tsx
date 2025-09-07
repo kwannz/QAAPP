@@ -2,6 +2,7 @@
 
 import { AlertCircle, Activity, Database, Zap, Server, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/verbose-logger';
 
 import {
   Card,
@@ -108,6 +109,7 @@ export function SystemMonitor() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -130,8 +132,8 @@ export function SystemMonitor() {
           cache: {
             health: { l1: true, l2: true, l3: true },
             stats: [
-              { layer: 'L1_MEMORY', hitRate: Math.round((data?.performance?.cacheHitRate || 0) * 100), memoryUsage: 0 },
-              { layer: 'L2_REDIS', hitRate: Math.round((data?.performance?.cacheHitRate || 0) * 100), memoryUsage: 0 },
+              { layer: 'L1_MEMORY', hitRate: Math.round((data?.performance?.cacheHitRate || 0) * PERCENT_SCALE), memoryUsage: 0 },
+              { layer: 'L2_REDIS', hitRate: Math.round((data?.performance?.cacheHitRate || 0) * PERCENT_SCALE), memoryUsage: 0 },
               { layer: 'L3_CDN', hitRate: 0, memoryUsage: 0 },
             ],
           },
@@ -146,7 +148,7 @@ export function SystemMonitor() {
         setIsConnected(true);
         setLastUpdate(new Date());
       } catch (error) {
-        console.error('Failed to fetch performance metrics:', error);
+        logger.error('SystemMonitor', 'Failed to fetch performance metrics', error);
         setIsConnected(false);
       }
     };
@@ -160,7 +162,7 @@ export function SystemMonitor() {
           setRealTimeData(data);
         }
       } catch (error) {
-        console.error('Failed to fetch real-time metrics:', error);
+        logger.error('SystemMonitor', 'Failed to fetch real-time metrics', error);
       }
     };
 
@@ -175,15 +177,16 @@ export function SystemMonitor() {
     checkAllEndpoints();
 
     // Set up intervals
-    const metricsInterval = setInterval(fetchMetrics, 30_000); // 30s
-    const realTimeInterval = setInterval(fetchRealTime, 5000); // 5s
-    const endpointsInterval = setInterval(checkAllEndpoints, 30_000); // 30s
+    const metricsInterval = setInterval(fetchMetrics, INTERVAL_METRICS_MS);
+    const realTimeInterval = setInterval(fetchRealTime, INTERVAL_REALTIME_MS);
+    const endpointsInterval = setInterval(checkAllEndpoints, INTERVAL_ENDPOINTS_MS);
 
     return () => {
       clearInterval(metricsInterval);
       clearInterval(realTimeInterval);
       clearInterval(endpointsInterval);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -202,8 +205,8 @@ export function SystemMonitor() {
   };
 
   const formatUptime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const hours = Math.floor(seconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor((seconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
     return `${hours}h ${minutes}m`;
   };
 
@@ -296,8 +299,8 @@ export function SystemMonitor() {
         </div>
 
         <div className="flex items-center gap-2">
-          {endpoints.map((endpoint, index) => (
-            <div key={index} className="flex items-center gap-1">
+          {endpoints.map((endpoint) => (
+            <div key={endpoint.name} className="flex items-center gap-1">
               {getStatusIcon(endpoint.status)}
               <span className="text-gray-500">
                 {endpoint.name}: {getStatusText(endpoint)}
@@ -338,7 +341,7 @@ export function SystemMonitor() {
             <div className="text-xs text-gray-600 mt-1">
               P95: {metrics.responseTimes.p95}ms • P99: {metrics.responseTimes.p99}ms
             </div>
-            {getStatusBadge(metrics.responseTimes.p95, { good: 200, warning: 500 })}
+            {getStatusBadge(metrics.responseTimes.p95, { good: PERF_P95_GOOD, warning: PERF_P95_WARN })}
           </CardContent>
         </Card>
 
@@ -355,7 +358,7 @@ export function SystemMonitor() {
             <div className="text-xs text-gray-600 mt-1">
               {formatMemorySize(metrics.memory.heapUsed)} / {formatMemorySize(metrics.memory.heapTotal)}
             </div>
-            {getStatusBadge(metrics.memory.usagePercent, { good: 70, warning: 85 })}
+            {getStatusBadge(metrics.memory.usagePercent, { good: MEM_USAGE_BADGE_GOOD, warning: MEM_USAGE_BADGE_WARN })}
           </CardContent>
         </Card>
 
@@ -375,7 +378,7 @@ export function SystemMonitor() {
               Redis: {metrics.cache.health.l2 ? '正常' : '异常'} •
               L1: {formatMemorySize(metrics.cache.stats[0]?.memoryUsage || 0)}
             </div>
-            {getStatusBadge(100 - (metrics.cache.stats[0]?.hitRate || 0), { good: 40, warning: 60 })}
+            {getStatusBadge(PERCENT_SCALE - (metrics.cache.stats[0]?.hitRate || 0), { good: 40, warning: 60 })}
           </CardContent>
         </Card>
 
@@ -392,7 +395,7 @@ export function SystemMonitor() {
             <div className="text-xs text-gray-600 mt-1">
               P95: {metrics.database.queryTimes.p95}ms • 慢查询: {metrics.database.slowQueries}
             </div>
-            {getStatusBadge(metrics.database.queryTimes.p95, { good: 100, warning: 300 })}
+            {getStatusBadge(metrics.database.queryTimes.p95, { good: DB_P95_GOOD, warning: DB_P95_WARN })}
           </CardContent>
         </Card>
       </div>
@@ -423,7 +426,7 @@ export function SystemMonitor() {
               </div>
               <div>
                 <div className="text-sm text-gray-600">内存碎片率</div>
-                <div className="text-lg font-semibold">{metrics.memory.redis.fragmentation.toFixed(2)}</div>
+                <div className="text-lg font-semibold">{metrics.memory.redis.fragmentation.toFixed(DECIMALS_TWO)}</div>
               </div>
             </div>
           </CardContent>
@@ -520,9 +523,9 @@ export function SystemMonitor() {
       )}
 
       {/* 性能警告 */}
-      {(metrics.responseTimes.p95 > 500
-        || metrics.memory.usagePercent > 80
-        || metrics.database.slowQueries > 5) && (
+      {(metrics.responseTimes.p95 > PERF_P95_WARN ||
+        metrics.memory.usagePercent > MEM_USAGE_WARN ||
+        metrics.database.slowQueries > SLOW_QUERIES_WARN) && (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardHeader>
             <CardTitle className="flex items-center text-yellow-700">
@@ -532,13 +535,13 @@ export function SystemMonitor() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-yellow-700">
-              {metrics.responseTimes.p95 > 500 && (
+              {metrics.responseTimes.p95 > PERF_P95_WARN && (
                 <li>• API 响应时间偏高 (P95: {metrics.responseTimes.p95}ms)</li>
               )}
-              {metrics.memory.usagePercent > 80 && (
+              {metrics.memory.usagePercent > MEM_USAGE_WARN && (
                 <li>• 内存使用率过高 ({metrics.memory.usagePercent}%)</li>
               )}
-              {metrics.database.slowQueries > 5 && (
+              {metrics.database.slowQueries > SLOW_QUERIES_WARN && (
                 <li>• 检测到 {metrics.database.slowQueries} 个慢查询</li>
               )}
               {!metrics.cache.health.l2 && (
@@ -551,3 +554,20 @@ export function SystemMonitor() {
     </div>
   );
 }
+  // Time constants
+  const SECONDS_PER_MINUTE = 60;
+  const MINUTES_PER_HOUR = 60;
+  const SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  const PERCENT_SCALE = 100;
+  const PERF_P95_GOOD = 200;
+  const DB_P95_GOOD = 100;
+  const DB_P95_WARN = 300;
+  const PERF_P95_WARN = 500;
+  const MEM_USAGE_WARN = 80;
+  const MEM_USAGE_BADGE_GOOD = 70;
+  const MEM_USAGE_BADGE_WARN = 85;
+  const SLOW_QUERIES_WARN = 5;
+  const DECIMALS_TWO = 2;
+  const INTERVAL_METRICS_MS = 30_000;
+  const INTERVAL_REALTIME_MS = 5_000;
+  const INTERVAL_ENDPOINTS_MS = 30_000;

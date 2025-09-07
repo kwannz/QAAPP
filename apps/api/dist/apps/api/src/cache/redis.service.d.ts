@@ -1,0 +1,43 @@
+import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Redis, { Cluster } from 'ioredis';
+export declare class RedisService implements OnModuleInit, OnModuleDestroy {
+    private configService;
+    private readonly logger;
+    private client;
+    private isConnected;
+    constructor(configService: ConfigService);
+    onModuleInit(): Promise<void>;
+    onModuleDestroy(): Promise<void>;
+    private connect;
+    ping(): Promise<boolean>;
+    disconnect(): Promise<void>;
+    get(key: string): Promise<string | null>;
+    set(key: string, value: string, ttlSeconds?: number): Promise<string>;
+    del(key: string): Promise<number>;
+    exists(key: string): Promise<number>;
+    keys(pattern: string): Promise<string[]>;
+    hget(key: string, field: string): Promise<string | null>;
+    hset(key: string, field: string, value: string): Promise<number>;
+    hgetall(key: string): Promise<Record<string, string>>;
+    lpush(key: string, ...values: string[]): Promise<number>;
+    rpop(key: string): Promise<string | null>;
+    lrange(key: string, start: number, stop: number): Promise<string[]>;
+    sadd(key: string, ...members: string[]): Promise<number>;
+    smembers(key: string): Promise<string[]>;
+    expire(key: string, seconds: number): Promise<number>;
+    ttl(key: string): Promise<number>;
+    multi(): Promise<any>;
+    publish(channel: string, message: string): Promise<number>;
+    subscribe(...channels: string[]): Promise<void>;
+    info(section?: string): Promise<string>;
+    getMemoryInfo(): Promise<{
+        used: number;
+        peak: number;
+        fragmentation: number;
+    }>;
+    isHealthy(): boolean;
+    getClient(): Redis | Cluster;
+    private ensureConnected;
+    private extractInfoValue;
+}

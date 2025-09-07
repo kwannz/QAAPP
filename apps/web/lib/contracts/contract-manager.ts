@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import type { ProductType } from './addresses';
 import { getContractAddresses, PRODUCT_CONFIG } from './addresses';
@@ -36,7 +36,8 @@ class ContractManager {
 
   // 初始化合约管理器
   initialize(chainId?: number) {
-    const addresses = getContractAddresses(chainId || 11_155_111);
+    const CHAIN_ID_SEPOLIA = 11_155_111;
+    const addresses = getContractAddresses(chainId || CHAIN_ID_SEPOLIA);
     const isTestnet = this.isTestnetChain(chainId);
     const isSupported = this.isSupportedChain(chainId);
 
@@ -58,20 +59,34 @@ class ContractManager {
 
   // 检查链是否为测试网
   private isTestnetChain(chainId?: number): boolean {
-    const testnets = [11_155_111, 31_337]; // Sepolia, Localhost
+    const CHAIN_ID_SEPOLIA = 11_155_111;
+    const CHAIN_ID_LOCAL = 31_337;
+    const testnets = [CHAIN_ID_SEPOLIA, CHAIN_ID_LOCAL]; // Sepolia, Localhost
     return testnets.includes(chainId || 0);
   }
 
   // 检查链是否支持
   private isSupportedChain(chainId?: number): boolean {
-    const supportedChains = [1, 137, 42_161, 11_155_111, 31_337];
+    const CHAIN_ID_MAINNET = 1;
+    const CHAIN_ID_POLYGON = 137;
+    const CHAIN_ID_ARBITRUM = 42_161;
+    const CHAIN_ID_SEPOLIA = 11_155_111;
+    const CHAIN_ID_LOCAL = 31_337;
+    const supportedChains = [
+      CHAIN_ID_MAINNET,
+      CHAIN_ID_POLYGON,
+      CHAIN_ID_ARBITRUM,
+      CHAIN_ID_SEPOLIA,
+      CHAIN_ID_LOCAL,
+    ];
     return supportedChains.includes(chainId || 0);
   }
 
   // 检查合约部署状态
   private checkDeploymentStatus(address: string): ContractDeploymentStatus {
     const isZeroAddress = address === '0x0000000000000000000000000000000000000000';
-    const isLocalhost = address.startsWith('0x') && address.length === 42 && !isZeroAddress;
+    const ADDRESS_LENGTH = 42;
+    const isLocalhost = address.startsWith('0x') && address.length === ADDRESS_LENGTH && !isZeroAddress;
 
     return {
       isDeployed: !isZeroAddress,
@@ -89,9 +104,9 @@ class ContractManager {
   areContractsDeployed(): boolean {
     if (!this.state) return false;
 
-    return this.state.deploymentStatus.treasury.isDeployed
-           && this.state.deploymentStatus.qaCard.isDeployed
-           && this.state.deploymentStatus.usdt.isDeployed;
+    return this.state.deploymentStatus.treasury.isDeployed &&
+           this.state.deploymentStatus.qaCard.isDeployed &&
+           this.state.deploymentStatus.usdt.isDeployed;
   }
 
   // 获取未部署的合约列表
@@ -148,12 +163,17 @@ class ContractManager {
 
   // 获取支持的链信息
   getSupportedChains() {
+    const CHAIN_ID_MAINNET = 1;
+    const CHAIN_ID_POLYGON = 137;
+    const CHAIN_ID_ARBITRUM = 42_161;
+    const CHAIN_ID_SEPOLIA = 11_155_111;
+    const CHAIN_ID_LOCAL = 31_337;
     return [
-      { id: 1, name: 'Ethereum Mainnet', icon: '⧫', isTestnet: false },
-      { id: 137, name: 'Polygon', icon: '⬟', isTestnet: false },
-      { id: 42_161, name: 'Arbitrum One', icon: '🔷', isTestnet: false },
-      { id: 11_155_111, name: 'Sepolia Testnet', icon: '⚡', isTestnet: true },
-      { id: 31_337, name: 'Localhost', icon: '🏠', isTestnet: true },
+      { id: CHAIN_ID_MAINNET, name: 'Ethereum Mainnet', icon: '⧫', isTestnet: false },
+      { id: CHAIN_ID_POLYGON, name: 'Polygon', icon: '⬟', isTestnet: false },
+      { id: CHAIN_ID_ARBITRUM, name: 'Arbitrum One', icon: '🔷', isTestnet: false },
+      { id: CHAIN_ID_SEPOLIA, name: 'Sepolia Testnet', icon: '⚡', isTestnet: true },
+      { id: CHAIN_ID_LOCAL, name: 'Localhost', icon: '🏠', isTestnet: true },
     ];
   }
 
@@ -212,4 +232,3 @@ export function useContractManager() {
     generateReport: contractManager.generateDeploymentReport,
   };
 }
-

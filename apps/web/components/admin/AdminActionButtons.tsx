@@ -7,7 +7,6 @@ import {
   Unlock,
   Eye,
   Edit,
-  Trash2,
   RefreshCw,
   Download,
   Mail,
@@ -21,6 +20,7 @@ import {
 import { useState } from 'react';
 
 import { Button } from '@/components/ui';
+import { logger } from '@/lib/verbose-logger';
 
 interface AdminActionButtonsProperties {
   type: 'kyc' | 'user' | 'order' | 'withdrawal' | 'audit'
@@ -282,7 +282,7 @@ export function AdminActionButtons({
         await onAction(action.key, itemId, inputValue ? { input: inputValue } : undefined);
       }
     } catch (error) {
-      console.error('Action failed:', error);
+      logger.error('AdminActionButtons', 'Action failed', error as any);
       alert('操作失败，请重试');
     } finally {
       setIsProcessing(null);
@@ -329,7 +329,8 @@ export function AdminActionButtons({
 
   if (compact) {
     // 紧凑模式，只显示最重要的几个按钮
-    const primaryActions = availableActions.slice(0, 3);
+    const PRIMARY_ACTIONS_MAX = 3;
+    const primaryActions = availableActions.slice(0, PRIMARY_ACTIONS_MAX);
 
     return (
       <div className="flex space-x-2">
@@ -357,7 +358,7 @@ export function AdminActionButtons({
           );
         })}
 
-        {availableActions.length > 3 && (
+        {availableActions.length > PRIMARY_ACTIONS_MAX && (
           <Button variant="ghost" size="sm" disabled={disabled}>
             <Settings className="w-4 h-4" />
           </Button>
@@ -512,7 +513,7 @@ export function BatchActionButtons({
         await onBatchAction(action.key, selectedIds, inputValue ? { input: inputValue } : undefined);
       }
     } catch (error) {
-      console.error('Batch action failed:', error);
+      logger.error('AdminActionButtons', 'Batch action failed', error as any);
       alert('批量操作失败，请重试');
     } finally {
       setIsProcessing(null);

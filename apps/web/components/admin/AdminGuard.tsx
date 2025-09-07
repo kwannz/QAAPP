@@ -4,9 +4,10 @@ import { Shield, ShieldAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { Card, CardContent } from '@/components/ui';
-
 import { useAuthStore } from '../../lib/auth-context';
+import { Card, CardContent } from '@/components/ui';
+import { logger } from '@/lib/verbose-logger';
+
 
 
 interface AdminGuardProperties {
@@ -21,12 +22,15 @@ export function AdminGuard({ children, allowedRoles = ['ADMIN'] }: AdminGuardPro
 
   useEffect(() => {
     // 设置超时，防止无限等待
+    const AUTH_CHECK_TIMEOUT_MS = 5000;
     const timeout = setTimeout(() => {
       if (isChecking) {
-        console.warn('AdminGuard: Auth check timeout, assuming not authenticated');
+        if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+          logger.warn('AdminGuard', 'Auth check timeout, assuming not authenticated');
+        }
         setIsChecking(false);
       }
-    }, 5000); // 5秒超时
+    }, AUTH_CHECK_TIMEOUT_MS); // 5秒超时
 
     const checkAccess = async () => {
       // 等待认证状态加载完成

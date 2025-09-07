@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext } from 'react';
+import { logger } from '../verbose-logger';
+
+// Chain ID constants (avoid importing SSR-unsafe modules)
+const CHAIN_ID_LOCAL = 31_337;
+const CHAIN_ID_SEPOLIA = 11_155_111;
+
+const HEX_BASE = 16;
 
 // 动态导入 toast 以避免 SSR 问题
 const getToast = () => {
@@ -153,7 +160,7 @@ export class Web3ConnectionManager {
         method: 'wallet_addEthereumChain',
         params: [
           {
-            chainId: `0x${chainId.toString(16)}`,
+            chainId: `0x${chainId.toString(HEX_BASE)}`,
             chainName: networkInfo.name,
             nativeCurrency: networkInfo.nativeCurrency,
             rpcUrls: this.config.rpcUrls[chainId] || [],
@@ -169,7 +176,7 @@ export class Web3ConnectionManager {
       }
       return true;
     } catch (error: any) {
-      console.error('Failed to add network:', error);
+      logger.error('ConnectionManager', 'Failed to add network', { error });
       const toast = await getToast();
       if (toast) {
         toast.error(`添加网络失败: ${error.message}`);
@@ -191,7 +198,7 @@ export class Web3ConnectionManager {
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${chainId.toString(16)}` }],
+        params: [{ chainId: `0x${chainId.toString(HEX_BASE)}` }],
       });
 
       const networkInfo = this.getNetworkInfo(chainId);
@@ -204,11 +211,12 @@ export class Web3ConnectionManager {
       return true;
     } catch (error: any) {
       // 如果网络不存在，尝试添加
-      if (error.code === 4902) {
+      const EIP1193_CHAIN_UNRECOGNIZED = 4902;
+      if (error.code === EIP1193_CHAIN_UNRECOGNIZED) {
         return this.addNetworkToWallet(chainId);
       }
 
-      console.error('Failed to switch network:', error);
+      logger.error('ConnectionManager', 'Failed to switch network', { error });
       const toast = await getToast();
       if (toast) {
         toast.error(`网络切换失败: ${error.message}`);
@@ -237,18 +245,20 @@ export class Web3ConnectionManager {
   getRecommendedNetwork(): number {
     // 根据环境返回推荐的网络
     if (process.env.NODE_ENV === 'development') {
-      return 31_337; // Localhost
+      return CHAIN_ID_LOCAL; // Localhost
     }
     if (process.env.NEXT_PUBLIC_ENABLE_TESTNET === 'true') {
-      return 11_155_111; // Sepolia
+      return CHAIN_ID_SEPOLIA; // Sepolia
     }
-    return 1; // Mainnet
+    const CHAIN_ID_MAINNET = 1;
+    return CHAIN_ID_MAINNET; // Mainnet
   }
 
   // 格式化地址
   formatAddress(address: string, chars = 4): string {
     if (!address) return '';
-    return `${address.slice(0, 2 + chars)}...${address.slice(-chars)}`;
+    const HEX_PREFIX_CHARS = 2;
+    return `${address.slice(0, HEX_PREFIX_CHARS + chars)}...${address.slice(-chars)}`;
   }
 
   // 生成区块浏览器链接

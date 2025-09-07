@@ -1,40 +1,18 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Plus,
-  Search,
-  Filter,
-  Edit,
-  Trash2,
-  Eye,
-  Download,
-  Upload,
-  RefreshCw,
-  Save,
-  X,
-  CheckCircle,
-  AlertTriangle,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Eye, Download, Upload, RefreshCw, X, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Dialog,
-  Label,
-} from '@/components/ui';
-import { cn } from '@/lib/utils';
 
 import type { TableColumn, TableAction, BatchAction } from './DataTable';
 import { DataTable } from './DataTable';
 import type { FormField } from './FormBuilder';
 import { FormBuilder } from './FormBuilder';
+import { cn } from '@/lib/utils';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label } from '@/components/ui';
+import { logger } from '@/lib/verbose-logger';
 
 
 export interface EntityPermissions {
@@ -103,7 +81,7 @@ interface EntityManagerProperties<T = any> {
 type ModalType = 'create' | 'edit' | 'view' | 'delete' | 'bulkDelete' | null
 
 export function EntityManager<T extends Record<string, any>>({
-  entityType,
+  entityType: _entityType,
   entityName,
   entityNamePlural,
   data,
@@ -123,7 +101,7 @@ export function EntityManager<T extends Record<string, any>>({
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedItem, setSelectedItem] = useState<T | null>(null);
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
-  const [formData, setFormData] = useState<any>({});
+  // Note: formData was previously unused; removed to reduce lint noise.
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -132,19 +110,16 @@ export function EntityManager<T extends Record<string, any>>({
     setModalType(null);
     setSelectedItem(null);
     setSelectedItems([]);
-    setFormData({});
   };
 
   // 处理创建
   const handleCreate = () => {
     setModalType('create');
-    setFormData({});
   };
 
   // 处理编辑
   const handleEdit = (item: T) => {
     setSelectedItem(item);
-    setFormData({ ...item });
     setModalType('edit');
   };
 
@@ -178,7 +153,7 @@ export function EntityManager<T extends Record<string, any>>({
       closeModal();
       await actions.onRefresh?.();
     } catch (error) {
-      console.error('Form submission error:', error);
+      logger.error('EntityManager', 'Form submission error', error);
     } finally {
       setSubmitting(false);
     }
@@ -196,7 +171,7 @@ export function EntityManager<T extends Record<string, any>>({
       closeModal();
       await actions.onRefresh?.();
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('EntityManager', 'Delete error', error);
     } finally {
       setSubmitting(false);
     }
@@ -208,7 +183,7 @@ export function EntityManager<T extends Record<string, any>>({
     try {
       await actions.onRefresh?.();
     } catch (error) {
-      console.error('Refresh error:', error);
+      logger.error('EntityManager', 'Refresh error', error);
     } finally {
       setRefreshing(false);
     }
@@ -465,10 +440,7 @@ export function EntityManager<T extends Record<string, any>>({
                     </Button>
                     {permissions.canEdit && (
                       <Button
-                        onClick={() => {
-                          setModalType('edit');
-                          setFormData({ ...selectedItem });
-                        }}
+                        onClick={() => setModalType('edit')}
                       >
                         编辑
                       </Button>
@@ -522,7 +494,9 @@ export function EntityManager<T extends Record<string, any>>({
                     {modalType === 'delete' && selectedItem
 ? (
                       <p className="text-sm text-red-800">
-                        确定要删除{entityName} <strong>{selectedItem.name || selectedItem.email || selectedItem.id}</strong> 吗？
+                        确定要删除{entityName}{' '}
+                        <strong>{selectedItem.name || selectedItem.email || selectedItem.id}</strong>{' '}
+                        吗？
                       </p>
                     )
 : (

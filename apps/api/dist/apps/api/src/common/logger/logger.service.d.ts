@@ -1,0 +1,32 @@
+import { LoggerService as NestLoggerService } from '@nestjs/common';
+import { Request } from 'express';
+export declare class LoggerService implements NestLoggerService {
+    private logger;
+    private requestLogger;
+    private performanceLogger;
+    private auditLogger;
+    private errorLogger;
+    constructor();
+    private initializeLoggers;
+    log(message: any, context?: string): void;
+    error(message: any, trace?: string, context?: string): void;
+    warn(message: any, context?: string): void;
+    debug(message: any, context?: string): void;
+    verbose(message: any, context?: string): void;
+    logRequest(request: Request, response: any, duration: number): void;
+    logPerformance(operation: string, duration: number, metadata?: any): void;
+    logAudit(userId: string, action: string, resource: string, details?: any): void;
+    logSecurity(event: string, userId?: string, details?: any): void;
+    logBusiness(event: string, metadata?: any): void;
+    logQuery(query: string, parameters?: any[], duration?: number): void;
+    logCache(operation: string, key: string, hit: boolean, duration?: number): void;
+    logQueue(queue: string, operation: string, message: any, status: 'success' | 'failure', error?: any): void;
+    logExternalCall(service: string, method: string, url: string, duration: number, status: number, error?: any): void;
+    logWebSocket(event: string, clientId: string, data?: any): void;
+    getLogStats(): Promise<any>;
+    private sanitizeData;
+    private sanitizeBody;
+    private sanitizeHeaders;
+    private sanitizeQuery;
+    private getSecuritySeverity;
+}

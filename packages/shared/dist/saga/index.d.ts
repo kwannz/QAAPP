@@ -1,0 +1,9 @@
+export interface SagaStep {
+    name: string;
+    execute: () => Promise<unknown>;
+    compensate?: () => Promise<void>;
+}
+export interface SagaOptions {
+    timeout?: number;
+    retries?: number;
+}

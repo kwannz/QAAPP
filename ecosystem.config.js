@@ -47,20 +47,24 @@ module.exports = {
     },
     {
       name: 'qa-web',
-      script: 'npm',
-      args: 'run start',
+      script: 'node',
+      args: 'dist/standalone/server.js',
       cwd: './apps/web',
       instances: 1,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
         PORT: 3002,
-        API_URL: 'http://localhost:3001'
+        API_URL: 'http://localhost:3001',
+        LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+        NEXT_PUBLIC_LOG_LEVEL: process.env.LOG_LEVEL || 'info'
       },
       env_production: {
         NODE_ENV: 'production',
         PORT: 3002,
-        API_URL: 'http://localhost:3001'
+        API_URL: 'http://localhost:3001',
+        LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+        NEXT_PUBLIC_LOG_LEVEL: process.env.LOG_LEVEL || 'info'
       },
       pid_file: './logs/web.pid',
       out_file: './logs/qa-web-out.log',

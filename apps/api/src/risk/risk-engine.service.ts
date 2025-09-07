@@ -599,6 +599,8 @@ export class RiskEngineService {
     
     switch (chainId) {
       case 1: // Ethereum
+      case 11_155_111: // Sepolia Testnet
+      case 31_337: // Hardhat Local
       case 56: // BSC
       case 137: // Polygon
         return /^0x[a-fA-F0-9]{40}$/.test(address);

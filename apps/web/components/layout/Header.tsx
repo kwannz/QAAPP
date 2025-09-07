@@ -1,16 +1,16 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 import { SafeConnectButton } from '../web3/SafeConnectButton';
 
+import { useAuthStore } from '../../lib/auth-context';
 import { Button, cn } from '@/components/ui';
 
-import { useAuthStore } from '../../lib/auth-context';
 
 const navigation = [
   { name: '首页', href: '/' },

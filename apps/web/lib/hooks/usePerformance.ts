@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
+import { logger } from '../verbose-logger';
 declare const gtag: any;
 
 // 性能指标类型
@@ -74,7 +75,7 @@ export function usePerformance(): PerformanceHookReturn {
         });
         clsObserver.observe({ entryTypes: ['layout-shift'] });
       } catch (error) {
-        console.warn('Performance Observer not fully supported:', error);
+        logger.warn('Performance', 'Performance Observer not fully supported', { error });
       }
     }
   }, []);
@@ -99,7 +100,8 @@ export function usePerformance(): PerformanceHookReturn {
       const endTime = performance.now();
       const loadTime = endTime - startTime;
 
-      console.log(`📊 Page Load: ${pageName} - ${loadTime.toFixed(2)}ms`);
+      const DECIMALS_TWO = 2;
+      logger.info('Performance', `Page Load: ${pageName} - ${loadTime.toFixed(DECIMALS_TWO)}ms`);
 
       // 发送到分析服务（可选）
       if (process.env.NODE_ENV === 'production') {
@@ -116,6 +118,9 @@ export function usePerformance(): PerformanceHookReturn {
   }, []);
 
   // 测量函数执行时间
+  const DECIMALS_TWO = 2;
+  const SLOW_FUNCTION_MS = 100;
+  const SLOW_RENDER_MS = 50;
   const measureFunction = useCallback(async (functionName: string, function_: () => void | Promise<void>) => {
     const startTime = performance.now();
 
@@ -125,9 +130,9 @@ export function usePerformance(): PerformanceHookReturn {
       const endTime = performance.now();
       const executionTime = endTime - startTime;
 
-      console.log(`⚡ Function: ${functionName} - ${executionTime.toFixed(2)}ms`);
+      logger.info('Performance', `Function: ${functionName} - ${executionTime.toFixed(DECIMALS_TWO)}ms`);
 
-      if (process.env.NODE_ENV === 'production' && executionTime > 100) {
+      if (process.env.NODE_ENV === 'production' && executionTime > SLOW_FUNCTION_MS) {
         // 记录慢函数调用
         reportPerformanceMetric('slow_function', functionName, executionTime);
       }
@@ -146,11 +151,11 @@ export function usePerformance(): PerformanceHookReturn {
           const endTime = performance.now();
           const renderTime = endTime - startTime;
 
-          console.log(`🎨 Component: ${componentName} - ${renderTime.toFixed(2)}ms`);
+          logger.info('Performance', `Component: ${componentName} - ${renderTime.toFixed(DECIMALS_TWO)}ms`);
 
           timersReference.current.delete(componentName);
 
-          if (process.env.NODE_ENV === 'production' && renderTime > 50) {
+          if (process.env.NODE_ENV === 'production' && renderTime > SLOW_RENDER_MS) {
             reportPerformanceMetric('slow_render', componentName, renderTime);
           }
         }
@@ -201,7 +206,7 @@ function reportPerformanceMetric(metricType: string, name: string, value: number
       }).catch(() => {}); // 静默失败，不影响用户体验
     }
   } catch (error) {
-    console.warn('Failed to report performance metric:', error);
+    logger.warn('Performance', 'Failed to report performance metric', { error });
   }
 }
 
@@ -243,21 +248,23 @@ export function ProfilerComponent({
     id: string,
     phase: 'mount' | 'update',
     actualDuration: number,
-    baseDuration: number,
-    startTime: number,
-    commitTime: number,
-    interactions: Set<any>,
+    _baseDuration: number,
+    _startTime: number,
+    _commitTime: number,
+    _interactions: Set<any>,
   ) => {
-    console.log(`🔍 Profiler [${id}]:`, {
+    const DECIMALS_TWO = 2;
+    logger.info('Performance', `Profiler [${id}]`, {
       phase,
-      actualDuration: `${actualDuration.toFixed(2)}ms`,
-      baseDuration: `${baseDuration.toFixed(2)}ms`,
+      actualDuration: `${actualDuration.toFixed(DECIMALS_TWO)}ms`,
+      baseDuration: `${_baseDuration.toFixed(DECIMALS_TWO)}ms`,
     });
 
     onRender?.(id, phase, actualDuration);
 
     // 报告慢渲染
-    if (actualDuration > 16 && process.env.NODE_ENV === 'production') {
+    const FRAME_60HZ_BUDGET_MS = 16;
+    if (actualDuration > FRAME_60HZ_BUDGET_MS && process.env.NODE_ENV === 'production') {
       reportPerformanceMetric('slow_render', id, actualDuration);
     }
   }, [onRender]);

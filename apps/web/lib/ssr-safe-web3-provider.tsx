@@ -2,16 +2,20 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { useState, useEffect, createContext, useContext, createRef } from 'react';
-import dynamic from 'next/dynamic';
-
+import { useState, useEffect, createContext, useContext } from 'react';
 import { ClientOnly } from '../components/ClientOnly';
+import { logger } from './verbose-logger';
 import { MockWagmiProvider } from './wagmi-mock-provider';
 
 import { isBrowserEnvironment, installBrowserPolyfills } from './browser-polyfills';
 
 // RainbowKit styles are loaded via Next.js app configuration
 // Removed dynamic import to fix TypeScript compilation issues
+
+// Time and retry constants
+const MS_PER_SEC = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MAX_RETRIES_BACKGROUND = 3;
 
 // 创建一个安全的Web3上下文
 interface SafeWeb3Context {
@@ -89,7 +93,7 @@ function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagm
         }
 
         setWagmiProvider(() => WagmiComp);
-        setRainbowKitProvider(() => (properties: any) => (
+        const RainbowKitProviderWrapper = (properties: any) => (
           <RainbowComp
             theme={{
               lightMode: lightTheme({
@@ -111,13 +115,15 @@ function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagm
             }}
             {...properties}
           />
-        ));
+        );
+        RainbowKitProviderWrapper.displayName = 'RainbowKitProviderWrapper';
+        setRainbowKitProvider(() => RainbowKitProviderWrapper);
 
         setUseWagmi(true);
         setIsInitialized(true);
-        console.log('✅ Wagmi/RainbowKit components loaded successfully');
+        logger.info('Web3Provider', 'Wagmi/RainbowKit components loaded successfully');
       } catch (error) {
-        console.warn('❌ Failed to load Wagmi/RainbowKit components, using fallback mode:', error);
+        logger.warn('Web3Provider', 'Failed to load Wagmi/RainbowKit components, using fallback mode', { error });
         setLoadError(error instanceof Error ? error.message : 'Unknown error');
         setUseWagmi(false);
         setIsInitialized(true);
@@ -151,16 +157,35 @@ function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagm
         </WagmiProvider>
       );
     } catch (error) {
-      console.error('Runtime error in Wagmi provider, falling back to mock context:', error);
+      logger.error('Web3Provider', 'Runtime error in Wagmi provider, falling back to mock context', { error });
       // Fall through to mock context
     }
   }
 
   // Fallback state - use mock context to prevent hook violations
-  console.info('Using mock Web3 context - wallet features disabled');
+  const fallbackReason = loadError || 'Web3配置未启用';
+  
+  // Use a simple deduplication for SSR provider to avoid creating another warning manager
+  const _logKey = `fallback-${fallbackReason}`;
+  const hasLogged = typeof window !== 'undefined' ? (window as any).__web3_fallback_logged : false;
+  
+  if (!hasLogged) {
+    if (loadError?.includes('项目ID') || loadError?.includes('project')) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('Web3Provider', 'WalletConnect项目ID配置问题 - 请在.env文件中设置正确的NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID或访问 https://cloud.reown.com 创建项目');
+      }
+    } else if (process.env.NODE_ENV === 'development') {
+      logger.info('Web3Provider', '使用Mock Web3上下文 - 钱包功能已禁用');
+    }
+    
+    if (typeof window !== 'undefined') {
+      (window as any).__web3_fallback_logged = true;
+    }
+  }
+  
   return (
     <SimpleFallbackWrapper>
-      <div data-wagmi-provider="fallback" title={loadError || 'Web3 disabled'}>
+      <div data-wagmi-provider="fallback" title={fallbackReason}>
         {children}
       </div>
     </SimpleFallbackWrapper>
@@ -180,13 +205,13 @@ function ClientWeb3Provider({ children }: SafeWeb3ProviderProperties) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: SECONDS_PER_MINUTE * MS_PER_SEC,
             retry: (failureCount, error) => {
-              if (error?.message?.includes('user rejected')
-                  || error?.message?.includes('User denied')) {
+              if (error?.message?.includes('user rejected') ||
+                  error?.message?.includes('User denied')) {
                 return false;
               }
-              return failureCount < 3;
+              return failureCount < MAX_RETRIES_BACKGROUND;
             },
           },
         },
@@ -226,13 +251,13 @@ function ClientWeb3Provider({ children }: SafeWeb3ProviderProperties) {
           });
         } else {
           // 配置创建失败，但应用仍然可以工作
-          console.warn('Web3 config creation failed, running in fallback mode');
+          logger.warn('Web3Provider', 'Web3 config creation failed, running in fallback mode');
         }
 
         // Web3 initialized successfully with proper Wagmi provider
       } catch (error) {
         // Failed to initialize Web3 - application continues with fallback state
-        console.warn('Web3 initialization failed:', error);
+        logger.warn('Web3Provider', 'Web3 initialization failed', { error });
 
         // 保持默认状态，应用仍然可以工作
       }

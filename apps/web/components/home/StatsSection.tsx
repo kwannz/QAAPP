@@ -52,6 +52,9 @@ function AnimatedNumber({
 }) {
   const [displayValue, setDisplayValue] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const MILLION = 1_000_000;
+  const THOUSAND = 1000;
+  const DECIMALS_ONE = 1;
 
   useEffect(() => {
     if (!isVisible) return;
@@ -65,7 +68,8 @@ function AnimatedNumber({
       const progress = Math.min(elapsed / duration, 1);
 
       // 使用缓动函数
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const EASE_POWER = 4;
+      const easeOutQuart = 1 - Math.pow(1 - progress, EASE_POWER);
       const currentValue = startValue + (value - startValue) * easeOutQuart;
 
       setDisplayValue(currentValue);
@@ -81,19 +85,19 @@ function AnimatedNumber({
   const formatValue = (value_: number) => {
     switch (format) {
       case 'currency': {
-        return value_ >= 1_000_000
-          ? `${(value_ / 1_000_000).toFixed(1)  }M`
-          : (value_ >= 1000
-            ? `${(value_ / 1000).toFixed(0)  }K`
+        return value_ >= MILLION
+          ? `${(value_ / MILLION).toFixed(DECIMALS_ONE)  }M`
+          : (value_ >= THOUSAND
+            ? `${(value_ / THOUSAND).toFixed(0)  }K`
             : value_.toFixed(0));
       }
       case 'number': {
-        return value_ >= 1000
-          ? `${(value_ / 1000).toFixed(1)  }K`
+        return value_ >= THOUSAND
+          ? `${(value_ / THOUSAND).toFixed(DECIMALS_ONE)  }K`
           : value_.toFixed(0);
       }
       case 'decimal': {
-        return value_.toFixed(1);
+        return value_.toFixed(DECIMALS_ONE);
       }
       default: {
         return value_.toFixed(0);
@@ -123,6 +127,9 @@ function AnimatedNumber({
 }
 
 export function StatsSection() {
+  const ANIM_DELAY_STEP = 0.1;
+  const HOVER_Y_OFFSET = -5;
+  const HOVER_SCALE = 1.02;
   return (
     <section className="qa-section bg-white">
       <div className="qa-container">
@@ -150,11 +157,11 @@ export function StatsSection() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: 0.6, delay: index * ANIM_DELAY_STEP }}
               whileHover={{ 
-                y: -5,
-                scale: 1.02,
-                transition: { duration: 0.3 }
+                y: HOVER_Y_OFFSET,
+                scale: HOVER_SCALE,
+                transition: { duration: 0.3 },
               }}
               className="group text-center p-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-100 hover:border-orange-200 hover:shadow-xl transition-all duration-300 cursor-pointer"
             >

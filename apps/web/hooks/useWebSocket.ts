@@ -18,7 +18,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     onMessage,
     onConnected,
     onDisconnected,
-    onError
+    onError,
   } = options
 
   const [isConnected, setIsConnected] = useState(false)
@@ -114,7 +114,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     disconnect,
     sendMessage,
     subscribe,
-    unsubscribe
+    unsubscribe,
   }
 }
 
@@ -130,7 +130,7 @@ export function useAuditWebSocket(onNewLog?: (log: any) => void) {
         setLogs(prev => [newLog, ...prev])
         onNewLog?.(newLog)
       }
-    }
+    },
   })
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export function useAuditWebSocket(onNewLog?: (log: any) => void) {
   return {
     isConnected,
     realtimeLogs: logs,
-    clearLogs: () => setLogs([])
+    clearLogs: () => setLogs([]),
   }
 }
 
@@ -174,14 +174,14 @@ export function useSystemMonitorWebSocket() {
           setAlerts(prev => [message.data, ...prev].slice(0, 50))
           break
       }
-    }
+    },
   })
 
   return {
     isConnected,
     metrics,
     events,
-    alerts
+    alerts,
   }
 }
 
@@ -203,11 +203,11 @@ export function useAlertWebSocket(onAlert?: (alert: any) => void) {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('系统告警', {
             body: alert.message,
-            icon: '/favicon.ico'
+            icon: '/favicon.ico',
           })
         }
       }
-    }
+    },
   })
 
   const markAsRead = useCallback((alertId: string) => {
@@ -227,6 +227,6 @@ export function useAlertWebSocket(onAlert?: (alert: any) => void) {
     alerts,
     unreadCount,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
   }
 }

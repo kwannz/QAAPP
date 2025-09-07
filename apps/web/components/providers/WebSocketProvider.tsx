@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuthStore } from '../../lib/auth-context';
 import type { WebSocketMessage } from '../../lib/websocket-client';
 import { wsClient, WebSocketStatus, useNotifications } from '../../lib/websocket-client';
+import { logger } from '@/lib/verbose-logger';
 
 // WebSocket 上下文类型
 interface WebSocketContextType {
@@ -44,7 +45,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const enableWebSocket = process.env.NEXT_PUBLIC_ENABLE_WEBSOCKET === 'true';
 
     if (!enableWebSocket) {
-      console.log('WebSocket功能已准备就绪，可通过NEXT_PUBLIC_ENABLE_WEBSOCKET=true启用');
+      logger.info('WebSocket', '功能已准备就绪，可通过 NEXT_PUBLIC_ENABLE_WEBSOCKET=true 启用');
     }
 
     // if (isAuthenticated && user) {

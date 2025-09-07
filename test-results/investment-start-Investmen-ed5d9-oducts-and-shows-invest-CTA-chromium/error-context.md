@@ -1,0 +1,248 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8] [cursor=pointer]
+  - alert [ref=e11]
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - banner [ref=e15]:
+        - navigation "Global" [ref=e16]:
+          - link "QA QA App" [ref=e18] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e20] [cursor=pointer]: QA
+            - generic [ref=e21] [cursor=pointer]: QA App
+          - generic [ref=e22]:
+            - link "首页" [ref=e23] [cursor=pointer]:
+              - /url: /
+            - link "产品" [ref=e24] [cursor=pointer]:
+              - /url: /products
+          - generic [ref=e25]:
+            - link "登录" [ref=e26] [cursor=pointer]:
+              - /url: /auth/login
+              - button "登录" [ref=e27] [cursor=pointer]
+            - link "注册" [ref=e28] [cursor=pointer]:
+              - /url: /auth/register
+              - button "注册" [ref=e29] [cursor=pointer]
+      - main [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - heading "投资产品" [level=1] [ref=e33]
+            - paragraph [ref=e34]: 专业精选的Web3固定收益产品，为您提供稳健的投资回报
+          - alert [ref=e35]:
+            - img [ref=e36]
+            - generic [ref=e38]:
+              - strong [ref=e39]: 投资提醒：
+              - text: 所有投资产品均存在风险，过往收益不代表未来表现。请根据自身风险承受能力合理配置资产。 投资前请仔细阅读产品说明书和风险提示。
+          - generic [ref=e40]:
+            - button "全部产品 3" [ref=e41] [cursor=pointer]:
+              - text: 全部产品
+              - generic [ref=e42] [cursor=pointer]: "3"
+            - button "稳健理财 1" [ref=e43] [cursor=pointer]:
+              - text: 稳健理财
+              - generic [ref=e44] [cursor=pointer]: "1"
+            - button "增长基金 1" [ref=e45] [cursor=pointer]:
+              - text: 增长基金
+              - generic [ref=e46] [cursor=pointer]: "1"
+            - button "高收益 1" [ref=e47] [cursor=pointer]:
+              - text: 高收益
+              - generic [ref=e48] [cursor=pointer]: "1"
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - generic [ref=e52]:
+                  - heading "USDT稳定理财" [level=3] [ref=e53]
+                  - generic [ref=e54]:
+                    - generic [ref=e55]: 低风险
+                    - generic [ref=e56]: 可投资
+                - paragraph [ref=e57]: 基于USDT的稳定收益产品，适合稳健投资者
+              - generic [ref=e58]:
+                - generic [ref=e60]:
+                  - generic [ref=e61]:
+                    - paragraph [ref=e62]: 预期年化收益率
+                    - paragraph [ref=e63]: 8.5%
+                  - img [ref=e65]
+                - generic [ref=e68]:
+                  - generic [ref=e69]:
+                    - img [ref=e70]
+                    - generic [ref=e72]:
+                      - paragraph [ref=e73]: 最低投资
+                      - paragraph [ref=e74]: 100 USDT
+                  - generic [ref=e75]:
+                    - img [ref=e76]
+                    - generic [ref=e79]:
+                      - paragraph [ref=e80]: 投资期限
+                      - paragraph [ref=e81]: 30天
+                - generic [ref=e82]:
+                  - generic [ref=e83]:
+                    - generic [ref=e84]: 已募集资金
+                    - generic [ref=e85]: 50.0%
+                  - generic [ref=e88]:
+                    - generic [ref=e89]: 250,000 USDT
+                    - generic [ref=e90]: "目标: 500,000 USDT"
+                - generic [ref=e91]:
+                  - generic [ref=e92]:
+                    - img [ref=e93]
+                    - generic [ref=e96]: 128 位投资者
+                  - generic [ref=e97]:
+                    - img [ref=e98]
+                    - img [ref=e100]
+                    - img [ref=e102]
+                    - img [ref=e104]
+                    - img [ref=e106]
+                - generic [ref=e108]:
+                  - paragraph [ref=e109]: "产品特点:"
+                  - generic [ref=e110]:
+                    - generic [ref=e111]: 本金保障
+                    - generic [ref=e112]: 固定收益
+                    - generic [ref=e113]: 随时赎回
+                    - generic [ref=e114]: 透明安全
+                - link "立即投资" [ref=e116] [cursor=pointer]:
+                  - /url: /products/purchase/silver
+                  - button "立即投资" [ref=e117] [cursor=pointer]:
+                    - text: 立即投资
+                    - img
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]:
+                  - heading "ETH增长基金" [level=3] [ref=e121]
+                  - generic [ref=e122]:
+                    - generic [ref=e123]: 中风险
+                    - generic [ref=e124]: 可投资
+                - paragraph [ref=e125]: 基于以太坊生态的增长型投资产品
+              - generic [ref=e126]:
+                - generic [ref=e128]:
+                  - generic [ref=e129]:
+                    - paragraph [ref=e130]: 预期年化收益率
+                    - paragraph [ref=e131]: 12.3%
+                  - img [ref=e133]
+                - generic [ref=e136]:
+                  - generic [ref=e137]:
+                    - img [ref=e138]
+                    - generic [ref=e140]:
+                      - paragraph [ref=e141]: 最低投资
+                      - paragraph [ref=e142]: 0.1 ETH
+                  - generic [ref=e143]:
+                    - img [ref=e144]
+                    - generic [ref=e147]:
+                      - paragraph [ref=e148]: 投资期限
+                      - paragraph [ref=e149]: 90天
+                - generic [ref=e150]:
+                  - generic [ref=e151]:
+                    - generic [ref=e152]: 已募集资金
+                    - generic [ref=e153]: 44.8%
+                  - generic [ref=e156]:
+                    - generic [ref=e157]: 89.5 ETH
+                    - generic [ref=e158]: "目标: 200 ETH"
+                - generic [ref=e159]:
+                  - generic [ref=e160]:
+                    - img [ref=e161]
+                    - generic [ref=e164]: 64 位投资者
+                  - generic [ref=e165]:
+                    - img [ref=e166]
+                    - img [ref=e168]
+                    - img [ref=e170]
+                    - img [ref=e172]
+                    - img [ref=e174]
+                - generic [ref=e176]:
+                  - paragraph [ref=e177]: "产品特点:"
+                  - generic [ref=e178]:
+                    - generic [ref=e179]: ETH质押
+                    - generic [ref=e180]: DeFi收益
+                    - generic [ref=e181]: 复利增长
+                    - generic [ref=e182]: 专业管理
+                - link "立即投资" [ref=e184] [cursor=pointer]:
+                  - /url: /products/purchase/gold
+                  - button "立即投资" [ref=e185] [cursor=pointer]:
+                    - text: 立即投资
+                    - img
+            - generic [ref=e186]:
+              - generic [ref=e187]:
+                - generic [ref=e188]:
+                  - heading "高收益组合" [level=3] [ref=e189]
+                  - generic [ref=e190]:
+                    - generic [ref=e191]: 高风险
+                    - generic [ref=e192]: 即将上线
+                - paragraph [ref=e193]: 多元化投资组合，追求更高收益
+              - generic [ref=e194]:
+                - generic [ref=e196]:
+                  - generic [ref=e197]:
+                    - paragraph [ref=e198]: 预期年化收益率
+                    - paragraph [ref=e199]: 18.9%
+                  - img [ref=e201]
+                - generic [ref=e204]:
+                  - generic [ref=e205]:
+                    - img [ref=e206]
+                    - generic [ref=e208]:
+                      - paragraph [ref=e209]: 最低投资
+                      - paragraph [ref=e210]: 1,000 USDT
+                  - generic [ref=e211]:
+                    - img [ref=e212]
+                    - generic [ref=e215]:
+                      - paragraph [ref=e216]: 投资期限
+                      - paragraph [ref=e217]: 180天
+                - generic [ref=e218]:
+                  - generic [ref=e219]:
+                    - generic [ref=e220]: 已募集资金
+                    - generic [ref=e221]: 0.0%
+                  - generic [ref=e223]:
+                    - generic [ref=e224]: 0 USDT
+                    - generic [ref=e225]: "目标: 1,000,000 USDT"
+                - generic [ref=e226]:
+                  - generic [ref=e227]:
+                    - img [ref=e228]
+                    - generic [ref=e231]: 0 位投资者
+                  - generic [ref=e232]:
+                    - img [ref=e233]
+                    - img [ref=e235]
+                    - img [ref=e237]
+                    - img [ref=e239]
+                    - img [ref=e241]
+                - generic [ref=e243]:
+                  - paragraph [ref=e244]: "产品特点:"
+                  - generic [ref=e245]:
+                    - generic [ref=e246]: 多链投资
+                    - generic [ref=e247]: 量化策略
+                    - generic [ref=e248]: 动态调仓
+                    - generic [ref=e249]: 专属服务
+                - generic [ref=e250]:
+                  - button "即将上线" [disabled]:
+                    - img
+                    - text: 即将上线
+          - generic [ref=e252]:
+            - heading "为什么选择QA投资平台？" [level=3] [ref=e253]
+            - generic [ref=e254]:
+              - generic [ref=e255]:
+                - img [ref=e257]
+                - heading "安全保障" [level=4] [ref=e260]
+                - paragraph [ref=e261]: 智能合约保护，资金链上透明，多重安全机制
+              - generic [ref=e262]:
+                - img [ref=e264]
+                - heading "收益稳定" [level=4] [ref=e266]
+                - paragraph [ref=e267]: 专业量化策略，历史收益稳定，风险控制严格
+              - generic [ref=e268]:
+                - img [ref=e270]
+                - heading "操作便捷" [level=4] [ref=e273]
+                - paragraph [ref=e274]: 一键投资，实时查看，随时赎回，操作简单便捷
+    - generic:
+      - status [ref=e276]: "6"
+      - status [ref=e278]: "6"
+      - generic [ref=e279]:
+        - status
+      - generic [ref=e280]:
+        - status
+      - status [ref=e282]: "2"
+      - status [ref=e284]: "2"
+      - generic [ref=e285]:
+        - status
+      - generic [ref=e286]:
+        - status
+      - generic [ref=e287]:
+        - status
+    - generic [ref=e290]: "WebSocket: 未连接"
+    - generic [ref=e291]:
+      - img [ref=e293]
+      - button "Open Tanstack query devtools" [ref=e341] [cursor=pointer]:
+        - img [ref=e342] [cursor=pointer]
+```

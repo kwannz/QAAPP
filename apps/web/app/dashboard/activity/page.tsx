@@ -4,9 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Activity,
   CreditCard,
-  FileText,
   Clock,
-  Eye,
   Download,
   TrendingUp,
   TrendingDown,
@@ -16,15 +14,17 @@ import {
   AlertTriangle,
   CheckCircle,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+// keep alias imports grouped after relative ones
 
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 
 import { ProtectedRoute } from '../../../components/auth/ProtectedRoute';
 import { FilterPanel } from '../../../components/common/FilterPanel';
 import { TabContainer } from '../../../components/common/TabContainer';
 import { Header } from '../../../components/layout/Header';
 import { useAuthStore } from '../../../lib/auth-context';
+import { logger } from '@/lib/verbose-logger';
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 
 interface ActivityLog {
   id: string
@@ -121,10 +121,10 @@ const mockTransactions: Transaction[] = [
 ];
 
 export default function UserActivityCenter() {
-  const { user } = useAuthStore();
+  const { user: _user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('overview');
-  const [activities, setActivities] = useState<ActivityLog[]>(mockActivities);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [activities, _setActivities] = useState<ActivityLog[]>(mockActivities);
+  const [transactions, _setTransactions] = useState<Transaction[]>(mockTransactions);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({
     type: 'all',
     status: 'all',
@@ -209,6 +209,10 @@ export default function UserActivityCenter() {
     },
   ];
 
+  // 动画与显示常量
+  const TIMELINE_PREVIEW_COUNT = 10;
+  const ANIM_DELAY_STEP = 0.1;
+
   const getActivityIcon = (type: string, status: string) => {
     if (status === 'FAILED') return <AlertTriangle className="h-4 w-4 text-red-600" />;
     if (status === 'WARNING') return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
@@ -292,12 +296,12 @@ export default function UserActivityCenter() {
               description: tx.description,
               timestamp: tx.timestamp,
               details: { amount: tx.amount },
-            }))].slice(0, 10).map((item, index) => (
+            }))].slice(0, TIMELINE_PREVIEW_COUNT).map((item, index) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * ANIM_DELAY_STEP }}
                 className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg"
               >
                 <div className="flex-shrink-0 mt-1">
@@ -344,7 +348,7 @@ export default function UserActivityCenter() {
                 key={activity.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * ANIM_DELAY_STEP }}
                 className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex-shrink-0 mt-1">
@@ -446,7 +450,7 @@ export default function UserActivityCenter() {
                 key={transaction.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * ANIM_DELAY_STEP }}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex items-center space-x-4">
@@ -542,7 +546,11 @@ export default function UserActivityCenter() {
                 searchPlaceholder={
                   activeTab === 'transactions' ? '搜索交易记录...' : '搜索活动记录...'
                 }
-                onExport={() => console.log('导出数据')}
+                onExport={() => {
+                  if (process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true') {
+                    logger.info('ActivityCenter', '导出数据');
+                  }
+                }}
               />
 
               <TabContainer

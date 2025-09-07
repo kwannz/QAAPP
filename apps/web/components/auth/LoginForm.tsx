@@ -114,7 +114,7 @@ export function LoginForm() {
         </button>
 
         <div>
-          <span className="text-sm text-gray-600">Don't have an account? </span>
+          <span className="text-sm text-gray-600">Don&apos;t have an account? </span>
           <button
             type="button"
             onClick={() => router.push('/auth/register')}

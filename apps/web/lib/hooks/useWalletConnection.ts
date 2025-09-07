@@ -1,11 +1,9 @@
 'use client';
 
-import { useConnectModal, useAccountModal, useChainModal } from '@rainbow-me/rainbowkit';
 import { useState, useEffect, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useBalance } from 'wagmi';
-
 import { isSupportedChain, getChainInfo, supportedChainIds } from '../wagmi-config';
+import { useSafeToast } from '../use-safe-toast';
+import { useSafeAccount, useSafeBalance, useSafeConnect, useSafeChainId, useSafeSwitchChain } from './use-safe-wagmi';
 
 
 export interface WalletConnectionState {
@@ -47,89 +45,24 @@ export interface WalletConnectionActions {
 }
 
 export function useWalletConnection(): [WalletConnectionState, WalletConnectionActions] {
-  // Safe wrapper for useAccount that handles missing WagmiProvider
-  let account;
-  try {
-    account = useAccount();
-  } catch (error) {
-    // If WagmiProvider is not available, return default values
-    account = { address: undefined, isConnected: false, isConnecting: false };
-  }
-  
-  const { address, isConnected, isConnecting } = account;
-  
-  // Safe wrappers for other Wagmi hooks
-  let connect, connectors, isConnectPending, connectError;
-  try {
-    const connectHook = useConnect();
-    connect = connectHook.connect;
-    connectors = connectHook.connectors;
-    isConnectPending = connectHook.isPending;
-    connectError = connectHook.error;
-  } catch (error) {
-    connect = () => {};
-    connectors = [];
-    isConnectPending = false;
-    connectError = null;
-  }
+  const toast = useSafeToast();
 
-  let disconnect;
-  try {
-    const disconnectHook = useDisconnect();
-    disconnect = disconnectHook.disconnect;
-  } catch (error) {
-    disconnect = () => {};
-  }
+  // 顶层稳定获取账户与链状态（使用安全封装）
+  const account = useSafeAccount();
+  const { address, isConnected, isConnecting } = account as any;
+  const chainId = useSafeChainId();
+  const { switchChain, isPending: _isSwitchPending, error: switchError } = useSafeSwitchChain() as any;
 
-  let chainId;
-  try {
-    chainId = useChainId();
-  } catch (error) {
-    chainId = 1; // Default to mainnet
-  }
+  // 连接/断开（安全封装）
+  const connectHook = useSafeConnect() as any;
+  const isConnectPending = connectHook.isPending || false;
+  const connectError = connectHook.error || null;
 
-  let switchChain, isSwitchPending, switchError;
-  try {
-    const switchHook = useSwitchChain();
-    switchChain = switchHook.switchChain;
-    isSwitchPending = switchHook.isPending;
-    switchError = switchHook.error;
-  } catch (error) {
-    switchChain = async () => {};
-    isSwitchPending = false;
-    switchError = null;
-  }
-
-  // Safe wrappers for RainbowKit modal hooks
-  let openConnectModal, openAccountModal, openChainModal;
-  try {
-    openConnectModal = useConnectModal().openConnectModal;
-    openAccountModal = useAccountModal().openAccountModal;
-    openChainModal = useChainModal().openChainModal;
-  } catch (error) {
-    openConnectModal = () => {};
-    openAccountModal = () => {};
-    openChainModal = () => {};
-  }
-
-  // Safe wrapper for balance hook
-  let balanceData, isBalanceLoading, refetchBalance;
-  try {
-    const balanceHook = useBalance({
-      address,
-      query: {
-        enabled: Boolean(address) && Boolean(chainId),
-        refetchInterval: 10_000, // 每10秒刷新一次余额
-      },
-    });
-    balanceData = balanceHook.data;
-    isBalanceLoading = balanceHook.isLoading;
-    refetchBalance = balanceHook.refetch;
-  } catch (error) {
-    balanceData = undefined;
-    isBalanceLoading = false;
-    refetchBalance = async () => {};
-  }
+  // 余额（安全封装）
+  const balanceHook = useSafeBalance({ address });
+  const balanceData = (balanceHook as any)?.data;
+  const isBalanceLoading = (balanceHook as any)?.isLoading || false;
+  // const refetchBalance = (balanceHook as any)?.refetch || (async () => {});
 
   const [error, setError] = useState<string>();
   const [lastConnectedChain, setLastConnectedChain] = useState<number>();
@@ -140,7 +73,7 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
       setError(`连接失败: ${connectError.message}`);
       toast.error(`钱包连接失败: ${connectError.message}`);
     }
-  }, [connectError]);
+  }, [connectError, toast]);
 
   // 监听切链错误
   useEffect(() => {
@@ -148,7 +81,7 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
       setError(`网络切换失败: ${switchError.message}`);
       toast.error(`网络切换失败: ${switchError.message}`);
     }
-  }, [switchError]);
+  }, [switchError, toast]);
 
   // 监听网络变化
   useEffect(() => {
@@ -164,24 +97,16 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
       // 清除之前的错误
       setError(undefined);
     }
-  }, [chainId, isConnected]);
+  }, [chainId, isConnected, toast]);
 
-  // 监听连接状态变化
-  useEffect(() => {
-    if (isConnected && address) {
-      toast.success(`钱包已连接: ${formatAddress(address)}`);
-
-      // 恢复到上次使用的链
-      if (lastConnectedChain && chainId !== lastConnectedChain && isSupportedChain(lastConnectedChain)) {
-        switchToChain(lastConnectedChain);
-      }
-    }
-  }, [isConnected, address]);
+  // 监听连接状态变化（放在依赖定义之后，避免 TS 报错）
 
   // 格式化地址显示
+  const ADDRESS_PREFIX_LEN = 6;
+  const ADDRESS_SUFFIX_LEN = 4;
   const formatAddress = useCallback((addr?: string): string => {
     if (!addr) return '';
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, ADDRESS_PREFIX_LEN)}...${addr.slice(-ADDRESS_SUFFIX_LEN)}`;
   }, []);
 
   // 获取浏览器链接
@@ -220,14 +145,16 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
       toast.error(errorMessage);
       throw error_;
     }
-  }, [switchChain]);
+  }, [switchChain, toast]);
 
   // 切换到支持的链（自动选择最佳链）
   const switchToSupportedChain = useCallback(async () => {
     // 优先切换到 Sepolia 测试网（如果启用了测试网）
+    const CHAIN_ID_SEPOLIA_NUM = 11_155_111; // Sepolia
+    const CHAIN_ID_MAINNET = 1; // Ethereum mainnet
     const preferredChainId = process.env.NEXT_PUBLIC_ENABLE_TESTNET === 'true'
-      ? 11_155_111 // Sepolia
-      : 1; // Ethereum mainnet
+      ? CHAIN_ID_SEPOLIA_NUM
+      : CHAIN_ID_MAINNET;
 
     if (supportedChainIds.includes(preferredChainId)) {
       await switchToChain(preferredChainId);
@@ -236,6 +163,18 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
       await switchToChain(supportedChainIds[0]);
     }
   }, [switchToChain]);
+
+  // 监听连接状态变化（在依赖定义之后）
+  useEffect(() => {
+    if (isConnected && address) {
+      toast.success(`钱包已连接: ${formatAddress(address)}`);
+
+      // 恢复到上次使用的链
+      if (lastConnectedChain && chainId !== lastConnectedChain && isSupportedChain(lastConnectedChain)) {
+        switchToChain(lastConnectedChain);
+      }
+    }
+  }, [isConnected, address, toast, lastConnectedChain, chainId, switchToChain, formatAddress]);
 
   // 清除错误
   const clearError = useCallback(() => {
@@ -247,6 +186,7 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
   const isNetworkSupported = chainId ? isSupportedChain(chainId) : false;
 
   // 状态对象
+  const DECIMALS_FOUR = 4;
   const state: WalletConnectionState = {
     isConnected,
     isConnecting: isConnecting || isConnectPending,
@@ -254,17 +194,17 @@ export function useWalletConnection(): [WalletConnectionState, WalletConnectionA
     chainId,
     networkName,
     isNetworkSupported,
-    ethBalance: balanceData ? Number.parseFloat(balanceData.formatted).toFixed(4) : undefined,
+    ethBalance: balanceData ? Number.parseFloat(balanceData.formatted).toFixed(DECIMALS_FOUR) : undefined,
     isBalanceLoading,
     error,
   };
 
   // 操作对象
   const actions: WalletConnectionActions = {
-    openConnectModal: openConnectModal || (() => {}),
-    openAccountModal: openAccountModal || (() => {}),
-    openChainModal: openChainModal || (() => {}),
-    disconnect,
+    openConnectModal: () => {},
+    openAccountModal: () => {},
+    openChainModal: () => {},
+    disconnect: (connectHook.disconnect as any) || (() => {}),
     switchToChain,
     switchToSupportedChain,
     formatAddress,

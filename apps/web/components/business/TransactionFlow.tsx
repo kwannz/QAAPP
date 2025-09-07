@@ -1,24 +1,9 @@
 'use client';
 
-import {
-  Loader2,
-  CheckCircle,
-  AlertTriangle,
-  ExternalLink,
-  Clock,
-  Wallet,
-  ArrowRight,
-  RefreshCw,
-  Coins,
-  DollarSign,
-  Calendar,
-  TrendingUp,
-  Download,
-  History,
-} from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, Wallet, RefreshCw, Coins, History } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { parseUnits, formatEther, formatUnits } from 'viem';
-import { useAccount, useBalance, useWaitForTransactionReceipt } from 'wagmi';
+import { formatEther } from 'viem';
+import { useAccount, useBalance } from 'wagmi';
 
 import {
   Card,
@@ -37,9 +22,9 @@ import {
 } from '@/components/ui';
 import apiClient from '@/lib/api-client';
 import type { ProductType } from '@/lib/contracts/addresses';
-import { PRODUCT_CONFIG } from '@/lib/contracts/addresses';
 import { useTreasury } from '@/lib/hooks/use-contracts';
 import { useSafeToast } from '@/lib/use-safe-toast';
+import { logger } from '@/lib/verbose-logger';
 
 
 export type TransactionType = 'payment' | 'payout'
@@ -92,7 +77,7 @@ export function TransactionFlow({
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [txHash, setTxHash] = useState<string>('');
-  const [tokenId, setTokenId] = useState<string>('');
+  const [tokenId] = useState<string>('');
   const [error, setError] = useState<string>('');
 
   const { address, isConnected } = useAccount();
@@ -101,13 +86,12 @@ export function TransactionFlow({
 
   const treasury = useTreasury();
 
-  // API 服务函数
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-  const getAuthHeaders = () => ({
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
-    'Content-Type': 'application/json',
-  });
+  // Constants
+  const HEX_RADIX = 16;
+  const TX_HASH_HEX_START = 2;
+  const TX_HASH_HEX_LEN = 66;
+  const CONFIRM_DELAY_MS = 3000;
+  const TX_HASH_DISPLAY_PREFIX = 10;
 
   const fetchPayouts = async () => {
     if (!localStorage.getItem('token')) return [];
@@ -115,7 +99,7 @@ export function TransactionFlow({
       const { data } = await apiClient.get('/finance/transactions', { params: { type: 'PAYOUT' } });
       return (data)?.data || [];
     } catch (error) {
-      console.error('Failed to fetch payouts:', error);
+      logger.error('TransactionFlow', 'Failed to fetch payouts', error);
       return [];
     }
   };
@@ -126,7 +110,7 @@ export function TransactionFlow({
       const { data } = await apiClient.get('/finance/orders');
       return (data)?.data || [];
     } catch (error) {
-      console.error('Failed to fetch transactions:', error);
+      logger.error('TransactionFlow', 'Failed to fetch transactions', error);
       return [];
     }
   };
@@ -141,7 +125,7 @@ export function TransactionFlow({
       setPayouts(payoutsData);
       setTransactions(transactionsData);
     } catch (error) {
-      console.error('Failed to load transaction data:', error);
+      logger.error('TransactionFlow', 'Failed to load transaction data', error);
 
       // Set empty arrays to avoid errors
       setPayouts([]);
@@ -153,7 +137,7 @@ export function TransactionFlow({
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 支付流程 (整合自 ETHPaymentFlow)
   const executePayment = async () => {
@@ -166,13 +150,13 @@ export function TransactionFlow({
       setIsLoading(true);
       setStep('processing');
 
-      const amountWei = parseUnits(ethAmount, 18);
+      // const amountWei = parseUnits(ethAmount, ETH_DECIMALS);
 
       // 调用实际的合约方法
       await treasury.purchaseProductWithETH(productType, ethAmount);
 
       // 模拟交易哈希
-      const mockTxHash = `0x${  Math.random().toString(16).slice(2, 66)}`;
+      const mockTxHash = `0x${Math.random().toString(HEX_RADIX).slice(TX_HASH_HEX_START, TX_HASH_HEX_LEN)}`;
       setTxHash(mockTxHash);
 
         // 等待交易确认
@@ -191,9 +175,9 @@ export function TransactionFlow({
           setStep('success');
           toast.success('交易成功完成!');
           onSuccess?.(mockTxHash, tokenId);
-        }, 3000);
+        }, CONFIRM_DELAY_MS);
     } catch (error_: any) {
-      console.error('Transaction failed:', error_);
+      logger.error('TransactionFlow', 'Transaction failed', error_);
       setError(error_?.message || 'Transaction failed');
       setStep('error');
       onError?.(error_?.message || 'Transaction failed');
@@ -253,7 +237,7 @@ export function TransactionFlow({
                   <Alert className="bg-green-50 border-green-200">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                     <AlertDescription className="text-green-800">
-                      Payment successful! Transaction Hash: {txHash.slice(0, 10)}...
+                      Payment successful! Transaction Hash: {txHash.slice(0, TX_HASH_DISPLAY_PREFIX)}...
                     </AlertDescription>
                   </Alert>
                   {tokenId && (
