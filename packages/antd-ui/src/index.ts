@@ -59,7 +59,7 @@ export {
   Timeline,
   Tour,
   ConfigProvider,
-  theme
+  theme,
 } from 'antd';
 
 // 图标

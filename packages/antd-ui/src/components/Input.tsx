@@ -1,20 +1,13 @@
-import { Input as AntdInput } from 'antd';
-import type { InputProps as AntdInputProps, InputRef } from 'antd';
+import { Input as AntdInput, type InputProps as AntdInputProperties, type InputRef } from 'antd';
 import { forwardRef } from 'react';
 
-export interface InputProps extends AntdInputProps {}
+export interface InputProperties extends AntdInputProperties {}
 
-export const Input = forwardRef<InputRef, InputProps>(
-  (props, ref) => {
-    return (
-      <AntdInput
-        ref={ref}
-        {...props}
-      />
-    );
-  }
+export const Input = forwardRef<InputRef, InputProperties>(
+  (properties, reference) => <AntdInput ref={reference} {...properties} />,
 );
 
 Input.displayName = 'Input';
 
 export const { TextArea, Search, Password } = AntdInput;
+
