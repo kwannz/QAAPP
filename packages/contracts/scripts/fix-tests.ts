@@ -95,7 +95,7 @@ async function main() {
             console.log(`    ✅ ${parsedLog.name} event: ${parsedLog.args.length} arguments`);
           }
         } catch (e2) {
-          // Ignore unparseable logs
+          // Ignore unparsable logs
         }
       }
     }
