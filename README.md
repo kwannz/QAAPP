@@ -25,7 +25,7 @@ QAMini is a streamlined version of the QAAPP, containing only the core features 
 
 1. **Clone and setup:**
 ```bash
-cd qamini
+cd qa-app
 pnpm install
 ```
 

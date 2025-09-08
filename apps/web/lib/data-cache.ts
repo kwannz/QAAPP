@@ -99,8 +99,9 @@ class DataCacheManager {
         if (this.isEntryValid(entry)) {
           this.stats.hitRate = this.calculateHitRate(true);
           return entry.compressed ? this.decompress(entry.data as string) : (entry.data as T);
-        }
+        } else {
           this.memoryCache.delete(key);
+        }
       }
 
       // 2. 检查LocalStorage缓存
@@ -115,8 +116,9 @@ class DataCacheManager {
               this.memoryCache.set(key, entry);
               this.stats.hitRate = this.calculateHitRate(true);
               return entry.compressed ? this.decompress(entry.data as string) : (entry.data as T);
-            }
+            } else {
               localStorage.removeItem(`cache_${key}`);
+            }
           } catch {
             localStorage.removeItem(`cache_${key}`);
           }

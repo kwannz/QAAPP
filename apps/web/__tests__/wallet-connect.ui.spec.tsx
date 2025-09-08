@@ -18,4 +18,18 @@ describe('WalletConnect UI (disconnected)', () => {
     expect(screen.getAllByText('连接钱包').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: '连接钱包' })).toBeInTheDocument();
   });
+
+  it('calls onConnect when button is clicked', () => {
+    const handleConnect = jest.fn();
+    render(
+      <WalletConnect
+        isConnected={false}
+        loading={false}
+        onConnect={handleConnect}
+      />
+    );
+
+    screen.getByRole('button', { name: '连接钱包' }).click();
+    expect(handleConnect).toHaveBeenCalledTimes(1);
+  });
 });
