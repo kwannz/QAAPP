@@ -1,27 +1,30 @@
 import { Button as AntdButton } from 'antd';
-import type { ButtonProps as AntdButtonProps } from 'antd';
-import { forwardRef } from 'react';
+import {
+  forwardRef,
+  type ComponentPropsWithoutRef,
+  type ElementRef,
+} from 'react';
 
-export interface ButtonProps extends Omit<AntdButtonProps, 'variant'> {
+export interface ButtonProperties
+  extends Omit<ComponentPropsWithoutRef<typeof AntdButton>, 'variant'> {
   variant?: 'primary' | 'default' | 'dashed' | 'link' | 'text';
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'default', ...props }, ref) => {
-    // 映射变体到Ant Design的type
-    const antdType = variant === 'primary' ? 'primary' : 
-                    variant === 'dashed' ? 'dashed' :
-                    variant === 'link' ? 'link' :
-                    variant === 'text' ? 'text' : 'default';
+type ButtonReference = ElementRef<typeof AntdButton>;
 
-    return (
-      <AntdButton
-        ref={ref}
-        type={antdType}
-        {...props}
-      />
-    );
-  }
+const variantMap: Record<NonNullable<ButtonProperties['variant']>, string> = {
+  primary: 'primary',
+  default: 'default',
+  dashed: 'dashed',
+  link: 'link',
+  text: 'text',
+};
+
+export const Button = forwardRef<ButtonReference, ButtonProperties>(
+  ({ variant = 'default', ...properties }, reference) => (
+    <AntdButton ref={reference} type={variantMap[variant]} {...properties} />
+  ),
 );
 
 Button.displayName = 'Button';
+
