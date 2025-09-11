@@ -133,7 +133,7 @@ function SafeWagmiWrapper({ children, wagmiConfig }: { children: ReactNode, wagm
     loadWagmi();
   }, [wagmiConfig]);
 
-  // Loading state - always render children to maintain hook consistency
+  // Loading state - render children so SSR/initial paint keeps server hints
   if (!isInitialized) {
     return (
       <SimpleFallbackWrapper>
@@ -281,11 +281,10 @@ function ClientWeb3Provider({ children }: SafeWeb3ProviderProperties) {
 export function SSRSafeWeb3Provider({ children }: SafeWeb3ProviderProperties) {
   return (
     <ClientOnly fallback={
-      <Web3Context.Provider value={defaultWeb3Context}>
-        <QueryClientProvider client={new QueryClient()}>
-          {children}
-        </QueryClientProvider>
-      </Web3Context.Provider>
+      // Include children in SSR fallback so page-level SSR prompts render
+      <div data-wagmi-provider="ssr-fallback">
+        {children}
+      </div>
     }
     >
       <ClientWeb3Provider>

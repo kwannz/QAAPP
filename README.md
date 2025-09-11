@@ -131,6 +131,7 @@ pnpm pm2:logs
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/qamini"
 JWT_SECRET="your-secret-key"
+JWT_REFRESH_SECRET="your-refresh-secret"
 NODE_ENV="development"
 PORT=3001
 
@@ -171,10 +172,59 @@ Once running, access the Swagger documentation at:
 - Database Health: `GET /health/database`
 
 ### Logs
-Production logs are managed by PM2:
+See `docs/LOGGING.md` for full logging and verbose options (API + Web). Production logs are managed by PM2:
 ```bash
 pnpm pm2:logs
 ```
+
+## 🧪 Testing & E2E Login
+
+### Playwright E2E
+
+- Run all E2E tests (web server auto-starts at port 3005):
+```bash
+pnpm test:e2e
+```
+
+### Login Flows (E2E)
+
+There are two ways to validate “user logged-in” flows:
+
+1) Simulated login (default, stable)
+- Seeds `localStorage('qa-auth-storage')` before app loads, then opens `/dashboard?e2e_auth=skip`.
+- File: `tests/e2e/auth-login.spec.ts`
+- Run:
+```bash
+PLAYWRIGHT_BASE_URL=http://localhost:3005 pnpm test:e2e -- tests/e2e/auth-login.spec.ts
+```
+
+2) Real login against API (opt-in)
+- Requires API to have JWT secrets configured and a seeded admin user.
+- Enable with env var:
+  - `PLAYWRIGHT_ALLOW_REAL_LOGIN=true`
+- Optional env vars:
+ - `PLAYWRIGHT_API_URL` (default `http://localhost:3001/api`)
+  - `PLAYWRIGHT_LOGIN_EMAIL` (default `admin@qa-app.com`)
+  - `PLAYWRIGHT_LOGIN_PASSWORD` (default `Admin123!`)
+- Run (example):
+```bash
+PLAYWRIGHT_ALLOW_REAL_LOGIN=true \
+PLAYWRIGHT_BASE_URL=http://localhost:3005 \
+PLAYWRIGHT_API_URL=http://localhost:3001/api \
+pnpm test:e2e -- tests/e2e/auth-login-real.spec.ts
+```
+
+#### Local API helper
+
+Start only the API with required JWT envs for local/e2e:
+
+```bash
+pnpm start:api:local
+```
+
+#### CI (GitHub Actions)
+
+This repo includes `.github/workflows/e2e-real-login.yml` to run the real login test against a local Postgres service. Trigger it via “Run workflow”. Ensure `JWT_SECRET` and `JWT_REFRESH_SECRET` are configured as needed.
 
 ## 🛠️ Development Scripts
 

@@ -763,6 +763,8 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* 钱包连接状态 */}
+      {/* 移除额外的辅助段落，避免与按钮同时匹配造成严格模式冲突 */}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -777,6 +779,7 @@ export default function DashboardPage() {
           }
           return <WalletConnect />;
         })()}
+        {/* 辅助提示已在上方渲染一次，这里不再重复 */}
       </motion.div>
 
       {/* 快捷操作 */}
@@ -1204,6 +1207,19 @@ export default function DashboardPage() {
             <p className="text-muted-foreground">
               请选择一个钱包连接到QA投资平台，开始您的DeFi投资之旅
             </p>
+
+            {/* 提供一个通用CTA，便于E2E选择 */}
+            {connectors?.length > 0 && (
+              <Button
+                data-testid="cta-connect-generic"
+                onClick={() => connect({ connector: connectors[0] })}
+                disabled={isConnecting}
+                className="w-full"
+                size="lg"
+              >
+                {isConnecting ? '连接中...' : '连接钱包'}
+              </Button>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {connectors.map((connector) => (

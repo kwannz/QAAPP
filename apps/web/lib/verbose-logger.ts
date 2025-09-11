@@ -56,6 +56,19 @@ class VerboseLogger {
       ...config,
     };
 
+    // URL 参数覆盖日志级别（仅开发/调试场景）
+    try {
+      if (typeof window !== 'undefined') {
+        const sp = new URLSearchParams(window.location.search);
+        const levelOverride = sp.get('log');
+        if (levelOverride) {
+          this.setLevel(levelOverride as any);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     this.info('VerboseLogger', 'Logger initialized', { config: this.config });
   }
 
@@ -112,6 +125,33 @@ class VerboseLogger {
     }
   }
 
+  // 允许运行时调整日志级别（字符串或枚举）
+  setLevel(level: LogLevel | keyof typeof LogLevel | string): void {
+    try {
+      let target: LogLevel | undefined;
+      if (typeof level === 'number') {
+        target = level;
+      } else {
+        const upper = String(level).toUpperCase();
+        switch (upper) {
+          case 'VERBOSE': target = LogLevel.VERBOSE; break;
+          case 'DEBUG': target = LogLevel.DEBUG; break;
+          case 'INFO': target = LogLevel.INFO; break;
+          case 'WARN': target = LogLevel.WARN; break;
+          case 'ERROR': target = LogLevel.ERROR; break;
+          case 'CRITICAL': target = LogLevel.CRITICAL; break;
+          default: target = this.config.level; break;
+        }
+      }
+      if (target !== undefined) {
+        this.config.level = target;
+        this.info('VerboseLogger', 'Log level updated', { level: LogLevel[this.config.level] });
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   private log(level: LogLevel, module: string, message: string, data?: any): void {
     if (!this.shouldLog(level, module)) return;
 
@@ -165,6 +205,14 @@ class VerboseLogger {
       if (typeof window !== 'undefined' && navigator.sendBeacon) {
         const payload = JSON.stringify(logEntry);
         navigator.sendBeacon('/api/monitoring/logs', payload);
+      } else if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+        // Fallback when sendBeacon is unavailable
+        fetch('/api/monitoring/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(logEntry),
+          keepalive: true,
+        }).catch(() => {});
       }
     } catch {
       // Silent fail for monitoring

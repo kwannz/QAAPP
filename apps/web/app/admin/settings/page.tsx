@@ -592,7 +592,7 @@ export default function AdminSettingsPage() {
     return (
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>钱包连接</CardTitle>
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">钱包连接</h3>
         </CardHeader>
         <CardContent>
           <WalletConnectionManager showNetworkInfo showContractStatus />

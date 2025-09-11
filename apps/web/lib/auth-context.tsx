@@ -85,7 +85,8 @@ export function AuthProvider({ children }: AuthProviderProperties) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Start in loading state to allow auth restoration before route guards run
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // 从localStorage恢复状态（仅客户端）
   useEffect(() => {
@@ -106,7 +107,13 @@ export function AuthProvider({ children }: AuthProviderProperties) {
         }
       } catch (error) {
         logger.warn('AuthContext', 'Failed to restore auth state', { error });
+      } finally {
+        // Hydration complete; allow route guards to run
+        setIsLoading(false);
       }
+    } else {
+      // On server, we are not loading
+      setIsLoading(false);
     }
   }, []);
 

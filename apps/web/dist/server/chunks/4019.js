@@ -1,4 +1,4 @@
-"use strict";exports.id=4019,exports.ids=[4019],exports.modules={64019:(a,b,c)=>{c.r(b),c.d(b,{cardSvg:()=>e});var d=c(8875);let e=(0,d.JW)`<svg
+"use strict";exports.id=4019,exports.ids=[4019],exports.modules={86400:(a,b,c)=>{c.r(b),c.d(b,{cardSvg:()=>e});var d=c(8875);let e=(0,d.JW)`<svg
   xmlns="http://www.w3.org/2000/svg"
   width="12"
   height="13"

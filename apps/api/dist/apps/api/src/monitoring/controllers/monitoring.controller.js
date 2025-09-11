@@ -31,7 +31,8 @@ let MonitoringController = class MonitoringController {
             module: query.module,
             userId: query.userId,
             limit: query.limit,
-            offset: query.offset
+            offset: query.offset,
+            q: query.q
         };
         return this.monitoringService.getMetrics(monitoringQuery);
     }
@@ -58,9 +59,23 @@ let MonitoringController = class MonitoringController {
             level: query.level,
             module: query.module,
             limit: query.limit,
-            offset: query.offset
+            offset: query.offset,
+            q: query.q
         };
         return this.monitoringService.getLogs(monitoringQuery);
+    }
+    async ingestLogs(payload, headers) {
+        try {
+            await this.monitoringService.ingestClientLog(payload, {
+                userAgent: headers['user-agent'],
+                ip: headers['x-forwarded-for'] || headers['cf-connecting-ip'] || headers['x-real-ip'] || 'unknown',
+            });
+            return { status: 'ok' };
+        }
+        catch (error) {
+            this.monitoringService['logger'].error('Failed to ingest client log', error);
+            return { status: 'ignored' };
+        }
     }
     async getAuditLogs(query, headers, res) {
         res.setHeader('Deprecation', 'true');
@@ -89,7 +104,8 @@ let MonitoringController = class MonitoringController {
             startDate: query.startDate ? new Date(query.startDate) : undefined,
             endDate: query.endDate ? new Date(query.endDate) : undefined,
             limit: query.limit,
-            offset: query.offset
+            offset: query.offset,
+            q: query.q
         };
         return this.monitoringService.getAlerts(monitoringQuery);
     }
@@ -104,7 +120,8 @@ let MonitoringController = class MonitoringController {
             startDate: query.startDate ? new Date(query.startDate) : undefined,
             endDate: query.endDate ? new Date(query.endDate) : undefined,
             limit: query.limit,
-            offset: query.offset
+            offset: query.offset,
+            q: query.q
         };
         return this.monitoringService.getPerformanceData(monitoringQuery);
     }
@@ -119,9 +136,10 @@ let MonitoringController = class MonitoringController {
             startDate: exportDto.startDate ? new Date(exportDto.startDate) : undefined,
             endDate: exportDto.endDate ? new Date(exportDto.endDate) : undefined,
             level: exportDto.level,
-            module: exportDto.module
+            module: exportDto.module,
+            q: exportDto.q
         };
-        const data = await this.monitoringService.exportData(monitoringQuery, exportDto.format);
+        const data = await this.monitoringService.exportData(monitoringQuery, exportDto.format, exportDto.resource || 'all');
         const filename = `monitoring_${new Date().toISOString().split('T')[0]}.${exportDto.format}`;
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         if (exportDto.format === 'json') {
@@ -214,6 +232,15 @@ __decorate([
     __metadata("design:paramtypes", [dto_1.GetMetricsDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], MonitoringController.prototype, "getLogs", null);
+__decorate([
+    (0, common_1.Post)('logs'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Headers)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], MonitoringController.prototype, "ingestLogs", null);
 __decorate([
     (0, common_1.Get)('audit'),
     __param(0, (0, common_1.Query)()),

@@ -85,6 +85,7 @@ export interface MonitoringQuery {
     level?: 'error' | 'warn' | 'info' | 'debug';
     module?: string;
     userId?: string;
+    q?: string;
     limit?: number;
     offset?: number;
 }

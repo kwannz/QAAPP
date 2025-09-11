@@ -69,7 +69,7 @@ const WalletConnect = React.forwardRef<HTMLDivElement, WalletConnectProperties>(
                 !isCorrectNetwork && 'border-yellow-200 bg-yellow-50/50',
               )}>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle data-testid="wallet-connected-banner" className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
                       钱包已连接

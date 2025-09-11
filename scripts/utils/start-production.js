@@ -103,6 +103,7 @@ function startWithoutPM2() {
     // Set production environment
     process.env.NODE_ENV = 'production';
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'production-jwt-secret-change-in-production';
+    process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'production-refresh-secret-change-in-production';
 
     // Start API server
     console.log('🚀 Starting API server...');

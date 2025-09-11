@@ -10,7 +10,9 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 1
+    },
     "preserveOutput": "always",
     "reporter": [
       [
@@ -42,7 +44,9 @@
         "outputDir": "/Users/zhaoleon/Desktop/QAapp/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 1
+        },
         "id": "chromium",
         "name": "chromium",
         "testDir": "/Users/zhaoleon/Desktop/QAapp/tests/e2e",
@@ -59,24 +63,226 @@
     "version": "1.55.0",
     "workers": 1,
     "webServer": {
-      "command": "pnpm --filter @qa-app/web dev",
-      "port": 3000,
-      "reuseExistingServer": true,
-      "timeout": 120000
+      "command": "sh -c \"cd apps/web && pnpm build && pnpm start -p 3005\"",
+      "port": 3005,
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "NEXT_PUBLIC_ENABLE_TESTNET": "true",
+        "NEXT_PUBLIC_ENABLE_DEBUG": "true"
+      }
     }
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: Process from config.webServer exited early.",
-      "stack": "Error: Process from config.webServer exited early."
+      "title": "admin-forbidden-for-user-real.spec.ts",
+      "file": "admin-forbidden-for-user-real.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Non-admin access (real API)",
+          "file": "admin-forbidden-for-user-real.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "USER is redirected from /admin to /dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2374,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[2025-09-10T22:52:43.399Z] [info] api: => browser.newContext started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.402Z] [info] api: <= browser.newContext succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.403Z] [info] api: => browserContext.newPage started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.431Z] [info] api: <= browserContext.newPage succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.432Z] [info] api: => apiRequestContext.post started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.666Z] [info] api: <= apiRequestContext.post succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.667Z] [info] api: => apiRequestContext.get started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.670Z] [info] api: <= apiRequestContext.get succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.671Z] [info] api: => page.addInitScript started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.672Z] [info] api: <= page.addInitScript succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.673Z] [info] api: => page.goto started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.743Z] [info] api: <= page.goto succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.745Z] [info] api: => expect.toHaveURL started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.857Z] [info] api: <= expect.toHaveURL succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:43.858Z] [info] api: => expect.toBeVisible started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.720Z] [info] api: <= expect.toBeVisible succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.766Z] [info] api: => browserContext.close started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.773Z] [info] api: <= browserContext.close succeeded []\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-10T22:52:43.322Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "782353842bee2a2d4126-b5a66483fa31fafa7904",
+              "file": "admin-forbidden-for-user-real.spec.ts",
+              "line": 8,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth-login-real.spec.ts",
+      "file": "auth-login-real.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "User login flow (real API)",
+          "file": "auth-login-real.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "logs in via /api/auth/login and reaches dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Login API not ready: 429 {\"success\":false,\"error\":{\"code\":\"RATE_LIMIT_EXCEEDED\",\"message\":\"ThrottlerException: Too Many Requests\",\"details\":null,\"timestamp\":\"2025-09-10T22:52:45.805Z\",\"path\":\"/api/auth/login\",\"requestId\":\"req_1757544765805_afq8ou7rg\"}}",
+                      "location": {
+                        "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/auth-login-real.spec.ts",
+                        "line": 19,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 69,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[2025-09-10T22:52:45.779Z] [info] api: => browser.newContext started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.780Z] [info] api: <= browser.newContext succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.780Z] [info] api: => browserContext.newPage started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.804Z] [info] api: <= browserContext.newPage succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.804Z] [info] api: => apiRequestContext.post started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.806Z] [info] api: <= apiRequestContext.post succeeded []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.842Z] [info] api: => browserContext.close started []\n"
+                        },
+                        {
+                          "text": "[2025-09-10T22:52:45.848Z] [info] api: <= browserContext.close succeeded []\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-10T22:52:45.777Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Login API not ready: 429 {\"success\":false,\"error\":{\"code\":\"RATE_LIMIT_EXCEEDED\",\"message\":\"ThrottlerException: Too Many Requests\",\"details\":null,\"timestamp\":\"2025-09-10T22:52:45.805Z\",\"path\":\"/api/auth/login\",\"requestId\":\"req_1757544765805_afq8ou7rg\"}}",
+                          "location": {
+                            "file": "/Users/zhaoleon/Desktop/QAapp/tests/e2e/auth-login-real.spec.ts",
+                            "line": 19,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d987c12860589e044e50-2b51e591ae5325a1fb43",
+              "file": "auth-login-real.spec.ts",
+              "line": 8,
+              "column": 7
+            }
+          ]
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2025-09-06T17:08:53.256Z",
-    "duration": 536.318,
-    "expected": 0,
-    "skipped": 0,
+    "startTime": "2025-09-10T22:52:21.156Z",
+    "duration": 24721.236,
+    "expected": 1,
+    "skipped": 1,
     "unexpected": 0,
     "flaky": 0
   }

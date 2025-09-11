@@ -3,7 +3,7 @@
 import { Wallet, Info, TrendingUp, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useAccount } from 'wagmi';
+import { useSafeAccount as useAccount } from '@/lib/hooks/use-safe-wagmi';
 
 import { ETHPaymentFlow } from '@/components/payments/ETHPaymentFlow';
 import {
@@ -22,7 +22,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
- WalletConnectionManager } from '@/components/ui';
+} from '@/components/ui';
+import { WalletConnectionManager } from '@/components/ui/WalletConnectionManager';
 // import { apiClient } from '@/lib/api-client';
 import type { ProductType } from '@/lib/contracts/addresses';
 import { PRODUCT_CONFIG } from '@/lib/contracts/addresses';
@@ -73,6 +74,12 @@ export function ProductPurchase({
 
   // 检查网络是否支持
   const isSupportedNetwork = contractState?.isSupported ?? false;
+
+  // 开发/E2E覆盖：读取URL参数控制显示连接状态卡片
+  const isDebug = process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const e2eWallet = isDebug ? searchParams?.get('e2e_wallet') : null; // 'connected' | null
+  const showConnectedOverlay = e2eWallet === 'connected';
 
   // 计算预期收益
   const calculateReturns = () => {
@@ -167,6 +174,16 @@ export function ProductPurchase({
   // 渲染金额选择阶段
   const renderAmountSelection = () => (
     <div className="space-y-6">
+      {showConnectedOverlay && (
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="flex flex-col space-y-1.5 p-6">
+            <h3 className="text-2xl font-semibold leading-none tracking-tight">钱包连接</h3>
+          </div>
+          <div className="p-6 pt-0">
+            <WalletConnectionManager showNetworkInfo showContractStatus />
+          </div>
+        </div>
+      )}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

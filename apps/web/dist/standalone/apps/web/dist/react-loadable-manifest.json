@@ -924,7 +924,7 @@
     "id": 97606,
     "files": [
       "static/chunks/8735-bcfe87e566287a6d.js",
-      "static/chunks/7606.81b1c3590abbb09b.js",
+      "static/chunks/7606.29c3b478abac6068.js",
       "static/chunks/589.f2d40b119b83571f.js"
     ]
   },
@@ -939,7 +939,7 @@
     "id": 33327,
     "files": [
       "static/chunks/8322.359e46e7f896a877.js",
-      "static/chunks/3327.2cc91195b3654531.js"
+      "static/chunks/3327.18a506f4c6359cd0.js"
     ]
   },
   "../../node_modules/.pnpm/@wagmi+connectors@5.9.9_@types+react@19.1.12_@wagmi+core@2.20.3_@tanstack+query-core@5._edb66f6a4f63d103c050e4590e6c414a/node_modules/@wagmi/connectors/dist/esm/safe.js -> @safe-global/safe-apps-sdk": {
@@ -979,7 +979,7 @@
   "../../node_modules/.pnpm/viem@2.37.3_bufferutil@4.0.9_typescript@5.9.2_utf-8-validate@5.0.10_zod@3.25.76/node_modules/viem/_esm/actions/public/call.js -> ../../utils/ccip.js": {
     "id": 61896,
     "files": [
-      "static/chunks/1896.a01f91173757c1a2.js"
+      "static/chunks/1896.1721e9ff1b968844.js"
     ]
   },
   "../../node_modules/.pnpm/viem@2.37.3_bufferutil@4.0.9_typescript@5.9.2_utf-8-validate@5.0.10_zod@3.25.76/node_modules/viem/_esm/utils/rpc/webSocket.js -> isows": {
@@ -999,7 +999,7 @@
     "files": [
       "static/chunks/8735-bcfe87e566287a6d.js",
       "static/chunks/7701-ef37a0ee2c335ed2.js",
-      "static/chunks/5340-70aec0fbabebe42f.js",
+      "static/chunks/5340-6c8237209f558822.js",
       "static/chunks/8574.8996c106ee108869.js"
     ]
   },
@@ -1012,19 +1012,9 @@
       "static/chunks/1279-e11b555e9968c65d.js",
       "static/chunks/7701-ef37a0ee2c335ed2.js",
       "static/chunks/449-454abd3a148d650b.js",
-      "static/chunks/5340-70aec0fbabebe42f.js",
-      "static/chunks/5392-4d8306d9fec7771a.js",
-      "static/chunks/7756.4f3a9544b174f77a.js"
-    ]
-  },
-  "app/products/purchase/[type]/ClientPurchase.tsx -> @/components/products/ProductPurchase": {
-    "id": 70600,
-    "files": [
-      "static/chunks/6905-ab01dd690726fd02.js",
-      "static/chunks/5560-9c44d8c92d935127.js",
-      "static/chunks/4389-4f226b629c76809c.js",
-      "static/chunks/6472-29b329bcd9ea979c.js",
-      "static/chunks/600.dbbfe12e9f935e32.js"
+      "static/chunks/5340-6c8237209f558822.js",
+      "static/chunks/5392-f7dba0db10bbd3e6.js",
+      "static/chunks/7756.ee8fae19916b8c70.js"
     ]
   },
   "components/SSRSafeToaster.tsx -> react-hot-toast": {
@@ -1037,7 +1027,6 @@
     "id": 8025,
     "files": [
       "static/chunks/e92a2947-fc7ffdcf1a7a9638.js",
-      "static/chunks/6905-ab01dd690726fd02.js",
       "static/chunks/6701-46c7586d1b690276.js",
       "static/chunks/1279-e11b555e9968c65d.js",
       "static/chunks/449-454abd3a148d650b.js"
@@ -1046,10 +1035,8 @@
   "components/web3/SafeConnectButton.tsx -> wagmi": {
     "id": 96887,
     "files": [
-      "static/chunks/6905-ab01dd690726fd02.js",
       "static/chunks/6701-46c7586d1b690276.js",
       "static/chunks/1279-e11b555e9968c65d.js",
-      "static/chunks/5560-9c44d8c92d935127.js",
       "static/chunks/6887.7c7cbf4627b1d819.js"
     ]
   },
@@ -1064,29 +1051,27 @@
     "files": [
       "static/chunks/8735-bcfe87e566287a6d.js",
       "static/chunks/7701-ef37a0ee2c335ed2.js",
-      "static/chunks/5340-70aec0fbabebe42f.js"
+      "static/chunks/5340-6c8237209f558822.js"
     ]
   },
   "lib/ssr-safe-web3-provider.tsx -> ./wagmi-config": {
     "id": 3886,
     "files": [
       "static/chunks/e92a2947-fc7ffdcf1a7a9638.js",
-      "static/chunks/4104-cd62d31fa8b19388.js",
+      "static/chunks/2102-cc9a755042ab96d6.js",
       "static/chunks/9086-470bf74541c44b56.js",
-      "static/chunks/6905-ab01dd690726fd02.js",
       "static/chunks/6701-46c7586d1b690276.js",
       "static/chunks/1279-e11b555e9968c65d.js",
       "static/chunks/449-454abd3a148d650b.js",
-      "static/chunks/3886.77321b22d6a64986.js"
+      "static/chunks/3886.23ff426ff922a26d.js"
     ]
   },
   "lib/ssr-safe-web3-provider.tsx -> @rainbow-me/rainbowkit": {
     "id": 8025,
     "files": [
       "static/chunks/e92a2947-fc7ffdcf1a7a9638.js",
-      "static/chunks/4104-cd62d31fa8b19388.js",
+      "static/chunks/2102-cc9a755042ab96d6.js",
       "static/chunks/9086-470bf74541c44b56.js",
-      "static/chunks/6905-ab01dd690726fd02.js",
       "static/chunks/6701-46c7586d1b690276.js",
       "static/chunks/1279-e11b555e9968c65d.js",
       "static/chunks/449-454abd3a148d650b.js"
@@ -1095,11 +1080,10 @@
   "lib/ssr-safe-web3-provider.tsx -> wagmi": {
     "id": 96887,
     "files": [
-      "static/chunks/4104-cd62d31fa8b19388.js",
-      "static/chunks/6905-ab01dd690726fd02.js",
+      "static/chunks/2102-cc9a755042ab96d6.js",
+      "static/chunks/5560-9c44d8c92d935127.js",
       "static/chunks/6701-46c7586d1b690276.js",
       "static/chunks/1279-e11b555e9968c65d.js",
-      "static/chunks/5560-9c44d8c92d935127.js",
       "static/chunks/6887.7c7cbf4627b1d819.js"
     ]
   },

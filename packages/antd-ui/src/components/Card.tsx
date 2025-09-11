@@ -1,18 +1,17 @@
-import { Card as AntdCard } from 'antd';
-import type { CardProps as AntdCardProps } from 'antd';
-import { forwardRef } from 'react';
+import { Card as AntdCard, type CardProps as AntdCardProperties } from 'antd';
+import { forwardRef, type ElementRef } from 'react';
 
-export interface CardProps extends AntdCardProps {}
+export interface CardProperties extends AntdCardProperties {}
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(
-  (props, ref) => {
+export const Card = forwardRef<ElementRef<typeof AntdCard>, CardProperties>(
+  (properties, reference) => {
     return (
       <AntdCard
-        ref={ref}
-        {...props}
+        ref={reference}
+        {...properties}
       />
     );
-  }
+  },
 );
 
 Card.displayName = 'Card';

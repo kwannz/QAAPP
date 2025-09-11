@@ -24,7 +24,7 @@ import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tool
 import { AdminGuard } from '../../../components/admin/AdminGuard';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { TabContainer } from '../../../components/common/TabContainer';
-import { MetricsCard, SystemHealthCard, Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { MetricsCard, SystemHealthCard, Badge, Card, CardContent, CardHeader, CardTitle, Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Input } from '@/components/ui';
 import { monitoringApi } from '@/lib/api-client';
 import { logger } from '@/lib/verbose-logger';
 
@@ -163,6 +163,14 @@ export default function AdminMonitoringCenter() {
   const [_isLoading, setIsLoading] = useState(true);
   const [_realTimeData, _setRealTimeData] = useState<any>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [logLevel, setLogLevel] = useState<string>('');
+  const [logModule, setLogModule] = useState<string>('WebClient');
+  const [logKeyword, setLogKeyword] = useState<string>('');
+  const [exportScope, setExportScope] = useState<'logs' | 'all'>('logs');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   const tabs = [
     {
@@ -192,6 +200,11 @@ export default function AdminMonitoringCenter() {
       id: 'business',
       label: '业务指标',
       icon: <TrendingUp className="h-4 w-4" />,
+    },
+    {
+      id: 'logs',
+      label: '日志',
+      icon: <Activity className="h-4 w-4" />,
     },
     {
       id: 'deprecations',
@@ -363,6 +376,81 @@ export default function AdminMonitoringCenter() {
     }
   }, [activeTab]);
 
+  const fetchFilteredMetrics = async () => {
+    try {
+      const { data } = await monitoringApi.getMetrics({
+        level: logLevel || undefined,
+        module: logModule || undefined,
+        q: logKeyword || undefined,
+        limit: pageSize,
+        offset: 0,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
+      setMetricsData(data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      logger.error('Monitoring', 'Failed to fetch filtered metrics', error as any);
+    }
+  };
+
+  const fetchLogsPage = async (pageIndex: number) => {
+    const params: any = {
+      level: logLevel || undefined,
+      module: logModule || undefined,
+      q: logKeyword || undefined,
+      limit: pageSize,
+      offset: (pageIndex - 1) * pageSize,
+    };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    const { data } = await monitoringApi.getMetrics(params);
+    setMetricsData(data);
+    setPage(pageIndex);
+    setLastUpdated(new Date());
+  };
+
+  const handleExport = async (format: 'csv' | 'json' | 'excel') => {
+    try {
+      const { data } = await monitoringApi.exportData({
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        level: (logLevel || undefined) as any,
+        module: logModule || undefined,
+        format,
+        resource: exportScope,
+      });
+      const blob = new Blob([data], { type: format === 'json' ? 'application/json' : (format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `monitoring_export_${exportScope}_${format}_${new Date().toISOString().slice(0,10)}.${format === 'excel' ? 'xlsx' : format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      logger.error('Monitoring', 'Export failed', error as any);
+    }
+  };
+
+  const renderHighlighted = (text: string, keyword: string) => {
+    if (!keyword) return text;
+    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      const parts = String(text).split(new RegExp('(' + escapeRegExp(keyword) + ')', 'gi'));
+      return (
+        <>
+          {parts.map((part, index) => part.toLowerCase() === keyword.toLowerCase() ? (
+            <mark key={index} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
+          ) : (
+            <span key={index}>{part}</span>
+          ))}
+        </>
+      );
+    } catch {
+      return text;
+    }
+  };
+
   const renderOverview = () => (
     <div className="space-y-6">
       {/* 关键指标概览 */}
@@ -419,6 +507,93 @@ export default function AdminMonitoringCenter() {
           />
         </div>
       )}
+
+      {/* 简易日志筛选与最近条目 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>客户端日志（最近）</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2 items-center">
+            <Select value={logLevel} onValueChange={setLogLevel}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">全部</SelectItem>
+                <SelectItem value="error">ERROR</SelectItem>
+                <SelectItem value="warn">WARN</SelectItem>
+                <SelectItem value="info">INFO</SelectItem>
+                <SelectItem value="debug">DEBUG</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              className="w-48"
+              placeholder="Module (默认 WebClient)"
+              value={logModule}
+              onChange={(e) => setLogModule(e.target.value)}
+            />
+            <Button onClick={fetchFilteredMetrics}>筛选</Button>
+            <div className="flex items-center gap-2">
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <span className="text-xs text-muted-foreground">至</span>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+            <Input className="w-48" placeholder="关键词" value={logKeyword} onChange={(e) => setLogKeyword(e.target.value)} />
+            <Badge variant="outline">最近更新：{lastUpdated.toLocaleTimeString()}</Badge>
+            <div className="ml-auto flex gap-2">
+              <Select value={exportScope} onValueChange={(v) => setExportScope(v as any)}>
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="logs">仅日志</SelectItem>
+                  <SelectItem value="all">全部</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={() => handleExport('csv')}>导出 CSV</Button>
+              <Button variant="outline" onClick={() => handleExport('json')}>导出 JSON</Button>
+            </div>
+          </div>
+
+          <div className="divide-y border rounded">
+            {(metricsData?.logs?.recentEntries || [])
+              .filter((entry: any) => !logKeyword || String(entry.message).toLowerCase().includes(logKeyword.toLowerCase()))
+              .map((entry: any) => (
+              <div key={entry.id || `${entry.timestamp}-${entry.message}`} className="p-3 text-sm flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{(entry.level || '').toUpperCase()}</Badge>
+                  <span className="text-muted-foreground">[{entry.context || 'WebClient'}]</span>
+                  <span>{renderHighlighted(entry.message, logKeyword)}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{new Date(entry.timestamp).toLocaleString()}</span>
+              </div>
+            ))}
+            {(!metricsData?.logs?.recentEntries || metricsData.logs.recentEntries.length === 0) && (
+              <div className="p-4 text-sm text-muted-foreground">暂无数据</div>
+            )}
+          </div>
+          <div className="flex items-center justify-between pt-3">
+            <div className="text-xs text-muted-foreground">共 {metricsData?.logs?.total ?? 0} 条</div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" disabled={page <= 1} onClick={() => fetchLogsPage(page - 1)}>上一页</Button>
+              <span className="text-sm">第 {page} 页</span>
+              <Button variant="outline" disabled={(page * pageSize) >= (metricsData?.logs?.total ?? 0)} onClick={() => fetchLogsPage(page + 1)}>下一页</Button>
+              <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={() => fetchLogsPage(1)}>刷新</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 指标图表 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1126,6 +1301,10 @@ strokeWidth={2} dot={false}
       }
       case 'business': {
         return renderBusinessMetrics();
+      }
+      case 'logs': {
+        // 复用总览中的日志片段（已包含筛选/导出/分页）
+        return renderOverview();
       }
       case 'deprecations': {
         return renderDeprecations();

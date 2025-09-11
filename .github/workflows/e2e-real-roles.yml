@@ -1,0 +1,95 @@
+name: E2E Real Login (Roles)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  e2e-matrix:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: qa_user
+          POSTGRES_PASSWORD: qa_password
+          POSTGRES_DB: qa_database
+        options: >-
+          --health-cmd="pg_isready -U qa_user" --health-interval=5s --health-timeout=5s --health-retries=20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: admin
+            email: admin@qa-app.com
+            password: Admin123!
+            tests: tests/e2e/auth-login-real.spec.ts tests/e2e/admin-access-real.spec.ts
+          - name: agent
+            email: agent1@qa-app.com
+            password: Agent123!
+            tests: tests/e2e/auth-login-real.spec.ts tests/e2e/admin-forbidden-for-user-real.spec.ts
+          - name: user
+            email: user1@example.com
+            password: User123!
+            tests: tests/e2e/auth-login-real.spec.ts tests/e2e/admin-forbidden-for-user-real.spec.ts
+
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://qa_user:qa_password@localhost:5432/qa_database?schema=public
+      JWT_SECRET: development-jwt-secret-change-in-production
+      JWT_REFRESH_SECRET: dev-refresh-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Push schema
+        run: pnpm db:push
+
+      - name: Seed database
+        run: pnpm --filter=@qa-app/database db:seed
+
+      - name: Build API
+        run: pnpm --filter=@qa-app/api build
+
+      - name: Start API
+        run: nohup node apps/api/dist/apps/api/src/main.js >/tmp/api.log 2>&1 & echo $! > /tmp/api.pid
+
+      - name: Wait for API
+        run: |
+          for i in {1..40}; do
+            if curl -sf http://localhost:3001/health >/dev/null; then echo ok; break; fi
+            sleep 2
+          done
+
+      - name: Install Playwright Browsers
+        uses: microsoft/playwright-github-action@v1
+        with:
+          with-deps: true
+
+      - name: Run E2E (matrix)
+        env:
+          PLAYWRIGHT_ALLOW_REAL_LOGIN: 'true'
+          PLAYWRIGHT_BASE_URL: http://localhost:3005
+          PLAYWRIGHT_API_URL: http://localhost:3001/api
+          PLAYWRIGHT_LOGIN_EMAIL: ${{ matrix.email }}
+          PLAYWRIGHT_LOGIN_PASSWORD: ${{ matrix.password }}
+        run: pnpm test:e2e -- ${{ matrix.tests }}
+

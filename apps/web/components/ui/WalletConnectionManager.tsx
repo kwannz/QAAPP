@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useSwitchChain, useChainId, useBalance } from 'wagmi';
+import { useSafeAccount as useAccount, useSafeConnect as useConnect, useSafeDisconnect as useDisconnect, useSafeSwitchChain as useSwitchChain, useSafeChainId as useChainId, useSafeBalance as useBalance } from '@/lib/hooks/use-safe-wagmi';
 import { WalletConnect } from '../../../../packages/ui/src/components/business/WalletConnect';
 
 interface WalletConnectionManagerProperties {
@@ -26,10 +26,7 @@ export function WalletConnectionManager({
   const { switchChain } = useSwitchChain();
 
   // Optionally fetch ETH balance for display
-  const { data: ethBalance } = useBalance({
-    address,
-    query: { enabled: Boolean(address) },
-  });
+  const { data: ethBalance } = useBalance({ address });
 
   // E2E/开发调试覆盖：允许通过 URL 查询参数强制显示“已连接”状态
   // 仅在非生产环境或开启调试时生效
@@ -115,7 +112,11 @@ export function WalletConnectionManager({
       {(showNetworkInfo || showContractStatus) && (
         <div className="mt-3 text-xs text-muted-foreground">
           {showNetworkInfo && (
-            <div>当前网络: {debugSwitched ? 'Sepolia 测试网' : networkName} (Chain ID: {overrideChainId})</div>
+            <div>
+              当前网络: {(!isCorrectNetwork && overrideConnected && !debugSwitched)
+                ? '错误网络'
+                : (debugSwitched ? 'Sepolia 测试网' : networkName)} (Chain ID: {overrideChainId})
+            </div>
           )}
           {showContractStatus && (
             <div>合约状态: 已加载</div>

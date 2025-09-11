@@ -23,6 +23,10 @@ export class GetMetricsDto {
   userId?: string
 
   @IsOptional()
+  @IsString()
+  q?: string
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
@@ -77,4 +81,12 @@ export class ExportDataDto {
 
   @IsEnum(['csv', 'json', 'excel'])
   format!: 'csv' | 'json' | 'excel'
+
+  @IsOptional()
+  @IsEnum(['all', 'logs'])
+  resource?: 'all' | 'logs'
+
+  @IsOptional()
+  @IsString()
+  q?: string
 }

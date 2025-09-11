@@ -42,6 +42,11 @@ __decorate([
 ], GetMetricsDto.prototype, "userId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GetMetricsDto.prototype, "q", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
@@ -112,4 +117,14 @@ __decorate([
     (0, class_validator_1.IsEnum)(['csv', 'json', 'excel']),
     __metadata("design:type", String)
 ], ExportDataDto.prototype, "format", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(['all', 'logs']),
+    __metadata("design:type", String)
+], ExportDataDto.prototype, "resource", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ExportDataDto.prototype, "q", void 0);
 //# sourceMappingURL=index.js.map

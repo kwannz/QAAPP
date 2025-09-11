@@ -1,10 +1,43 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
@@ -24,6 +57,72 @@ let MonitoringService = MonitoringService_1 = class MonitoringService {
         this.performanceOptimizer = performanceOptimizer;
         this.optimizedQueries = optimizedQueries;
         this.logger = new common_1.Logger(MonitoringService_1.name);
+    }
+    async ingestClientLog(payload, meta) {
+        try {
+            const fs = await Promise.resolve().then(() => __importStar(require('fs')));
+            const path = await Promise.resolve().then(() => __importStar(require('path')));
+            const date = new Date().toISOString().split('T')[0];
+            const logsDir = path.resolve(process.cwd(), 'logs');
+            if (!fs.existsSync(logsDir)) {
+                fs.mkdirSync(logsDir, { recursive: true });
+            }
+            const line = JSON.stringify({
+                timestamp: new Date().toISOString(),
+                source: 'web-client',
+                userAgent: meta?.userAgent,
+                ip: meta?.ip,
+                payload,
+            }) + '\n';
+            await fs.promises.appendFile(path.join(logsDir, `client-logs-${date}.log`), line);
+            try {
+                const levelMap = {
+                    VERBOSE: 'DEBUG',
+                    DEBUG: 'DEBUG',
+                    INFO: 'INFO',
+                    WARN: 'WARN',
+                    ERROR: 'ERROR',
+                    CRITICAL: 'ERROR',
+                };
+                let levelStr = 'INFO';
+                if (typeof payload?.level === 'number') {
+                    const names = ['VERBOSE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'];
+                    const name = names[payload.level] || 'INFO';
+                    levelStr = levelMap[name] || 'INFO';
+                }
+                else if (typeof payload?.level === 'string') {
+                    const name = String(payload.level).toUpperCase();
+                    levelStr = levelMap[name] || 'INFO';
+                }
+                const moduleName = payload?.module || 'WebClient';
+                const message = payload?.message || 'client-log';
+                const userId = payload?.userId || undefined;
+                const timestamp = payload?.timestamp ? new Date(payload.timestamp) : new Date();
+                await this.database.systemLog.create({
+                    data: {
+                        level: levelStr,
+                        message,
+                        module: moduleName,
+                        userId,
+                        timestamp,
+                        metadata: {
+                            source: 'web-client',
+                            sessionId: payload?.sessionId,
+                            performance: payload?.performanceMetrics,
+                            data: payload?.data,
+                            userAgent: meta?.userAgent,
+                            ip: meta?.ip,
+                        },
+                    }
+                });
+            }
+            catch (dbError) {
+                this.logger.warn('Failed to persist client log to DB', dbError);
+            }
+        }
+        catch (error) {
+            this.logger.error('Failed to write client log', error);
+        }
     }
     async getMetrics(query = {}) {
         try {
@@ -65,6 +164,10 @@ let MonitoringService = MonitoringService_1 = class MonitoringService {
             }
             if (query.userId) {
                 whereClause.userId = query.userId;
+            }
+            if (query.q) {
+                ;
+                whereClause.message = { contains: query.q, mode: 'insensitive' };
             }
             const [totalLogs, errorLogs, warningLogs, recentLogs] = await Promise.all([
                 this.database.systemLog.count({ where: whereClause }),
@@ -693,18 +796,45 @@ let MonitoringService = MonitoringService_1 = class MonitoringService {
         }
         return this.getMetrics({ startDate, endDate });
     }
-    async exportData(query, format = 'csv') {
+    async exportData(query, format = 'csv', resource = 'all') {
         const data = await this.getMetrics(query);
         switch (format) {
             case 'csv':
-                return this.generateCSV(data);
+                return resource === 'logs' ? this.generateLogsCSV(data) : this.generateCSV(data);
             case 'json':
-                return JSON.stringify(data, null, 2);
+                return JSON.stringify(resource === 'logs' ? { logs: data.logs } : data, null, 2);
             case 'excel':
-                return this.generateExcel(data);
+                return resource === 'logs' ? this.generateLogsExcel(data) : this.generateExcel(data);
             default:
                 throw new Error(`不支持的导出格式: ${format}`);
         }
+    }
+    generateLogsCSV(data) {
+        try {
+            const headers = ['id', 'level', 'module', 'message', 'timestamp', 'userId'].join(',');
+            const rows = [headers];
+            (data.logs.recentEntries || []).forEach((e) => {
+                const row = [
+                    e.id || '',
+                    (e.level || '').toUpperCase(),
+                    e.context || '',
+                    (String(e.message || '').replace(/\n|\r|,/g, ' ')),
+                    new Date(e.timestamp).toISOString(),
+                    e.metadata?.userId || ''
+                ].join(',');
+                rows.push(row);
+            });
+            return rows.join('\n');
+        }
+        catch (error) {
+            this.logger.error('Failed to generate Logs CSV', error);
+            return 'id,level,module,message,timestamp\n,,';
+        }
+    }
+    generateLogsExcel(data) {
+        const csv = this.generateLogsCSV(data);
+        const header = `# Logs Export\n# Generated: ${new Date().toISOString()}\n\n`;
+        return Buffer.from(header + csv, 'utf8');
     }
     generateCSV(data) {
         try {

@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const useStandalone = process.env.PLAYWRIGHT_WEB_STANDALONE !== 'false';
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
@@ -12,12 +14,16 @@ export default defineConfig({
     ['json', { outputFile: 'playwright-results.json' }]
   ],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3005',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     headless: true,
     viewport: { width: 1280, height: 720 },
+    env: {
+      NEXT_PUBLIC_ENABLE_TESTNET: 'true',
+      NEXT_PUBLIC_ENABLE_DEBUG: 'true',
+    },
     launchOptions: {
       args: ['--verbose', '--enable-logging=stderr', '--v=1'],
       logger: {
@@ -34,10 +40,29 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     }
   ],
-  // Expect an already running server; this avoids sandbox port issues
-  webServer: {
-    command: 'echo "Using existing server"',
-    port: 3000,
-    reuseExistingServer: true,
-  },
+  // Start a dedicated web server for e2e to avoid stale builds
+  webServer: useStandalone
+    ? {
+        // Start Next.js standalone output from custom dist dir
+        command: 'sh -c "cd apps/web && pnpm build && PORT=3005 node dist/standalone/apps/web/server.js"',
+        port: 3005,
+        reuseExistingServer: false,
+        timeout: 120000,
+        env: {
+          NEXT_PUBLIC_ENABLE_TESTNET: 'true',
+          NEXT_PUBLIC_ENABLE_DEBUG: 'true',
+          PORT: '3005',
+        },
+      }
+    : {
+        // Fallback to next start for environments where standalone causes issues
+        command: 'sh -c "cd apps/web && pnpm build && pnpm start -p 3005"',
+        port: 3005,
+        reuseExistingServer: false,
+        timeout: 120000,
+        env: {
+          NEXT_PUBLIC_ENABLE_TESTNET: 'true',
+          NEXT_PUBLIC_ENABLE_DEBUG: 'true',
+        },
+      },
 });

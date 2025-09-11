@@ -23,6 +23,81 @@ export class MonitoringService {
   ) {}
 
   /**
+   * 简易前端日志采集：将上报数据写入按日分割的文件，避免影响主流程
+   */
+  async ingestClientLog(payload: any, meta?: { userAgent?: string; ip?: string }) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const date = new Date().toISOString().split('T')[0]
+      const logsDir = path.resolve(process.cwd(), 'logs')
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true })
+      }
+
+      const line = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        source: 'web-client',
+        userAgent: meta?.userAgent,
+        ip: meta?.ip,
+        payload,
+      }) + '\n'
+
+      await fs.promises.appendFile(path.join(logsDir, `client-logs-${date}.log`), line)
+
+      // 入库（SystemLog），便于在监控界面筛选检索
+      try {
+        const levelMap: Record<string, string> = {
+          VERBOSE: 'DEBUG', // SystemLog 不存 VERBOSE/CRITICAL，映射到邻近级别
+          DEBUG: 'DEBUG',
+          INFO: 'INFO',
+          WARN: 'WARN',
+          ERROR: 'ERROR',
+          CRITICAL: 'ERROR',
+        }
+
+        // 解析 level
+        let levelStr = 'INFO'
+        if (typeof payload?.level === 'number') {
+          const names = ['VERBOSE','DEBUG','INFO','WARN','ERROR','CRITICAL']
+          const name = names[payload.level] || 'INFO'
+          levelStr = levelMap[name] || 'INFO'
+        } else if (typeof payload?.level === 'string') {
+          const name = String(payload.level).toUpperCase()
+          levelStr = levelMap[name] || 'INFO'
+        }
+
+        const moduleName = payload?.module || 'WebClient'
+        const message = payload?.message || 'client-log'
+        const userId = payload?.userId || undefined
+        const timestamp = payload?.timestamp ? new Date(payload.timestamp) : new Date()
+
+        await this.database.systemLog.create({
+          data: {
+            level: levelStr,
+            message,
+            module: moduleName,
+            userId,
+            timestamp,
+            metadata: {
+              source: 'web-client',
+              sessionId: payload?.sessionId,
+              performance: payload?.performanceMetrics,
+              data: payload?.data,
+              userAgent: meta?.userAgent,
+              ip: meta?.ip,
+            } as any,
+          }
+        })
+      } catch (dbError) {
+        this.logger.warn('Failed to persist client log to DB', dbError as any)
+      }
+    } catch (error) {
+      this.logger.error('Failed to write client log', error as any)
+    }
+  }
+
+  /**
    * 获取监控综合指标
    */
   async getMetrics(query: MonitoringQuery = {}): Promise<MonitoringMetrics> {
@@ -74,6 +149,11 @@ export class MonitoringService {
       
       if (query.userId) {
         whereClause.userId = query.userId
+      }
+
+      if (query.q) {
+        // 模糊搜索 message，忽略大小写
+        ;(whereClause as any).message = { contains: query.q, mode: 'insensitive' }
       }
 
       const [totalLogs, errorLogs, warningLogs, recentLogs] = await Promise.all([
@@ -807,20 +887,48 @@ export class MonitoringService {
   /**
    * 导出监控数据
    */
-  async exportData(query: MonitoringQuery, format: 'csv' | 'json' | 'excel' = 'csv') {
+  async exportData(query: MonitoringQuery, format: 'csv' | 'json' | 'excel' = 'csv', resource: 'all' | 'logs' = 'all') {
     const data = await this.getMetrics(query)
     
     // Export functionality implemented below
     switch (format) {
       case 'csv':
-        return this.generateCSV(data)
+        return resource === 'logs' ? this.generateLogsCSV(data) : this.generateCSV(data)
       case 'json':
-        return JSON.stringify(data, null, 2)
+        return JSON.stringify(resource === 'logs' ? { logs: data.logs } : data, null, 2)
       case 'excel':
-        return this.generateExcel(data)
+        return resource === 'logs' ? this.generateLogsExcel(data) : this.generateExcel(data)
       default:
         throw new Error(`不支持的导出格式: ${format}`)
     }
+  }
+
+  private generateLogsCSV(data: MonitoringMetrics): string {
+    try {
+      const headers = ['id','level','module','message','timestamp','userId'].join(',')
+      const rows = [headers]
+      ;(data.logs.recentEntries || []).forEach((e: any) => {
+        const row = [
+          e.id || '',
+          (e.level || '').toUpperCase(),
+          e.context || '',
+          (String(e.message || '').replace(/\n|\r|,/g,' ')),
+          new Date(e.timestamp).toISOString(),
+          e.metadata?.userId || ''
+        ].join(',')
+        rows.push(row)
+      })
+      return rows.join('\n')
+    } catch (error: unknown) {
+      this.logger.error('Failed to generate Logs CSV', error)
+      return 'id,level,module,message,timestamp\n,,'
+    }
+  }
+
+  private generateLogsExcel(data: MonitoringMetrics): Buffer {
+    const csv = this.generateLogsCSV(data)
+    const header = `# Logs Export\n# Generated: ${new Date().toISOString()}\n\n`
+    return Buffer.from(header + csv, 'utf8')
   }
 
   private generateCSV(data: MonitoringMetrics): string {

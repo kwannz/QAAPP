@@ -73,72 +73,113 @@ function isWeb3Active(): boolean {
 
 // 安全的useChainId hook
 export function useSafeChainId(): number | undefined {
-  const chainId = useChainId();
-  return chainId;
+  try {
+    const chainId = useChainId();
+    return chainId;
+  } catch {
+    return undefined;
+  }
 }
 
 // 安全的useSwitchChain hook
 export function useSafeSwitchChain() {
-  return useSwitchChain();
+  try {
+    return useSwitchChain();
+  } catch {
+    return { switchChain: () => {}, isPending: false } as any;
+  }
 }
 
 // 安全的useAccount hook
 export function useSafeAccount() {
-  // 始终调用 Hook；MockWagmiProvider 在无真实 Provider 时兜底
-  const account = useAccount();
-  if (!isWeb3Active()) return { ...EMPTY_ACCOUNT, ...account } as any;
-  return account as any;
+  try {
+    // 尝试调用 wagmi 的 useAccount，如果未注入 Provider 会抛错
+    const account = useAccount();
+    if (!isWeb3Active()) return { ...EMPTY_ACCOUNT, ...account } as any;
+    return account as any;
+  } catch {
+    // 未提供 WagmiProvider 时，返回安全的空对象，避免 500 错误
+    return { ...EMPTY_ACCOUNT } as any;
+  }
 }
 
 // 安全的useBalance hook
 export function useSafeBalance(config?: { address?: string }) {
-  const result = useBalance({
-    address: config?.address as any,
-    query: {
-      enabled: Boolean(config?.address),
-      refetchInterval: 10_000,
-    },
-  } as any);
-  if (!config?.address || !isWeb3Active()) {
-    return { ...EMPTY_BALANCE, ...result } as any;
+  try {
+    const result = useBalance({
+      address: config?.address as any,
+      query: {
+        enabled: Boolean(config?.address),
+        refetchInterval: 10_000,
+      },
+    } as any);
+    if (!config?.address || !isWeb3Active()) {
+      return { ...EMPTY_BALANCE, ...result } as any;
+    }
+    return result as any;
+  } catch {
+    return { ...EMPTY_BALANCE } as any;
   }
-  return result as any;
 }
 
 // 安全的useConnect hook
 export function useSafeConnect() {
-  const res = useConnect();
-  if (!isWeb3Active()) return { ...EMPTY_CONNECT, ...res } as any;
-  return res as any;
+  try {
+    const res = useConnect();
+    if (!isWeb3Active()) return { ...EMPTY_CONNECT, ...res } as any;
+    return res as any;
+  } catch {
+    return { ...EMPTY_CONNECT } as any;
+  }
 }
 
 // 安全的useDisconnect hook
 export function useSafeDisconnect() {
-  const res = useDisconnect();
-  if (!isWeb3Active()) return { ...EMPTY_DISCONNECT, ...res } as any;
-  return res as any;
+  try {
+    const res = useDisconnect();
+    if (!isWeb3Active()) return { ...EMPTY_DISCONNECT, ...res } as any;
+    return res as any;
+  } catch {
+    return { ...EMPTY_DISCONNECT } as any;
+  }
 }
 
 // 安全的useEnsName hook
 export function useSafeEnsName(config?: { address?: string }) {
-  const res = useEnsName(config as any);
-  return res as any;
+  try {
+    const res = useEnsName(config as any);
+    return res as any;
+  } catch {
+    return { data: undefined, isLoading: false, isError: false } as any;
+  }
 }
 
 // 安全的useReadContract hook
 export function useSafeReadContract(config?: any) {
-  const res = useReadContract(config as any);
-  return res as any;
+  try {
+    const res = useReadContract(config as any);
+    return res as any;
+  } catch {
+    return { data: undefined, isLoading: false, isError: false } as any;
+  }
 }
 
 // 安全的useWriteContract hook
 export function useSafeWriteContract() {
-  const res = useWriteContract();
-  return res as any;
+  try {
+    const res = useWriteContract();
+    return res as any;
+  } catch {
+    return { writeContract: () => {}, isPending: false } as any;
+  }
 }
 
 // 安全的useWaitForTransactionReceipt hook
 export function useSafeWaitForTransactionReceipt(config?: { hash?: string }) {
-  const res = useWaitForTransactionReceipt(config as any);
-  return res as any;
+  try {
+    const res = useWaitForTransactionReceipt(config as any);
+    return res as any;
+  } catch {
+    return { data: undefined, isLoading: false } as any;
+  }
 }

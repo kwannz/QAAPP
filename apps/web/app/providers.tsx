@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ReactNode } from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SSRSafeToaster } from '../components/SSRSafeToaster';
 import { WebSocketProvider, WebSocketStatusIndicator } from '../components/providers/WebSocketProvider';
 import { AuthProvider } from '../lib/auth-context';
@@ -56,11 +56,6 @@ export function Providers({ children, cookies: _cookies }: ProvidersProperties) 
   // 确保QueryClient只创建一次
   const [queryClient] = useState(() => createQueryClient());
   const [_mounted, _setMounted] = useState(false);
-
-  // 解决SSR水合问题
-  useEffect(() => {
-    _setMounted(true);
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -45,7 +45,8 @@ export class MonitoringController {
       module: query.module,
       userId: query.userId,
       limit: query.limit,
-      offset: query.offset
+      offset: query.offset,
+      q: query.q
     }
 
     return this.monitoringService.getMetrics(monitoringQuery)
@@ -97,10 +98,34 @@ export class MonitoringController {
       level: query.level,
       module: query.module,
       limit: query.limit,
-      offset: query.offset
+      offset: query.offset,
+      q: query.q
     }
 
     return this.monitoringService.getLogs(monitoringQuery)
+  }
+
+  /**
+   * 前端日志采集入口（无鉴权，记录为系统日志文件；如需入库可在 MonitoringService 扩展）
+   * 接收来自 Web 的 sendBeacon/fetch 上报
+   */
+  @Post('logs')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async ingestLogs(
+    @Body() payload: any,
+    @Headers() headers: Record<string, string>
+  ) {
+    try {
+      await this.monitoringService.ingestClientLog(payload, {
+        userAgent: headers['user-agent'],
+        ip: headers['x-forwarded-for'] || headers['cf-connecting-ip'] || headers['x-real-ip'] || 'unknown',
+      })
+      return { status: 'ok' }
+    } catch (error) {
+      // 采集失败不抛出到客户端，返回接受状态
+      this.monitoringService['logger'].error('Failed to ingest client log', error as any)
+      return { status: 'ignored' }
+    }
   }
 
   /**
@@ -154,7 +179,8 @@ export class MonitoringController {
       startDate: query.startDate ? new Date(query.startDate) : undefined,
       endDate: query.endDate ? new Date(query.endDate) : undefined,
       limit: query.limit,
-      offset: query.offset
+      offset: query.offset,
+      q: query.q
     }
 
     return this.monitoringService.getAlerts(monitoringQuery)
@@ -182,7 +208,8 @@ export class MonitoringController {
       startDate: query.startDate ? new Date(query.startDate) : undefined,
       endDate: query.endDate ? new Date(query.endDate) : undefined,
       limit: query.limit,
-      offset: query.offset
+      offset: query.offset,
+      q: query.q
     }
 
     return this.monitoringService.getPerformanceData(monitoringQuery)
@@ -220,10 +247,11 @@ export class MonitoringController {
       startDate: exportDto.startDate ? new Date(exportDto.startDate) : undefined,
       endDate: exportDto.endDate ? new Date(exportDto.endDate) : undefined,
       level: exportDto.level,
-      module: exportDto.module
+      module: exportDto.module,
+      q: exportDto.q
     }
 
-    const data = await this.monitoringService.exportData(monitoringQuery, exportDto.format)
+    const data = await this.monitoringService.exportData(monitoringQuery, exportDto.format, exportDto.resource || 'all')
     
     const filename = `monitoring_${new Date().toISOString().split('T')[0]}.${exportDto.format}`
     

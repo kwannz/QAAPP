@@ -34,6 +34,9 @@ export declare class MonitoringController {
         page: number;
         limit: number;
     }>;
+    ingestLogs(payload: any, headers: Record<string, string>): Promise<{
+        status: string;
+    }>;
     getAuditLogs(query: GetMetricsDto, headers: Record<string, string>, res: Response): Promise<{
         logs: {
             id: string;

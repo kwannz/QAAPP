@@ -4,6 +4,7 @@ export declare class GetMetricsDto {
     level?: 'error' | 'warn' | 'info' | 'debug';
     module?: string;
     userId?: string;
+    q?: string;
     limit?: number;
     offset?: number;
 }
@@ -23,4 +24,6 @@ export declare class ExportDataDto {
     level?: 'error' | 'warn' | 'info' | 'debug';
     module?: string;
     format: 'csv' | 'json' | 'excel';
+    resource?: 'all' | 'logs';
+    q?: string;
 }

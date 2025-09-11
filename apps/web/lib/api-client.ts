@@ -180,6 +180,7 @@ export const monitoringApi = {
     level?: string;
     module?: string;
     userId?: string;
+    q?: string;
     limit?: number;
     offset?: number;
   }) => apiClient.get('/monitoring/metrics', { params: parameters }),
@@ -188,6 +189,15 @@ export const monitoringApi = {
     apiClient.get('/monitoring/dashboard', { params: { timeRange } }),
 
   getDeprecations: async () => apiClient.get('/monitoring/deprecations'),
+
+  exportData: async (body: {
+    startDate?: string
+    endDate?: string
+    level?: 'error' | 'warn' | 'info' | 'debug'
+    module?: string
+    format: 'csv' | 'json' | 'excel'
+    resource?: 'logs' | 'all'
+  }) => apiClient.post('/monitoring/export', body, { responseType: 'blob' }),
 };
 
 export const userApi = {

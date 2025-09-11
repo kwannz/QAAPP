@@ -12,6 +12,10 @@ export declare class MonitoringService {
     private optimizedQueries;
     private readonly logger;
     constructor(configService: ConfigService, database: DatabaseService, performanceOptimizer: PerformanceOptimizerService, optimizedQueries: OptimizedQueriesService);
+    ingestClientLog(payload: any, meta?: {
+        userAgent?: string;
+        ip?: string;
+    }): Promise<void>;
     getMetrics(query?: MonitoringQuery): Promise<MonitoringMetrics>;
     private getLogsMetrics;
     private getAuditMetrics;
@@ -130,7 +134,9 @@ export declare class MonitoringService {
         resolvedAt: Date | null;
     }>;
     getDashboardData(timeRange?: '1h' | '24h' | '7d' | '30d'): Promise<MonitoringMetrics>;
-    exportData(query: MonitoringQuery, format?: 'csv' | 'json' | 'excel'): Promise<string | Buffer<ArrayBufferLike>>;
+    exportData(query: MonitoringQuery, format?: 'csv' | 'json' | 'excel', resource?: 'all' | 'logs'): Promise<string | Buffer<ArrayBufferLike>>;
+    private generateLogsCSV;
+    private generateLogsExcel;
     private generateCSV;
     private generateExcel;
     getPerformanceOptimizationReport(): Promise<{
